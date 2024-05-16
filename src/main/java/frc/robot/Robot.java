@@ -21,7 +21,7 @@ public class Robot extends TimedRobot {
   private SendableChooser<Command> m_chooser = new SendableChooser<>();
 
   private Command getAutonomousCommand() {
-    
+    return m_chooser.getSelected();
   }
 
   private void configureBindings() {}
