@@ -5,9 +5,9 @@ on:
 
 jobs:
   format:
+    if: github.event.issue.pull_request && startsWith(github.event.comment.body, '/format')
     runs-on: ubuntu-latest
     container: wpilib/roborio-cross-ubuntu:2024-22.04
-    if: github.event.issue.pull_request && startsWith(github.event.comment.body, '/format')
     steps:
       - name: React Rocket
         uses: actions/github-script@v7
