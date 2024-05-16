@@ -8,22 +8,29 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.Shooter;
+import frc.robot.subsystems.Arm;
 
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
   private CommandXboxController m_driver;
+  private CommandXboxController m_codriver;
   private Shooter m_shooter;
   private Climber m_climber;
+  private Arm m_arm;
 
   private Command getAutonomousCommand() {
     return null;
   }
 
-  private void configureBindings() {}
+  private void configureBindings() {
+    // Bind the co-driver joystick axis to control the arm manually
+    m_arm.setDefaultCommand(m_arm.manualControl(() -> m_codriver.getLeftY()));
+  }
 
   @SuppressWarnings("removal")
   public Robot() {
     m_driver = new CommandXboxController(Constants.driverport);
+    m_codriver = new CommandXboxController(Constants.codriverport);
 
     m_shooter =
         new Shooter(
@@ -34,6 +41,12 @@ public class Robot extends TimedRobot {
         new Climber(
             new CANSparkMax(Constants.climberPort, CANSparkMaxLowLevel.MotorType.kBrushless));
     CommandScheduler.getInstance().registerSubsystem(m_climber);
+
+    m_arm =
+        new Arm(
+            new CANSparkMax(Constants.primaryMotorPort, CANSparkMaxLowLevel.MotorType.kBrushless),
+            new CANSparkMax(Constants.followerMotorPort, CANSparkMaxLowLevel.MotorType.kBrushless));
+    CommandScheduler.getInstance().registerSubsystem(m_arm);
 
     configureBindings();
   }
