@@ -1,7 +1,5 @@
 package frc.robot;
 
-import org.ejml.equation.Variable;
-
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel;
 import edu.wpi.first.wpilibj.TimedRobot;
