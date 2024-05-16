@@ -37,8 +37,10 @@ public class Robot extends TimedRobot {
         new Climber(
             new CANSparkMax(Constants.climberPort, CANSparkMaxLowLevel.MotorType.kBrushless));
     CommandScheduler.getInstance().registerSubsystem(m_climber);
+
     m_chooser.setDefaultOption("Simple Auto", m_shooter.spinup(1));
     SmartDashboard.putData(m_chooser);
+
     configureBindings();
   }
 
