@@ -1,8 +1,12 @@
 package frc.robot;
 
+import org.ejml.equation.Variable;
+
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -14,9 +18,10 @@ public class Robot extends TimedRobot {
   private CommandXboxController m_driver;
   private Shooter m_shooter;
   private Climber m_climber;
+  private SendableChooser<Command> m_chooser = new SendableChooser<>();
 
   private Command getAutonomousCommand() {
-    return null;
+    
   }
 
   private void configureBindings() {}
@@ -34,7 +39,8 @@ public class Robot extends TimedRobot {
         new Climber(
             new CANSparkMax(Constants.climberPort, CANSparkMaxLowLevel.MotorType.kBrushless));
     CommandScheduler.getInstance().registerSubsystem(m_climber);
-
+    m_chooser.setDefaultOption("Simple Auto", m_shooter.spinup(1));
+    SmartDashboard.putData(m_chooser);
     configureBindings();
   }
 
