@@ -64,8 +64,7 @@ public class Arm extends SubsystemBase {
    * @return A {@link Trigger} from the result.
    */
   public Trigger atSetpoint() {
-    return new Trigger(
-        () -> m_pid.atSetpoint());
+    return new Trigger(() -> m_pid.atSetpoint());
   }
 
   /**
