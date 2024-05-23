@@ -12,4 +12,7 @@ public final class Constants {
   public static final double climberI = 0;
   public static final double climberD = 0;
   public static final int intakePort = 35;
+  public static final double armP = 0.3;
+  public static final double armI = 0;
+  public static final double armD = 0;
 }
