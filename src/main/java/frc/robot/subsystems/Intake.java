@@ -13,13 +13,15 @@ public class Intake extends SubsystemBase {
   }
 
   public Command intake() {
-    return Commands.run(
-        () -> m_motor.setVoltage(10)).withTimeout(2).andThen(runOnce(() -> m_motor.setVoltage(0)));
+    return Commands.run(() -> m_motor.setVoltage(10))
+        .withTimeout(2)
+        .andThen(runOnce(() -> m_motor.setVoltage(0)));
   }
 
   public Command outake() {
-    return Commands.run(
-        () -> m_motor.setVoltage(-10)).withTimeout(4).andThen(runOnce(() -> m_motor.setVoltage(0)));
+    return Commands.run(() -> m_motor.setVoltage(-10))
+        .withTimeout(4)
+        .andThen(runOnce(() -> m_motor.setVoltage(0)));
   }
 
   public Command pass() {
