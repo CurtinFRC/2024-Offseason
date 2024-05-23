@@ -23,6 +23,7 @@ import frc.robot.subsystems.Shooter;
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
   private CommandXboxController m_driver;
+  private CommandXboxController m_codriver;
   private Shooter m_shooter;
   private Climber m_climber;
   private SendableChooser<Command> m_chooser = new SendableChooser<>();
@@ -86,6 +87,7 @@ public class Robot extends TimedRobot {
   @SuppressWarnings("removal")
   public Robot() {
     m_driver = new CommandXboxController(Constants.driverport);
+    m_codriver = new CommandXboxController(Constants.codriverport);
 
     m_shooter =
         new Shooter(
