@@ -17,14 +17,17 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
 
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
   private CommandXboxController m_driver;
+  private CommandXboxController m_codriver;
   private Shooter m_shooter;
   private Climber m_climber;
   private SendableChooser<Command> m_chooser = new SendableChooser<>();
+  private Intake m_intake;
 
   private Command getAutonomousCommand() {
     return m_chooser.getSelected();
@@ -84,6 +87,7 @@ public class Robot extends TimedRobot {
   @SuppressWarnings("removal")
   public Robot() {
     m_driver = new CommandXboxController(Constants.driverport);
+    m_codriver = new CommandXboxController(Constants.codriverport);
 
     m_shooter =
         new Shooter(
@@ -94,6 +98,10 @@ public class Robot extends TimedRobot {
         new Climber(
             new CANSparkMax(Constants.climberPort, CANSparkMaxLowLevel.MotorType.kBrushless));
     CommandScheduler.getInstance().registerSubsystem(m_climber);
+
+    m_intake =
+        new Intake(new CANSparkMax(Constants.intakePort, CANSparkMaxLowLevel.MotorType.kBrushless));
+    CommandScheduler.getInstance().registerSubsystem(m_intake);
 
     m_chooser.setDefaultOption("Simple Auto", m_shooter.spinup(1));
     SmartDashboard.putData(m_chooser);
