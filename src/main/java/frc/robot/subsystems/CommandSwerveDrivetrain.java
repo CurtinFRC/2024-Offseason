@@ -12,13 +12,19 @@ import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrainConstants;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Subsystem;
+import frc.robot.Constants;
 import java.util.function.Supplier;
 
 /**
@@ -27,6 +33,8 @@ import java.util.function.Supplier;
  */
 @SuppressWarnings("PMD.SingularField")
 public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsystem {
+  private NetworkTable m_limelight = NetworkTableInstance.getDefault().getTable("limelight");
+  private Pose3d m_botpose;
   private static final double kSimLoopPeriod = 0.005; // 5 ms
   private Notifier m_simNotifier;
   private double m_lastSimTime;
@@ -126,6 +134,47 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
                 hasAppliedOperatorPerspective = true;
               });
     }
+
+    if (DriverStation.getAlliance().isPresent()) {
+      double[] data;
+      if (DriverStation.getAlliance().get() == Alliance.Blue) {
+        data = m_limelight.getEntry("botpose_wpiblue").getDoubleArray(new double[6]);
+      } else {
+        data = m_limelight.getEntry("botpose_wpired").getDoubleArray(new double[6]);
+      }
+      m_botpose =
+          new Pose3d(
+              new Translation3d(data[0], data[1], data[2]),
+              new Rotation3d(data[4], data[5], data[6]));
+
+      if (reasonablePose(m_botpose)) {
+        addVisionMeasurement(m_botpose.toPose2d(), frc.robot.Utils.now());
+      }
+    }
+  }
+
+  private boolean reasonablePose(Pose3d pose) {
+    if (Math.abs(pose.getZ()) > 0.1) {
+      return false;
+    }
+
+    if (pose.getY() < 0) {
+      return false;
+    }
+
+    if (pose.getY() > Constants.fieldY) {
+      return false;
+    }
+
+    if (pose.getX() < 0) {
+      return false;
+    }
+
+    if (pose.getX() > Constants.fieldX) {
+      return false;
+    }
+
+    return true;
   }
 
   public Command followTrajectory(String name, boolean isRed) {
