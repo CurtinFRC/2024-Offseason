@@ -58,6 +58,14 @@ public class Robot extends TimedRobot {
   private final Telemetry logger = new Telemetry(MaxSpeed);
 
   private void configureBindings() {
+    m_codriver.leftBumper().whileTrue(m_intake.intake()).onFalse(m_intake.stop());
+    m_codriver.rightBumper().whileTrue(m_intake.outake()).onFalse(m_intake.stop());
+    m_codriver.x().whileTrue(m_arm.goToSetpoint(Arm.Setpoint.kSpeaker)).onFalse(m_arm.stop());
+    m_codriver.y().whileTrue(m_arm.goToSetpoint(Arm.Setpoint.kAmp)).onFalse(m_arm.stop());
+    m_codriver.leftTrigger(0.05).whileTrue(m_shooter.spinup(10)).onFalse(m_shooter.stop());
+    m_codriver.rightTrigger(0.05).whileTrue(m_shooter.spinup(1)).onFalse(m_shooter.stop());
+    m_codriver.b().onTrue(m_shooter.stop());
+
     drivetrain.setDefaultCommand( // Drivetrain will execute this command periodically
         drivetrain.applyRequest(
             () ->

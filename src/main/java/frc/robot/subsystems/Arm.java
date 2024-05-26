@@ -50,6 +50,10 @@ public class Arm extends SubsystemBase {
                         + m_pid.calculate(m_encoder.getAbsolutePosition() * 2 * 3.14, position))));
   }
 
+  public Command stop() {
+      return runOnce(() -> m_primaryMotor.set(0));
+  }
+
   /**
    * Moves the arm to the specified position then stops.
    *

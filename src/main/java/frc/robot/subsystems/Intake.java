@@ -18,6 +18,10 @@ public class Intake extends SubsystemBase {
         .andThen(runOnce(() -> m_motor.setVoltage(0)));
   }
 
+  public Command stop() {
+      return runOnce(() -> m_motor.set(0));
+  }
+
   public Command outake() {
     return Commands.run(() -> m_motor.setVoltage(-4))
         .withTimeout(4)
