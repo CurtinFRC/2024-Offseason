@@ -1,10 +1,10 @@
 package frc.robot.subsystems;
 
 import com.revrobotics.CANSparkMax;
-import com.revrobotics.RelativeEncoder;
-
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -12,39 +12,50 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
 import java.util.function.DoubleSupplier;
 
-enum Setpoint {
-  kAmpAngle,
-  kIntakeAngle,
-  kSpeakerAngle,
-  kStowed
-}
-
 /** Our Arm Subsystem */
 public class Arm extends SubsystemBase {
+  public enum Setpoint {
+    kAmp,
+    kIntake,
+    kSpeaker,
+    kStowed
+  }
+
   private PIDController m_pid;
   private CANSparkMax m_primaryMotor;
-  private RelativeEncoder m_encoder;
+  private DutyCycleEncoder m_encoder;
   private ArmFeedforward m_feedforward;
 
   /**
    * Creates a new {@link Arm} {@link edu.wpi.first.wpilibj2.command.Subsystem}.
    *
    * @param primaryMotor The primary motor that controls the arm.
-   * @param followerMotor The motor that follows the primary motor.
    */
   public Arm(CANSparkMax primaryMotor) {
     m_primaryMotor = primaryMotor;
 
-    m_encoder = m_primaryMotor.getEncoder();
+    m_encoder = new DutyCycleEncoder(Constants.armEncoderPort);
     m_pid = new PIDController(Constants.armP, Constants.armI, Constants.armD);
-    m_pid.setTolerance(0.2, 0.5);
-    // m_feedforward = new ArmFeedforward(kS, kG, kV, kA);
+    m_pid.setTolerance(0.2);
+    m_feedforward =
+        new ArmFeedforward(Constants.armS, Constants.armG, Constants.armV, Constants.armA);
+  }
+
+  @Override
+  public void periodic() {
+    var pos = m_encoder.getAbsolutePosition() * 2 * 3.14;
+    NetworkTableInstance.getDefault().getEntry("/arm/encoderpos").setDouble(pos);
   }
 
   /** Achieves and maintains speed for the primary motor. */
   private Command achievePosition(double position) {
     return Commands.run(
-        () -> m_primaryMotor.setVoltage(m_feedforward.calculate(position, (5676/250)-5) + m_pid.calculate(m_encoder.getPosition(), position)));
+        () -> {
+            NetworkTableInstance.getDefault().getEntry("/arm/output").setDouble(m_pid.calculate(m_encoder.getAbsolutePosition() * 2 * 3.14, position) * -1);
+          m_primaryMotor.setVoltage(
+              -1 * (m_feedforward.calculate(position, (5676 / 250))
+                  + m_pid.calculate(m_encoder.getAbsolutePosition() * 2 * 3.14, position)));
+        });
   }
 
   /**
@@ -54,7 +65,11 @@ public class Arm extends SubsystemBase {
    * @return a {@link Command} to get to the desired position.
    */
   private Command moveToPosition(double position) {
-    return achievePosition(position).until(m_pid::atSetpoint);
+    return achievePosition(position)
+        .until(
+            () ->
+              m_pid.atSetpoint() && m_encoder.getAbsolutePosition() * 2 * 3.14 == position
+            );
   }
 
   /**
@@ -82,7 +97,7 @@ public class Arm extends SubsystemBase {
    * @return A {@link Command} to control the arm manually.
    */
   public Command manualControl(DoubleSupplier speed) {
-    return Commands.run(() -> m_primaryMotor.set(speed.getAsDouble()));
+    return Commands.run(() -> m_primaryMotor.set(speed.getAsDouble()), this);
   }
 
   /*
@@ -93,32 +108,25 @@ public class Arm extends SubsystemBase {
    */
   public Command goToSetpoint(Setpoint setpoint) {
     double position = 0;
+
     switch (setpoint) {
-      case kAmpAngle:
-      {
-        position = -2.17;
+      case kAmp:
+        position = 5.34;
         break;
-      }
 
-      case kIntakeAngle:
-      {
-        position = -0.48;
+      case kIntake:
+        position = 3.7;
         break;
-      }
 
-      case kSpeakerAngle:
-      {
-        position = -0.82;
+      case kSpeaker:
+        position = 3.7;
         break;
-      }
 
       case kStowed:
-      {
-        position = -0.52;
+        position = 3.7;
         break;
-      }
     }
-    
+
     return moveToPosition(position);
   }
 }
