@@ -12,4 +12,6 @@ public final class Constants {
   public static final double climberI = 0;
   public static final double climberD = 0;
   public static final int intakePort = 35;
+  public static final int upperElevatorPort = 35;
+  public static final int lowerElevatorPort = 35;
 }
