@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import frc.robot.autos.OneNote;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
@@ -26,11 +27,13 @@ public class Robot extends TimedRobot {
   private CommandXboxController m_codriver;
   private Shooter m_shooter;
   private Climber m_climber;
-  private SendableChooser<Command> m_chooser = new SendableChooser<>();
+  private SendableChooser<Auto> m_chooser = new SendableChooser<>();
   private Intake m_intake;
 
   private Command getAutonomousCommand() {
-    return m_chooser.getSelected();
+    Auto auto = m_chooser.getSelected();
+    auto.configureBindings();
+    return auto.followTrajectory();
   }
 
   private double MaxSpeed =
@@ -103,7 +106,7 @@ public class Robot extends TimedRobot {
         new Intake(new CANSparkMax(Constants.intakePort, CANSparkMaxLowLevel.MotorType.kBrushless));
     CommandScheduler.getInstance().registerSubsystem(m_intake);
 
-    m_chooser.setDefaultOption("Simple Auto", m_shooter.spinup(1));
+    m_chooser.setDefaultOption("One Note", new OneNote(m_shooter, m_intake));
     SmartDashboard.putData(m_chooser);
 
     configureBindings();
