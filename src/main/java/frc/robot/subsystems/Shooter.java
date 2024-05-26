@@ -29,10 +29,13 @@ public class Shooter extends SubsystemBase {
 
   /** Acheives and maintains speed. */
   private Command achieveSpeeds(double speed) {
+    m_pid.reset();
+    m_pid.setSetpoint(speed);
     return Commands.run(
         () ->
             m_motor.setVoltage(
-                m_pid.calculate(Units.rotationsToRadians(m_encoder.getVelocity()), speed)));
+                m_pid.calculate(
+                    -1 * Units.rotationsPerMinuteToRadiansPerSecond(m_encoder.getVelocity()))));
   }
 
   /**
@@ -66,7 +69,8 @@ public class Shooter extends SubsystemBase {
   public Trigger atSetpoint() {
     return new Trigger(
         () ->
-            m_pid.getSetpoint() == Units.rotationsToRadians(m_encoder.getVelocity())
+            m_pid.getSetpoint()
+                    == Units.rotationsPerMinuteToRadiansPerSecond(m_encoder.getVelocity())
                 && m_pid.atSetpoint());
   }
 }
