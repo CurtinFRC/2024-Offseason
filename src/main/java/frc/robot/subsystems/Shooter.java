@@ -25,7 +25,6 @@ public class Shooter extends SubsystemBase {
     m_motor = motor;
     m_encoder = m_motor.getEncoder();
     m_pid = new PIDController(Constants.shooterP, Constants.shooterI, Constants.shooterD);
-    m_pid.setTolerance(0.2, 0.5);
   }
 
   /** Acheives and maintains speed. */
@@ -44,6 +43,10 @@ public class Shooter extends SubsystemBase {
    */
   public Command spinup(double speed) {
     return achieveSpeeds(speed).until(m_pid::atSetpoint);
+  }
+
+  public Command stop() {
+    return runOnce(() -> m_motor.set(0));
   }
 
   /**
