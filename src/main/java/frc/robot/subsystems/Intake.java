@@ -19,7 +19,7 @@ public class Intake extends SubsystemBase {
   }
 
   public Command stop() {
-      return runOnce(() -> m_motor.set(0));
+    return runOnce(() -> m_motor.set(0));
   }
 
   public Command outake() {

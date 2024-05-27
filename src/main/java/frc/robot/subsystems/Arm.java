@@ -51,7 +51,7 @@ public class Arm extends SubsystemBase {
   }
 
   public Command stop() {
-      return runOnce(() -> m_primaryMotor.set(0));
+    return runOnce(() -> m_primaryMotor.set(0));
   }
 
   /**
