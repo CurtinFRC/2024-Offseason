@@ -3,7 +3,6 @@ package frc.robot.subsystems;
 import com.revrobotics.CANSparkMax;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -41,25 +40,18 @@ public class Arm extends SubsystemBase {
         new ArmFeedforward(Constants.armS, Constants.armG, Constants.armV, Constants.armA);
   }
 
-  @Override
-  public void periodic() {
-    var pos = m_encoder.getAbsolutePosition() * 2 * 3.14;
-    NetworkTableInstance.getDefault().getEntry("/arm/encoderpos").setDouble(pos);
-  }
-
   /** Achieves and maintains speed for the primary motor. */
   private Command achievePosition(double position) {
     return Commands.run(
-        () -> {
-          NetworkTableInstance.getDefault()
-              .getEntry("/arm/output")
-              .setDouble(
-                  m_pid.calculate(m_encoder.getAbsolutePosition() * 2 * 3.14, position) * -1);
-          m_primaryMotor.setVoltage(
-              -1
-                  * (m_feedforward.calculate(position, (5676 / 250))
-                      + m_pid.calculate(m_encoder.getAbsolutePosition() * 2 * 3.14, position)));
-        });
+        () ->
+            m_primaryMotor.setVoltage(
+                -1
+                    * (m_feedforward.calculate(position, (5676 / 250))
+                        + m_pid.calculate(m_encoder.getAbsolutePosition() * 2 * 3.14, position))));
+  }
+
+  public Command stop() {
+    return runOnce(() -> m_primaryMotor.set(0));
   }
 
   /**
