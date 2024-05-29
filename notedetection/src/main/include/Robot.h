@@ -6,9 +6,11 @@
 
 #include <frc/TimedRobot.h>
 
+#include <opencv2/opencv.hpp>
+
 class Robot : public frc::TimedRobot {
  public:
-  void RobotInit() override;
+  Robot();
   void RobotPeriodic() override;
 
   void AutonomousInit() override;
@@ -25,4 +27,8 @@ class Robot : public frc::TimedRobot {
 
   void SimulationInit() override;
   void SimulationPeriodic() override;
+
+ private:
+  cv::VideoCapture camerastream;
+  cv::Mat currentframe;
 };

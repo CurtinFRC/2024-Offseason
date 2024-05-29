@@ -4,8 +4,25 @@
 
 #include "Robot.h"
 
-void Robot::RobotInit() {}
-void Robot::RobotPeriodic() {}
+#include <iostream>
+
+Robot::Robot() {}
+
+void Robot::RobotPeriodic() {
+  if (!camerastream.open(0)) {
+    std::cerr << "Couldn't open camera stream\n";
+    return;
+  }
+
+  camerastream.read(currentframe);
+
+  if (currentframe.empty()) {
+    std::cerr << "Read empty frame\n";
+    return;
+  }
+
+  cv::imshow("Current Frame", currentframe);
+}
 
 void Robot::AutonomousInit() {}
 void Robot::AutonomousPeriodic() {}
