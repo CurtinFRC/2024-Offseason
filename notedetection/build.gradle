@@ -1,0 +1,80 @@
+import edu.wpi.first.deployutils.deploy.target.RemoteTarget
+import edu.wpi.first.toolchain.NativePlatforms
+
+apply plugin: 'cpp'
+apply plugin: 'edu.wpi.first.GradleRIO'
+
+deploy {
+    targets {
+        visionCoprocessor(RemoteTarget) {
+            directory = '/home/jade/notedetection'
+            maxChannels = 2
+            timeout = 5
+
+            locations {
+                ssh(getLocationTypeClass('SshDeployLocation')) {
+                    address = "notedetectionrpi.local"
+                    user = 'jade'
+                    password = '4788'
+                    ipv6 = false
+                }
+            }
+
+            artifacts {
+                all {
+                    directory = 'artifacts'
+                    dependsOn('compile')
+                }
+
+                staticFileDeploy(getArtifactTypeClass('FileTreeArtifact')) {
+                    files = fileTree(dir: "$rootDir/notedetection/src/main/deploy")
+                }
+
+                notedetection(getArtifactTypeClass('NativeExecutableArtifact')) {
+                }
+
+                permission(getArtifactTypeClass('CommandArtifact')) {
+                    dependsOn("staticFileDeploy")
+                    dependsOn("notedetection")
+                    command = "chmod +x ./*"
+                }
+
+                killRobotProgram(getArtifactTypeClass('CommandArtifact')) {
+                    command = "pkill notedetection"
+                }
+
+                startRobotProgram(getArtifactTypeClass('CommandArtifact')) {
+                    dependsOn("staticFileDeploy")
+                    dependsOn("notedetection")
+                    dependsOn("killRobotProgram")
+                    command = "./notedetection"
+                }
+            }
+        }
+    }
+}
+
+model {
+    components {
+        notedetectionBinary(NativeExecutableSpec) {
+            targetPlatform NativePlatforms.desktop
+            targetPlatform NativePlatforms.arm64arch;
+
+            sources.cpp {
+                source {
+                    srcDir 'src/main/cpp'
+                }
+                exportedHeaders {
+                    srcDir 'src/main/include'
+                }
+            }
+
+            // Defining my dependencies. In this case, WPILib (+ friends), and vendor libraries.
+            wpi.cpp.vendor.cpp(it)
+            wpi.cpp.deps.wpilib(it)
+        }
+    }
+}
+
+nativeUtils.wpi.addWarnings()
+nativeUtils.wpi.addWarningsAsErrors()
