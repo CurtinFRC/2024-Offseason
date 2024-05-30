@@ -58,7 +58,7 @@ model {
     components {
         notedetectionBinary(NativeExecutableSpec) {
             targetPlatform NativePlatforms.desktop
-            targetPlatform NativePlatforms.arm64arch;
+            //targetPlatform NativePlatforms.arm64arch;
 
             sources.cpp {
                 source {
