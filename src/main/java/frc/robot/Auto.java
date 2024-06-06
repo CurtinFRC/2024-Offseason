@@ -7,3 +7,4 @@ public interface Auto {
 
   public Command followTrajectory();
 }
+  
