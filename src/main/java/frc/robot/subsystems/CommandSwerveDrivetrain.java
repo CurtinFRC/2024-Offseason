@@ -12,6 +12,7 @@ import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrainConstants;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -79,6 +80,10 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     return run(() -> this.setControl(requestSupplier.get()));
   }
 
+  public Pose2d getPose() {
+    return m_odometry.getEstimatedPosition();
+  }
+
   private void startSimThread() {
     m_lastSimTime = Utils.getCurrentTimeSeconds();
 
@@ -140,5 +145,10 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         (speeds) -> setControl(new SwerveRequest.ApplyChassisSpeeds().withSpeeds(speeds)),
         () -> isRed,
         this);
+  }
+
+  @Override
+  public void simulationPeriodic() {
+    updateSimState(0.020, RobotController.getBatteryVoltage());
   }
 }
