@@ -9,6 +9,7 @@ import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -33,6 +34,7 @@ public class Robot extends TimedRobot {
 
   private SendableChooser<Auto> m_chooser = new SendableChooser<>();
   private Command m_autonomousCommand;
+  private Field2d m_fieldSim = new Field2d();
 
   private final SwerveRequest.FieldCentric drive =
       new SwerveRequest.FieldCentric()
@@ -59,7 +61,6 @@ public class Robot extends TimedRobot {
   public Robot() {
     DataLogManager.start();
     DriverStation.startDataLog(DataLogManager.getLog());
-
     drivetrain.registerTelemetry(logger::telemeterize);
 
     CommandScheduler.getInstance().registerSubsystem(m_arm);
@@ -69,7 +70,9 @@ public class Robot extends TimedRobot {
 
     m_chooser.addOption("One Note", new OneNote(m_shooter, m_intake));
     m_chooser.setDefaultOption("One Note", new OneNote(m_shooter, m_intake));
+
     SmartDashboard.putData(m_chooser);
+    SmartDashboard.putData("FieldSim", m_fieldSim);
 
     configureBindings();
   }
@@ -115,6 +118,14 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopExit() {}
+
+  @Override
+  public void simulationInit() {}
+
+  @Override
+  public void simulationPeriodic() {
+    m_fieldSim.setRobotPose(drivetrain.getPose());
+  }
 
   @Override
   public void testInit() {
