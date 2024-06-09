@@ -19,6 +19,7 @@ import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
+import frc.robot.subsystems.elevator;
 
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
@@ -28,6 +29,7 @@ public class Robot extends TimedRobot {
   private Climber m_climber;
   private SendableChooser<Command> m_chooser = new SendableChooser<>();
   private Intake m_intake;
+  private elevator m_elevator;
 
   private Command getAutonomousCommand() {
     return m_chooser.getSelected();
@@ -105,6 +107,9 @@ public class Robot extends TimedRobot {
 
     m_chooser.setDefaultOption("Simple Auto", m_shooter.spinup(1));
     SmartDashboard.putData(m_chooser);
+
+    m_elevator =
+      new elevator(new CANSparkMax(Constants.upperElevatorPort, CANSparkMaxLowLevel.MotorType.kBrushless), new CANSparkMax(Constants.lowerElevatorPort, CANSparkMaxLowLevel.MotorType.kBrushless));
 
     configureBindings();
   }
