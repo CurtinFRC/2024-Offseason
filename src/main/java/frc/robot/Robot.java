@@ -1,3 +1,7 @@
+// Copyright (c) 2024 CurtinFRC
+// Open Source Software, you can modify it according to the terms
+// of the MIT License at the root of this project
+
 package frc.robot;
 
 import com.ctre.phoenix6.Utils;
@@ -14,7 +18,9 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import frc.robot.autos.OneNote;
 import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Intake;
@@ -30,13 +36,16 @@ public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
   private CommandXboxController m_driver;
   private CommandXboxController m_codriver;
+  private Arm m_arm;
   private Shooter m_shooter;
   private Climber m_climber;
-  private SendableChooser<Command> m_chooser = new SendableChooser<>();
+  private SendableChooser<Auto> m_chooser = new SendableChooser<>();
   private Intake m_intake;
 
   private Command getAutonomousCommand() {
-    return m_chooser.getSelected();
+    Auto auto = m_chooser.getSelected();
+    auto.configureBindings();
+    return auto.followTrajectory();
   }
 
   private double MaxSpeed =
@@ -95,6 +104,13 @@ public class Robot extends TimedRobot {
     m_driver = new CommandXboxController(Constants.driverport);
     m_codriver = new CommandXboxController(Constants.codriverport);
 
+    var armLead = new CANSparkMax(Constants.armLeadPort, CANSparkMaxLowLevel.MotorType.kBrushless);
+    var armFollower =
+        new CANSparkMax(Constants.armFollowerPort, CANSparkMaxLowLevel.MotorType.kBrushless);
+    armFollower.follow(armLead);
+    m_arm = new Arm(armLead);
+    CommandScheduler.getInstance().registerSubsystem(m_arm);
+
     m_shooter =
         new Shooter(
             new CANSparkMax(Constants.shooterPort, CANSparkMaxLowLevel.MotorType.kBrushless));
@@ -109,7 +125,7 @@ public class Robot extends TimedRobot {
         new Intake(new CANSparkMax(Constants.intakePort, CANSparkMaxLowLevel.MotorType.kBrushless));
     CommandScheduler.getInstance().registerSubsystem(m_intake);
 
-    m_chooser.setDefaultOption("Simple Auto", m_shooter.spinup(1));
+    m_chooser.setDefaultOption("One Note", new OneNote(m_shooter, m_intake));
     SmartDashboard.putData(m_chooser);
 
     configureBindings();

@@ -1,3 +1,7 @@
+// Copyright (c) 2024 CurtinFRC
+// Open Source Software, you can modify it according to the terms
+// of the MIT License at the root of this project
+
 package frc.robot.subsystems;
 
 import com.revrobotics.CANSparkMax;
@@ -36,15 +40,17 @@ public class Shooter extends SubsystemBase {
     shooter_encoder_pos.append(m_encoder.getPosition());
     shooter_encoder_vel.append(m_encoder.getVelocity());
     m_pid = new PIDController(Constants.shooterP, Constants.shooterI, Constants.shooterD);
-    m_pid.setTolerance(0.2, 0.5);
   }
 
   /** Acheives and maintains speed. */
   private Command achieveSpeeds(double speed) {
+    m_pid.reset();
+    m_pid.setSetpoint(speed);
     return Commands.run(
         () ->
             m_motor.setVoltage(
-                m_pid.calculate(Units.rotationsToRadians(m_encoder.getVelocity()), speed)));
+                m_pid.calculate(
+                    -1 * Units.rotationsPerMinuteToRadiansPerSecond(m_encoder.getVelocity()))));
   }
 
   /**
@@ -55,6 +61,10 @@ public class Shooter extends SubsystemBase {
    */
   public Command spinup(double speed) {
     return achieveSpeeds(speed).until(m_pid::atSetpoint);
+  }
+
+  public Command stop() {
+    return runOnce(() -> m_motor.set(0));
   }
 
   /**
@@ -74,7 +84,8 @@ public class Shooter extends SubsystemBase {
   public Trigger atSetpoint() {
     return new Trigger(
         () ->
-            m_pid.getSetpoint() == Units.rotationsToRadians(m_encoder.getVelocity())
+            m_pid.getSetpoint()
+                    == Units.rotationsPerMinuteToRadiansPerSecond(m_encoder.getVelocity())
                 && m_pid.atSetpoint());
   }
 }
