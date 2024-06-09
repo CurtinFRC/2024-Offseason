@@ -1,3 +1,7 @@
+// Copyright (c) 2024 CurtinFRC
+// Open Source Software, you can modify it according to the terms
+// of the MIT License at the root of this project
+
 package frc.robot.autos;
 
 import com.choreo.lib.Choreo;
@@ -26,9 +30,5 @@ public class OneNote implements Auto {
             m_shooter
                 .spinup(300)
                 .andThen(Commands.parallel(m_intake.pass(), m_shooter.maintain())));
-    Choreo.event("intake")
-        .onTrue(m_intake.intake());
-    Choreo.event("outake")
-        .onTrue(m_intake.outake());
   }
 }
