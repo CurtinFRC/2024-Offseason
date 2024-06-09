@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import frc.robot.autos.OneNote;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
@@ -27,12 +28,14 @@ public class Robot extends TimedRobot {
   private CommandXboxController m_codriver;
   private Shooter m_shooter;
   private Climber m_climber;
-  private SendableChooser<Command> m_chooser = new SendableChooser<>();
+  private SendableChooser<Auto> m_chooser = new SendableChooser<>();
   private Intake m_intake;
   private Elevator m_elevator;
 
   private Command getAutonomousCommand() {
-    return m_chooser.getSelected();
+    Auto auto = m_chooser.getSelected();
+    auto.configureBindings();
+    return auto.followTrajectory();
   }
 
   private double MaxSpeed =
