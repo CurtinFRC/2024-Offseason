@@ -25,7 +25,6 @@ import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
-import frc.robot.subsystems.Elevator;
 
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
@@ -36,7 +35,6 @@ public class Robot extends TimedRobot {
   private Climber m_climber;
   private SendableChooser<Auto> m_chooser = new SendableChooser<>();
   private Intake m_intake;
-  private Elevator m_elevator;
 
   private Command getAutonomousCommand() {
     Auto auto = m_chooser.getSelected();
@@ -120,10 +118,6 @@ public class Robot extends TimedRobot {
     m_intake =
         new Intake(new CANSparkMax(Constants.intakePort, CANSparkMaxLowLevel.MotorType.kBrushless));
     CommandScheduler.getInstance().registerSubsystem(m_intake);
-
-    m_elevator =
-        new Elevator(new CANSparkMax(Constants.upperElevatorPort, CANSparkMaxLowLevel.MotorType.kBrushless), new CANSparkMax(Constants.lowerElevatorPort, CANSparkMaxLowLevel.MotorType.kBrushless));
-    CommandScheduler.getInstance().registerSubsystem(m_elevator);
 
     m_chooser.setDefaultOption("One Note", new OneNote(m_shooter, m_intake));
     SmartDashboard.putData(m_chooser);
