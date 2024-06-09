@@ -4,12 +4,10 @@
 
 package frc.robot;
 
-import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj2.command.Command;
 
-public final class Main {
-  private Main() {}
+public interface Auto {
+  public void configureBindings();
 
-  public static void main(String... args) {
-    RobotBase.startRobot(Robot::new);
-  }
+  public Command followTrajectory();
 }
