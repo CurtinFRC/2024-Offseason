@@ -13,12 +13,21 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
+import edu.wpi.first.wpilibj.DataLogManager; 
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.util.datalog.BooleanLogEntry;
+import edu.wpi.first.util.datalog.DataLog;
+import edu.wpi.first.util.datalog.DoubleLogEntry;
+import edu.wpi.first.util.datalog.StringLogEntry;
 
 /** Our Crescendo shooter Subsystem */
 public class Shooter extends SubsystemBase {
   private PIDController m_pid;
   private CANSparkMax m_motor;
   private RelativeEncoder m_encoder;
+  private DataLog log = DataLogManager.getLog();
+ private DoubleLogEntry shooter_encoder_vel = new DoubleLogEntry(log, "/shooter/encoder/velocity");
+ private DoubleLogEntry shooter_encoder_pos = new DoubleLogEntry(log, "/shooter/encoder/position");
 
   /**
    * Creates a new {@link Shooter} {@link edu.wpi.first.wpilibj2.command.Subsystem}.
@@ -28,6 +37,8 @@ public class Shooter extends SubsystemBase {
   public Shooter(CANSparkMax motor) {
     m_motor = motor;
     m_encoder = m_motor.getEncoder();
+    shooter_encoder_pos.append(m_encoder.getPosition());
+    shooter_encoder_vel.append(m_encoder.getVelocity());
     m_pid = new PIDController(Constants.shooterP, Constants.shooterI, Constants.shooterD);
   }
 

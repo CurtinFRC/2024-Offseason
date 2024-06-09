@@ -25,6 +25,12 @@ import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
+import edu.wpi.first.wpilibj.DataLogManager; 
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.util.datalog.BooleanLogEntry;
+import edu.wpi.first.util.datalog.DataLog;
+import edu.wpi.first.util.datalog.DoubleLogEntry;
+import edu.wpi.first.util.datalog.StringLogEntry;
 
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
@@ -123,8 +129,10 @@ public class Robot extends TimedRobot {
     SmartDashboard.putData(m_chooser);
 
     configureBindings();
+    DataLogManager.start();   
+    DriverStation.startDataLog(DataLogManager.getLog());
   }
-
+  
   @Override
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
