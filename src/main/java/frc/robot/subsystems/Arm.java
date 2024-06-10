@@ -7,6 +7,10 @@ package frc.robot.subsystems;
 import com.revrobotics.CANSparkMax;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.util.datalog.DataLog;
+import edu.wpi.first.util.datalog.DoubleLogEntry;
+import edu.wpi.first.util.datalog.StringLogEntry;
+import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -28,6 +32,15 @@ public class Arm extends SubsystemBase {
   private CANSparkMax m_primaryMotor;
   private DutyCycleEncoder m_encoder;
   private ArmFeedforward m_feedforward;
+  private DataLog m_log = DataLogManager.getLog();
+  private DoubleLogEntry log_pid_output = new DoubleLogEntry(m_log, "/arm/pid/output");
+  private DoubleLogEntry log_pid_setpoint = new DoubleLogEntry(m_log, "/arm/pid/setpoint");
+  private DoubleLogEntry log_ff_position_setpoint =
+      new DoubleLogEntry(m_log, "/arm/ff/position_setpoint");
+  private DoubleLogEntry log_ff_velocity_setpoint =
+      new DoubleLogEntry(m_log, "/arm/ff/velocity_setpoint");
+  private DoubleLogEntry log_ff_output = new DoubleLogEntry(m_log, "/arm/ff/output");
+  private StringLogEntry log_setpoint = new StringLogEntry(m_log, "/arm/setpoint");
 
   /**
    * Creates a new {@link Arm} {@link edu.wpi.first.wpilibj2.command.Subsystem}.
@@ -47,11 +60,16 @@ public class Arm extends SubsystemBase {
   /** Achieves and maintains speed for the primary motor. */
   private Command achievePosition(double position) {
     return Commands.run(
-        () ->
-            m_primaryMotor.setVoltage(
-                -1
-                    * (m_feedforward.calculate(position, (5676 / 250))
-                        + m_pid.calculate(m_encoder.getAbsolutePosition() * 2 * 3.14, position))));
+        () -> {
+          var pid_output = m_pid.calculate(m_encoder.getAbsolutePosition() * 2 * 3.14, position);
+          log_pid_output.append(pid_output);
+          log_pid_setpoint.append(m_pid.getSetpoint());
+          var ff_output = m_feedforward.calculate(position, (5676 / 250));
+          log_ff_output.append(ff_output);
+          log_ff_position_setpoint.append(position);
+          log_ff_velocity_setpoint.append((5676 / 250));
+          m_primaryMotor.setVoltage(-1 * ff_output + pid_output);
+        });
   }
 
   public Command stop() {
@@ -101,10 +119,12 @@ public class Arm extends SubsystemBase {
    * Makes the arm go to a setpoint from the {@link Setpoint} enum
    *
    * @param setpoint The setpoint to go to, a {@link Setpoint}
+   *
    * @return A {@link Command} to go to the setpoint
    */
   public Command goToSetpoint(Setpoint setpoint) {
     double position = 0;
+    log_setpoint.append(setpoint.name());
 
     switch (setpoint) {
       case kAmp:
