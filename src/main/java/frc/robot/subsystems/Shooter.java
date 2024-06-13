@@ -44,24 +44,24 @@ public class Shooter extends SubsystemBase {
   private final SysIdRoutine m_sysIdRoutine = 
     new SysIdRoutine(
       new SysIdRoutine.Config(), 
-    new SysIdRoutine.Mechanism(
-      (Measure<Voltage> volts) -> {
-        m_motor.setVoltage(volts.in(Volts));
-      },
-      log -> {
-        log.motor("shooter").voltage(
-          m_appliedVoltage.mut_replace(
-            m_motor.get() * RobotController.getBatteryVoltage(), Volts))
-          .angularPosition(
-            m_angle.mut_replace(m_encoder.getPosition(), Rotations)
-          )
-          .angularVelocity(
-            m_velocity.mut_replace(m_encoder.getVelocity(), RotationsPerSecond)
-          );
-      },
-      this
-    )
-  );
+      new SysIdRoutine.Mechanism(
+        (Measure<Voltage> volts) -> {
+          m_motor.setVoltage(volts.in(Volts));
+        },
+        log -> {
+          log.motor("shooter").voltage(
+            m_appliedVoltage.mut_replace(
+              m_motor.get() * RobotController.getBatteryVoltage(), Volts))
+            .angularPosition(
+              m_angle.mut_replace(m_encoder.getPosition(), Rotations)
+            )
+            .angularVelocity(
+              m_velocity.mut_replace(m_encoder.getVelocity(), RotationsPerSecond)
+            );
+        },
+        this
+      )
+    );
 
   /**
    * Creates a new {@link Shooter} {@link edu.wpi.first.wpilibj2.command.Subsystem}.

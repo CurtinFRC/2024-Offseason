@@ -4,18 +4,30 @@
 
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.Units.Rotations;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static edu.wpi.first.units.Units.Volts;
+import static edu.wpi.first.units.MutableMeasure.mutable;
+
 import com.revrobotics.CANSparkMax;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.units.Angle;
+import edu.wpi.first.units.Measure;
+import edu.wpi.first.units.MutableMeasure;
+import edu.wpi.first.units.Velocity;
+import edu.wpi.first.units.Voltage;
 import edu.wpi.first.util.datalog.DataLog;
 import edu.wpi.first.util.datalog.DoubleLogEntry;
 import edu.wpi.first.util.datalog.StringLogEntry;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
 import java.util.function.DoubleSupplier;
 
@@ -42,6 +54,32 @@ public class Arm extends SubsystemBase {
   private DoubleLogEntry log_ff_output = new DoubleLogEntry(m_log, "/arm/ff/output");
   private StringLogEntry log_setpoint = new StringLogEntry(m_log, "/arm/setpoint");
 
+  private final MutableMeasure<Voltage> m_appliedVoltage = mutable(Volts.of(0));
+  private final MutableMeasure<Angle> m_angle = mutable(Rotations.of(0));
+  private final MutableMeasure<Velocity<Angle>> m_velocity = mutable(RotationsPerSecond.of(0));
+
+  private final SysIdRoutine m_sysIdRoutine = 
+    new SysIdRoutine(
+      new SysIdRoutine.Config(), 
+      new SysIdRoutine.Mechanism(
+        (Measure<Voltage> volts) -> {
+          m_primaryMotor.setVoltage(volts.in(Volts));
+        },
+        log -> {
+          log.motor("arm").voltage(
+            m_appliedVoltage.mut_replace(
+              m_primaryMotor.get() * RobotController.getBatteryVoltage(), Volts))
+            .angularPosition(
+              m_angle.mut_replace(m_encoder.getAbsolutePosition(), Rotations)
+            )
+            .angularVelocity(
+              m_velocity.mut_replace((m_encoder.get() * 2 * Math.PI / 60), RotationsPerSecond)
+            );
+        },
+        this
+      )
+    );
+
   /**
    * Creates a new {@link Arm} {@link edu.wpi.first.wpilibj2.command.Subsystem}.
    *
@@ -61,7 +99,7 @@ public class Arm extends SubsystemBase {
   private Command achievePosition(double position) {
     return Commands.run(
         () -> {
-          var pid_output = m_pid.calculate(m_encoder.getAbsolutePosition() * 2 * 3.14, position);
+          var pid_output = m_pid.calculate(m_encoder.getAbsolutePosition() * 2 * Math.PI, position);
           log_pid_output.append(pid_output);
           log_pid_setpoint.append(m_pid.getSetpoint());
           var ff_output = m_feedforward.calculate(position, (5676 / 250));
@@ -84,7 +122,7 @@ public class Arm extends SubsystemBase {
    */
   private Command moveToPosition(double position) {
     return achievePosition(position)
-        .until(() -> m_pid.atSetpoint() && m_encoder.getAbsolutePosition() * 2 * 3.14 == position);
+        .until(() -> m_pid.atSetpoint() && m_encoder.getAbsolutePosition() * 2 * Math.PI == position);
   }
 
   /**
@@ -145,5 +183,13 @@ public class Arm extends SubsystemBase {
     }
 
     return moveToPosition(position);
+  }
+
+  public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
+    return m_sysIdRoutine.quasistatic(direction);
+  }
+
+  public Command sysIdDynamic(SysIdRoutine.Direction direction) {
+    return m_sysIdRoutine.dynamic(direction);
   }
 }
