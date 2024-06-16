@@ -12,6 +12,8 @@ import com.revrobotics.CANSparkMaxLowLevel;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.wpilibj.DataLogManager;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -95,6 +97,9 @@ public class Robot extends TimedRobot {
 
   @SuppressWarnings("removal")
   public Robot() {
+    DataLogManager.start();
+    DriverStation.startDataLog(DataLogManager.getLog());
+
     m_driver = new CommandXboxController(Constants.driverport);
     m_codriver = new CommandXboxController(Constants.codriverport);
 
