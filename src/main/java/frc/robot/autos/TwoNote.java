@@ -42,7 +42,7 @@ public class TwoNote implements Auto {
   @Override
   public void configureBindings() {
     Choreo.event("first-shot").onTrue(shoot());
-    Choreo.event("intake").onTrue(m_intake.intake());
+    Choreo.event("intake").onTrue(m_intake.spinUntilBeamBreak(200));
     Choreo.event("second-shot").onTrue(shoot());
   }
 }
