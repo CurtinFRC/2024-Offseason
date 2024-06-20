@@ -93,6 +93,20 @@ public class Robot extends TimedRobot {
       drivetrain.seedFieldRelative(new Pose2d(new Translation2d(), Rotation2d.fromDegrees(90)));
     }
     drivetrain.registerTelemetry(logger::telemeterize);
+
+    m_intake.setDefaultCommand(m_intake.spinUntilBeamBreak(20));     
+
+    m_codriver.a().onTrue(m_arm.goToSetpoint(Arm.Setpoint.kAmp));
+    m_codriver.b().onTrue(m_arm.goToSetpoint(Arm.Setpoint.kIntake));
+    m_codriver.x().onTrue(m_arm.goToSetpoint(Arm.Setpoint.kSpeaker));
+    m_codriver.y().onTrue(m_arm.goToSetpoint(Arm.Setpoint.kStowed));
+
+    m_codriver.leftBumper().onTrue(m_shooter.spinup(100));
+    m_codriver.rightBumper().onTrue(m_shooter.stop());
+
+    m_codriver.rightTrigger().onTrue(m_shooter.shoot());
+
+    m_codriver.povUp().onTrue(m_climber.climb());
   }
 
   @SuppressWarnings("removal")
@@ -112,7 +126,8 @@ public class Robot extends TimedRobot {
 
     m_shooter =
         new Shooter(
-            new CANSparkMax(Constants.shooterPort, CANSparkMaxLowLevel.MotorType.kBrushless));
+            new CANSparkMax(Constants.shooterPort, CANSparkMaxLowLevel.MotorType.kBrushless),
+            new CANSparkMax(Constants.indexerPort, CANSparkMaxLowLevel.MotorType.kBrushless));
     CommandScheduler.getInstance().registerSubsystem(m_shooter);
 
     m_climber =
@@ -121,7 +136,7 @@ public class Robot extends TimedRobot {
     CommandScheduler.getInstance().registerSubsystem(m_climber);
 
     m_intake =
-        new Intake(new CANSparkMax(Constants.intakePort, CANSparkMaxLowLevel.MotorType.kBrushless));
+        new Intake(1, new CANSparkMax(Constants.intakePort, CANSparkMaxLowLevel.MotorType.kBrushless));
     CommandScheduler.getInstance().registerSubsystem(m_intake);
 
     m_chooser.setDefaultOption("One Note", new OneNote(m_shooter, m_intake));
