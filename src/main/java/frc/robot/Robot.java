@@ -27,6 +27,7 @@ import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
@@ -85,6 +86,12 @@ public class Robot extends TimedRobot {
                 () ->
                     point.withModuleDirection(
                         new Rotation2d(-m_driver.getLeftY(), -m_driver.getLeftX()))));
+
+    m_codriver.x().onTrue(m_shooter.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
+    m_codriver.y().onTrue(m_shooter.sysIdDynamic(SysIdRoutine.Direction.kForward));
+
+    m_codriver.a().onTrue(m_arm.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
+    m_codriver.b().onTrue(m_arm.sysIdDynamic(SysIdRoutine.Direction.kForward));
 
     // reset the field-centric heading on left bumper press
     m_driver.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldRelative()));
