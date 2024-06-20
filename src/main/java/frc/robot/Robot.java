@@ -25,6 +25,8 @@ import java.util.HashMap;
 
 public class Robot extends CommandRobot {
   private final CommandXboxController m_driver = new CommandXboxController(Constants.driverport);
+  private final CommandXboxController m_codriver =
+      new CommandXboxController(Constants.codriverport);
 
   private final Arm m_arm = new Arm();
   private final Shooter m_shooter = new Shooter();
@@ -86,8 +88,19 @@ public class Robot extends CommandRobot {
                     .withRotationalRate(
                         Utils.deadzone(
                             -m_driver.getRightX() * Constants.DrivebaseMaxAngularRate))));
+    m_intake.setDefaultCommand(m_intake.spinUntilBeamBreak(50));
+    m_shooter.setDefaultCommand(m_shooter.stop());
 
     m_driver.a().whileTrue(m_drivetrain.applyRequest(() -> m_brake));
-    m_driver.x().onTrue(m_drivetrain.runOnce(() -> m_drivetrain.seedFieldRelative()));
+    m_driver.y().onTrue(m_drivetrain.runOnce(() -> m_drivetrain.seedFieldRelative()));
+    m_driver.x().onTrue(m_climber.climb());
+    m_driver
+        .rightTrigger()
+        .onTrue(m_arm.goToSetpoint(Arm.Setpoint.kAmp).andThen(m_intake.outake()))
+        .onFalse(m_arm.goToSetpoint(Arm.Setpoint.kStowed));
+    m_driver
+        .leftTrigger()
+        .onTrue(m_arm.goToSetpoint(Arm.Setpoint.kSpeaker).andThen(m_shooter.shoot()))
+        .onFalse(m_arm.goToSetpoint(Arm.Setpoint.kStowed));
   }
 }

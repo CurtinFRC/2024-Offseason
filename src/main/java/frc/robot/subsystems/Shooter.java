@@ -20,16 +20,17 @@ import frc.robot.Constants;
 
 /** Our Crescendo shooter Subsystem */
 public class Shooter extends SubsystemBase {
+  private final CANSparkMax m_motor = new CANSparkMax(Constants.shooterPort, MotorType.kBrushless);
+  private final CANSparkMax m_indexer = new CANSparkMax(Constants.indexerPort, MotorType.kBrushless);
+  private final RelativeEncoder m_encoder = m_motor.getEncoder();
+
   private final PIDController m_pid =
       new PIDController(Constants.shooterP, Constants.shooterI, Constants.shooterD);
-  private final CANSparkMax m_motor = new CANSparkMax(Constants.shooterPort, MotorType.kBrushless);
-  private final RelativeEncoder m_encoder = m_motor.getEncoder();
 
   private final DataLog m_log = DataLogManager.getLog();
   private final DoubleLogEntry log_pid_output = new DoubleLogEntry(m_log, "/shooter/pid/output");
 
   public final Trigger m_atSetpoint = new Trigger(m_pid::atSetpoint);
-  ;
 
   /** Creates a new {@link Shooter} {@link edu.wpi.first.wpilibj2.command.Subsystem}. */
   public Shooter() {}
@@ -69,5 +70,10 @@ public class Shooter extends SubsystemBase {
    */
   public Command maintain() {
     return achieveSpeeds(m_pid.getSetpoint());
+  }
+
+  public Command shoot() {
+    return spinup(500)
+        .andThen(Commands.parallel(Commands.run(() -> m_indexer.setVoltage(2)), maintain()));
   }
 }
