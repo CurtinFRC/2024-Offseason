@@ -7,8 +7,8 @@ package frc.robot;
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
+import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkMaxLowLevel;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -95,7 +95,6 @@ public class Robot extends TimedRobot {
     drivetrain.registerTelemetry(logger::telemeterize);
   }
 
-  @SuppressWarnings("removal")
   public Robot() {
     DataLogManager.start();
     DriverStation.startDataLog(DataLogManager.getLog());
@@ -103,25 +102,19 @@ public class Robot extends TimedRobot {
     m_driver = new CommandXboxController(Constants.driverport);
     m_codriver = new CommandXboxController(Constants.codriverport);
 
-    var armLead = new CANSparkMax(Constants.armLeadPort, CANSparkMaxLowLevel.MotorType.kBrushless);
-    var armFollower =
-        new CANSparkMax(Constants.armFollowerPort, CANSparkMaxLowLevel.MotorType.kBrushless);
+    var armLead = new CANSparkMax(Constants.armLeadPort, MotorType.kBrushless);
+    var armFollower = new CANSparkMax(Constants.armFollowerPort, MotorType.kBrushless);
     armFollower.follow(armLead);
     m_arm = new Arm(armLead);
     CommandScheduler.getInstance().registerSubsystem(m_arm);
 
-    m_shooter =
-        new Shooter(
-            new CANSparkMax(Constants.shooterPort, CANSparkMaxLowLevel.MotorType.kBrushless));
+    m_shooter = new Shooter(new CANSparkMax(Constants.shooterPort, MotorType.kBrushless));
     CommandScheduler.getInstance().registerSubsystem(m_shooter);
 
-    m_climber =
-        new Climber(
-            new CANSparkMax(Constants.climberPort, CANSparkMaxLowLevel.MotorType.kBrushless));
+    m_climber = new Climber(new CANSparkMax(Constants.climberPort, MotorType.kBrushless));
     CommandScheduler.getInstance().registerSubsystem(m_climber);
 
-    m_intake =
-        new Intake(new CANSparkMax(Constants.intakePort, CANSparkMaxLowLevel.MotorType.kBrushless));
+    m_intake = new Intake(new CANSparkMax(Constants.intakePort, MotorType.kBrushless));
     CommandScheduler.getInstance().registerSubsystem(m_intake);
 
     m_chooser.setDefaultOption("One Note", new OneNote(m_shooter, m_intake));
