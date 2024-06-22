@@ -39,7 +39,7 @@ public class Shooter extends SubsystemBase {
 
     m_indexer = indexer;
     m_indexerEncoder = m_indexer.getEncoder();
-    
+
     m_pid = new PIDController(Constants.shooterP, Constants.shooterI, Constants.shooterD);
   }
 
@@ -95,7 +95,6 @@ public class Shooter extends SubsystemBase {
 
   public Command shoot() {
     return Commands.parallel(
-        Commands.waitUntil(atSetpoint()),
-        Commands.run(() -> m_indexer.setVoltage(2)));
+        Commands.waitUntil(atSetpoint()), Commands.run(() -> m_indexer.setVoltage(2)));
   }
 }

@@ -94,7 +94,7 @@ public class Robot extends TimedRobot {
     }
     drivetrain.registerTelemetry(logger::telemeterize);
 
-    m_intake.setDefaultCommand(m_intake.spinUntilBeamBreak(20));     
+    m_intake.setDefaultCommand(m_intake.spinUntilBeamBreak(20));
 
     m_codriver.a().onTrue(m_arm.goToSetpoint(Arm.Setpoint.kAmp));
     m_codriver.b().onTrue(m_arm.goToSetpoint(Arm.Setpoint.kIntake));
@@ -136,7 +136,8 @@ public class Robot extends TimedRobot {
     CommandScheduler.getInstance().registerSubsystem(m_climber);
 
     m_intake =
-        new Intake(1, new CANSparkMax(Constants.intakePort, CANSparkMaxLowLevel.MotorType.kBrushless));
+        new Intake(
+            1, new CANSparkMax(Constants.intakePort, CANSparkMaxLowLevel.MotorType.kBrushless));
     CommandScheduler.getInstance().registerSubsystem(m_intake);
 
     m_chooser.setDefaultOption("One Note", new OneNote(m_shooter, m_intake));
