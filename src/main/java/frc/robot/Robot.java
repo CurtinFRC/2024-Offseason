@@ -7,8 +7,6 @@ package frc.robot;
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
-import com.revrobotics.CANSparkLowLevel.MotorType;
-import com.revrobotics.CANSparkMax;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -32,11 +30,11 @@ public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
   private CommandXboxController m_driver;
   private CommandXboxController m_codriver;
-  private Arm m_arm;
-  private Shooter m_shooter;
-  private Climber m_climber;
+  private Arm m_arm = new Arm();
+  private Shooter m_shooter = new Shooter();
+  private Climber m_climber = new Climber();
+  private Intake m_intake = new Intake();
   private SendableChooser<Auto> m_chooser = new SendableChooser<>();
-  private Intake m_intake;
 
   private Command getAutonomousCommand() {
     Auto auto = m_chooser.getSelected();
@@ -102,21 +100,12 @@ public class Robot extends TimedRobot {
     m_driver = new CommandXboxController(Constants.driverport);
     m_codriver = new CommandXboxController(Constants.codriverport);
 
-    var armLead = new CANSparkMax(Constants.armLeadPort, MotorType.kBrushless);
-    var armFollower = new CANSparkMax(Constants.armFollowerPort, MotorType.kBrushless);
-    armFollower.follow(armLead);
-    m_arm = new Arm(armLead);
     CommandScheduler.getInstance().registerSubsystem(m_arm);
-
-    m_shooter = new Shooter(new CANSparkMax(Constants.shooterPort, MotorType.kBrushless));
     CommandScheduler.getInstance().registerSubsystem(m_shooter);
-
-    m_climber = new Climber(new CANSparkMax(Constants.climberPort, MotorType.kBrushless));
     CommandScheduler.getInstance().registerSubsystem(m_climber);
-
-    m_intake = new Intake(new CANSparkMax(Constants.intakePort, MotorType.kBrushless));
     CommandScheduler.getInstance().registerSubsystem(m_intake);
 
+    m_chooser.addOption("One Note", new OneNote(m_shooter, m_intake));
     m_chooser.setDefaultOption("One Note", new OneNote(m_shooter, m_intake));
     SmartDashboard.putData(m_chooser);
 
