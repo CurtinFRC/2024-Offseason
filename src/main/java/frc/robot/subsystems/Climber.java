@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems;
 
+import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.math.controller.PIDController;
@@ -29,8 +30,8 @@ public class Climber extends SubsystemBase {
    *
    * @param motor The motor that the climber controls.
    */
-  public Climber(CANSparkMax motor) {
-    m_motor = motor;
+  public Climber() {
+    m_motor = new CANSparkMax(Constants.climberPort, MotorType.kBrushless);
     m_encoder = m_motor.getEncoder();
     m_pid = new PIDController(Constants.climberP, Constants.climberI, Constants.climberD);
     m_pid.setTolerance(0.2, 0.5);

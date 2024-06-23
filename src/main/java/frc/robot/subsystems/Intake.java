@@ -4,13 +4,18 @@
 
 package frc.robot.subsystems;
 
+import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
+import edu.wpi.first.util.datalog.DataLog;
+import edu.wpi.first.util.datalog.DoubleLogEntry;
+import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.util.datalog.DataLog;
 import edu.wpi.first.util.datalog.DoubleLogEntry;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
 import edu.wpi.first.wpilibj.PWM;
 
 public class Intake extends SubsystemBase {
@@ -20,8 +25,8 @@ public class Intake extends SubsystemBase {
 
   PWM lEDPwm = new PWM(0);
 
-  public Intake(CANSparkMax motor) {
-    m_motor = motor;
+  public Intake() {
+    m_motor = new CANSparkMax(Constants.intakePort, MotorType.kBrushless);
   }
 
   public Command intake() {

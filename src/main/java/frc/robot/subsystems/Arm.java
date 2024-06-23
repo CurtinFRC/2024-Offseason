@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems;
 
+import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.PIDController;
@@ -30,6 +31,7 @@ public class Arm extends SubsystemBase {
 
   private PIDController m_pid;
   private CANSparkMax m_primaryMotor;
+  private CANSparkMax m_followerMotor;
   private DutyCycleEncoder m_encoder;
   private ArmFeedforward m_feedforward;
   private DataLog m_log = DataLogManager.getLog();
@@ -47,8 +49,10 @@ public class Arm extends SubsystemBase {
    *
    * @param primaryMotor The primary motor that controls the arm.
    */
-  public Arm(CANSparkMax primaryMotor) {
-    m_primaryMotor = primaryMotor;
+  public Arm() {
+    m_primaryMotor = new CANSparkMax(Constants.armLeadPort, MotorType.kBrushless);
+    m_followerMotor = new CANSparkMax(Constants.armFollowerPort, MotorType.kBrushless);
+    m_followerMotor.follow(m_primaryMotor);
 
     m_encoder = new DutyCycleEncoder(Constants.armEncoderPort);
     m_pid = new PIDController(Constants.armP, Constants.armI, Constants.armD);

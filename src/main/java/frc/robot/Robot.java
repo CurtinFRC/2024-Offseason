@@ -4,14 +4,8 @@
 
 package frc.robot;
 
-import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkMaxLowLevel;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.TimedRobot;
@@ -29,101 +23,51 @@ import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
 
 public class Robot extends TimedRobot {
-  private Command m_autonomousCommand;
-  private CommandXboxController m_driver;
-  private CommandXboxController m_codriver;
-  private Arm m_arm;
-  private Shooter m_shooter;
-  private Climber m_climber;
+  private CommandXboxController m_driver = new CommandXboxController(Constants.driverport);
+
+  private Arm m_arm = new Arm();
+  private Shooter m_shooter = new Shooter();
+  private Climber m_climber = new Climber();
+  private Intake m_intake = new Intake();
+  private final CommandSwerveDrivetrain drivetrain = TunerConstants.DriveTrain;
+
   private SendableChooser<Auto> m_chooser = new SendableChooser<>();
-  private Intake m_intake;
-
-  private Command getAutonomousCommand() {
-    Auto auto = m_chooser.getSelected();
-    auto.configureBindings();
-    return auto.followTrajectory();
-  }
-
-  private double MaxSpeed =
-      TunerConstants.kSpeedAt12VoltsMps; // kSpeedAt12VoltsMps desired top speed
-  private double MaxAngularRate =
-      1.5 * Math.PI; // 3/4 of a rotation per second max angular velocity
-
-  /* Setting up bindings for necessary control of the swerve drive platform */
-  private final CommandSwerveDrivetrain drivetrain = TunerConstants.DriveTrain; // My drivetrain
+  private Command m_autonomousCommand;
 
   private final SwerveRequest.FieldCentric drive =
       new SwerveRequest.FieldCentric()
-          .withDeadband(MaxSpeed * 0.1)
-          .withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
-          .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // I want field-centric
-  // driving in open loop
+          .withDeadband(Constants.DrivebaseMaxSpeed * 0.1)
+          .withRotationalDeadband(Constants.DrivebaseMaxAngularRate * 0.1)
+          .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
   private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
-  private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
-
-  private final Telemetry logger = new Telemetry(MaxSpeed);
+  private final Telemetry logger = new Telemetry(Constants.DrivebaseMaxSpeed);
 
   private void configureBindings() {
-    drivetrain.setDefaultCommand( // Drivetrain will execute this command periodically
+    drivetrain.setDefaultCommand(
         drivetrain.applyRequest(
             () ->
                 drive
-                    .withVelocityX(-m_driver.getLeftY() * MaxSpeed) // Drive forward with
-                    // negative Y (forward)
-                    .withVelocityY(
-                        -m_driver.getLeftX() * MaxSpeed) // Drive left with negative X (left)
+                    .withVelocityX(-m_driver.getLeftY() * Constants.DrivebaseMaxSpeed)
+                    .withVelocityY(-m_driver.getLeftX() * Constants.DrivebaseMaxSpeed)
                     .withRotationalRate(
-                        -m_driver.getRightX()
-                            * MaxAngularRate) // Drive counterclockwise with negative X (left)
-            ));
+                        -m_driver.getRightX() * Constants.DrivebaseMaxAngularRate)));
 
     m_driver.a().whileTrue(drivetrain.applyRequest(() -> brake));
-    m_driver
-        .b()
-        .whileTrue(
-            drivetrain.applyRequest(
-                () ->
-                    point.withModuleDirection(
-                        new Rotation2d(-m_driver.getLeftY(), -m_driver.getLeftX()))));
-
-    // reset the field-centric heading on left bumper press
-    m_driver.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldRelative()));
-
-    if (Utils.isSimulation()) {
-      drivetrain.seedFieldRelative(new Pose2d(new Translation2d(), Rotation2d.fromDegrees(90)));
-    }
-    drivetrain.registerTelemetry(logger::telemeterize);
+    m_driver.x().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldRelative()));
   }
 
-  @SuppressWarnings("removal")
   public Robot() {
     DataLogManager.start();
     DriverStation.startDataLog(DataLogManager.getLog());
 
-    m_driver = new CommandXboxController(Constants.driverport);
-    m_codriver = new CommandXboxController(Constants.codriverport);
+    drivetrain.registerTelemetry(logger::telemeterize);
 
-    var armLead = new CANSparkMax(Constants.armLeadPort, CANSparkMaxLowLevel.MotorType.kBrushless);
-    var armFollower =
-        new CANSparkMax(Constants.armFollowerPort, CANSparkMaxLowLevel.MotorType.kBrushless);
-    armFollower.follow(armLead);
-    m_arm = new Arm(armLead);
     CommandScheduler.getInstance().registerSubsystem(m_arm);
-
-    m_shooter =
-        new Shooter(
-            new CANSparkMax(Constants.shooterPort, CANSparkMaxLowLevel.MotorType.kBrushless));
     CommandScheduler.getInstance().registerSubsystem(m_shooter);
-
-    m_climber =
-        new Climber(
-            new CANSparkMax(Constants.climberPort, CANSparkMaxLowLevel.MotorType.kBrushless));
     CommandScheduler.getInstance().registerSubsystem(m_climber);
-
-    m_intake =
-        new Intake(new CANSparkMax(Constants.intakePort, CANSparkMaxLowLevel.MotorType.kBrushless));
     CommandScheduler.getInstance().registerSubsystem(m_intake);
 
+    m_chooser.addOption("One Note", new OneNote(m_shooter, m_intake));
     m_chooser.setDefaultOption("One Note", new OneNote(m_shooter, m_intake));
     SmartDashboard.putData(m_chooser);
 
@@ -182,4 +126,10 @@ public class Robot extends TimedRobot {
 
   @Override
   public void testExit() {}
+
+  private Command getAutonomousCommand() {
+    Auto auto = m_chooser.getSelected();
+    auto.configureBindings();
+    return auto.followTrajectory();
+  }
 }

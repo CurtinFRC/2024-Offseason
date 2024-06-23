@@ -75,12 +75,16 @@ dependencies {
 }
 
 test {
+    onlyIf { project.hasProperty('runTests') }
     useJUnitPlatform()
     systemProperty 'junit.jupiter.extensions.autodetection.enabled', 'true'
 }
 
 // Simulation configuration (e.g. environment variables).
-wpi.sim.addGui().defaultEnabled = true
+if (!project.hasProperty('noSimGUI')) {
+    wpi.sim.addGui().defaultEnabled = true
+}
+
 wpi.sim.addDriverstation()
 
 // Setting up my Jar File. In this case, adding all libraries into the main jar ('fat jar')

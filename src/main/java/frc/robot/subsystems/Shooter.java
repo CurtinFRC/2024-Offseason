@@ -4,10 +4,14 @@
 
 package frc.robot.subsystems;
 
+import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.util.datalog.DataLog;
+import edu.wpi.first.util.datalog.DoubleLogEntry;
+import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.util.datalog.DataLog;
 import edu.wpi.first.util.datalog.DoubleLogEntry;
 import edu.wpi.first.wpilibj.DataLogManager;
@@ -32,8 +36,8 @@ public class Shooter extends SubsystemBase {
    *
    * @param motor The motor that the shooter controls.
    */
-  public Shooter(CANSparkMax motor) {
-    m_motor = motor;
+  public Shooter() {
+    m_motor = new CANSparkMax(Constants.shooterPort, MotorType.kBrushless);
     m_encoder = m_motor.getEncoder();
     m_pid = new PIDController(Constants.shooterP, Constants.shooterI, Constants.shooterD);
   }
