@@ -54,5 +54,7 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: 3.8
+    - name: Install
+      run: pip install sleipnirgroup-jormungandr
     - name: Run thing
       run: ./solve_arm_angle.py
