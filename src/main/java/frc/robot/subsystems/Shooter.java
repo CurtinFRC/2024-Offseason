@@ -17,6 +17,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
+import edu.wpi.first.wpilibj.PWM;
 
 /** Our Crescendo shooter Subsystem */
 public class Shooter extends SubsystemBase {
@@ -25,7 +26,8 @@ public class Shooter extends SubsystemBase {
   private RelativeEncoder m_encoder;
   private DataLog m_log = DataLogManager.getLog();
   private DoubleLogEntry log_pid_output = new DoubleLogEntry(m_log, "/shooter/pid/output");
-
+  
+  PWM lEDPwm = new PWM(0);
   /**
    * Creates a new {@link Shooter} {@link edu.wpi.first.wpilibj2.command.Subsystem}.
    *
@@ -58,10 +60,12 @@ public class Shooter extends SubsystemBase {
    * @return a {@link Command} to get to the desired speed.
    */
   public Command spinup(double speed) {
+    lEDPwm.setSpeed(0.69); // yellow //
     return achieveSpeeds(speed).until(m_pid::atSetpoint);
   }
 
   public Command stop() {
+    lEDPwm.setSpeed(0.73); // lime //
     return runOnce(() -> m_motor.set(0));
   }
 
@@ -71,6 +75,7 @@ public class Shooter extends SubsystemBase {
    * @return A {@link Command} to hold the speed at the setpoint.
    */
   public Command maintain() {
+    lEDPwm.setSpeed(0.57); // hot pink //
     return achieveSpeeds(m_pid.getSetpoint());
   }
 

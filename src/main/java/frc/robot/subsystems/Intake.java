@@ -13,17 +13,21 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import edu.wpi.first.wpilibj.PWM;
 
 public class Intake extends SubsystemBase {
   private CANSparkMax m_motor;
   private DataLog log = DataLogManager.getLog();
   private DoubleLogEntry log_output = new DoubleLogEntry(log, "/intake/output");
+  PWM lEDPwm = new PWM(0);
 
   public Intake() {
     m_motor = new CANSparkMax(Constants.intakePort, MotorType.kBrushless);
+    lEDPwm = new PWM(0);
   }
 
   public Command intake() {
+    lEDPwm.setSpeed(0.59); // dark red //
     return Commands.run(
             () -> {
               log_output.append(4);
@@ -38,6 +42,7 @@ public class Intake extends SubsystemBase {
   }
 
   public Command outake() {
+    lEDPwm.setSpeed(0.63); // red orange, 0.65 for normal orange //
     return Commands.run(
             () -> {
               log_output.append(-4);

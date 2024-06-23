@@ -19,7 +19,6 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
 import java.util.function.DoubleSupplier;
-import edu.wpi.first.wpilibj.PWM;
 
 /** Our Arm Subsystem */
 public class Arm extends SubsystemBase {
@@ -44,8 +43,6 @@ public class Arm extends SubsystemBase {
       new DoubleLogEntry(m_log, "/arm/ff/velocity_setpoint");
   private DoubleLogEntry log_ff_output = new DoubleLogEntry(m_log, "/arm/ff/output");
   private StringLogEntry log_setpoint = new StringLogEntry(m_log, "/arm/setpoint");
-
-  PWM lEDPwm = new PWM(0);
 
   /**
    * Creates a new {@link Arm} {@link edu.wpi.first.wpilibj2.command.Subsystem}.
@@ -136,22 +133,18 @@ public class Arm extends SubsystemBase {
     switch (setpoint) {
       case kAmp:
         position = 5.34;
-        lEDPwm.setSpeed(0.67);
-        break;
-
-      case kSpeaker:
-        position = 3.7;
-        lEDPwm.setSpeed(0.73);
         break;
 
       case kIntake:
         position = 3.7;
-        lEDPwm.setSpeed(0.57);
+        break;
+
+      case kSpeaker:
+        position = 3.7;
         break;
 
       case kStowed:
         position = 3.7;
-        lEDPwm.setSpeed(0.99);
         break;
     }
 
