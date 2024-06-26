@@ -112,8 +112,10 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
               new Translation3d(data[0], data[1], data[2]),
               new Rotation3d(data[4], data[5], data[6]));
 
-      if (reasonablePose(m_botpose)) {
-        addVisionMeasurement(m_botpose.toPose2d(), frc.robot.Utils.now());
+      if ((int) data[7] < 2) {
+        if (reasonablePose(m_botpose)) {
+          addVisionMeasurement(m_botpose.toPose2d(), frc.robot.Utils.now());
+        }
       }
     }
   }
