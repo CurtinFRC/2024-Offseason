@@ -1,6 +1,7 @@
 {
     "version": "v0.4",
     "robotConfiguration": {
+
         "mass": 74.08797700309194,
         "rotationalInertia": 6,
         "motorMaxTorque": 1.0949416342412452,
