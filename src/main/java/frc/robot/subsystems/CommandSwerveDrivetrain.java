@@ -33,7 +33,7 @@ import java.util.function.Supplier;
  */
 @SuppressWarnings("PMD.SingularField")
 public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsystem {
-  private NetworkTable m_limelight = NetworkTableInstance.getDefault().getTable("limelight");
+  private final NetworkTable m_limelight = NetworkTableInstance.getDefault().getTable("limelight");
   private Pose3d m_botpose;
   private static final double kSimLoopPeriod = 0.005; // 5 ms
   private Notifier m_simNotifier;
@@ -147,6 +147,10 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
               new Translation3d(data[0], data[1], data[2]),
               new Rotation3d(data[4], data[5], data[6]));
 
+      if ((int) data[7] < 2) {
+        return;
+      }
+
       if (reasonablePose(m_botpose)) {
         addVisionMeasurement(m_botpose.toPose2d(), frc.robot.Utils.now());
       }
@@ -154,27 +158,11 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
   }
 
   private boolean reasonablePose(Pose3d pose) {
-    if (Math.abs(pose.getZ()) > 0.1) {
-      return false;
-    }
-
-    if (pose.getY() < 0) {
-      return false;
-    }
-
-    if (pose.getY() > Constants.fieldY) {
-      return false;
-    }
-
-    if (pose.getX() < 0) {
-      return false;
-    }
-
-    if (pose.getX() > Constants.fieldX) {
-      return false;
-    }
-
-    return true;
+    return !((Math.abs(pose.getZ()) > 0.1)
+        && (pose.getX() > Constants.fieldX)
+        && (pose.getX() < 0)
+        && (pose.getY() > Constants.fieldY)
+        && (pose.getY() < 0));
   }
 
   public Command followTrajectory(String name, boolean isRed) {
