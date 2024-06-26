@@ -69,6 +69,7 @@ public class Robot extends TimedRobot {
     CommandScheduler.getInstance().registerSubsystem(m_intake);
 
     m_chooser.addOption("One Note", new OneNote(m_shooter, m_intake));
+    m_chooser.addOption("Two Note", new TwoNote(m_drivetrain, m_shooter, m_intake, true));
     m_chooser.setDefaultOption("One Note", new OneNote(m_shooter, m_intake));
     SmartDashboard.putData(m_chooser);
 
