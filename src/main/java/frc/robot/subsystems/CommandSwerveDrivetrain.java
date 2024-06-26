@@ -16,6 +16,7 @@ import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Subsystem;
+import frc.robot.FollowTrajectory;
 import java.util.function.Supplier;
 
 /**
@@ -76,10 +77,22 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
   @Override
   public void periodic() {
     /* Periodically try to apply the operator perspective */
-    /* If we haven't applied the operator perspective before, then we should apply it regardless of DS state */
-    /* This allows us to correct the perspective in case the robot code restarts mid-match */
-    /* Otherwise, only check and apply the operator perspective if the DS is disabled */
-    /* This ensures driving behavior doesn't change until an explicit disable event occurs during testing*/
+    /*
+     * If we haven't applied the operator perspective before, then we should apply
+     * it regardless of DS state
+     */
+    /*
+     * This allows us to correct the perspective in case the robot code restarts
+     * mid-match
+     */
+    /*
+     * Otherwise, only check and apply the operator perspective if the DS is
+     * disabled
+     */
+    /*
+     * This ensures driving behavior doesn't change until an explicit disable event
+     * occurs during testing
+     */
     if (!hasAppliedOperatorPerspective || DriverStation.isDisabled()) {
       DriverStation.getAlliance()
           .ifPresent(
@@ -91,5 +104,19 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
                 hasAppliedOperatorPerspective = true;
               });
     }
+  }
+
+  /**
+   * A command to follow the given Choreo trajectory.
+   *
+   * @param trajectoryName The name of the trajectory.
+   * @param isRed Should the trajectory be from the red perspective.
+   */
+  public FollowTrajectory followTrajectory(String trajectoryName, boolean isRed) {
+    return new FollowTrajectory(
+        this,
+        trajectoryName,
+        isRed,
+        (speeds) -> this.setControl(new SwerveRequest.ApplyChassisSpeeds().withSpeeds(speeds)));
   }
 }

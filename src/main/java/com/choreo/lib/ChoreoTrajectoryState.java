@@ -7,6 +7,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.interpolation.Interpolatable;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.trajectory.Trajectory;
 
 /** A single robot state in a ChoreoTrajectory. */
 public class ChoreoTrajectoryState implements Interpolatable<ChoreoTrajectoryState> {
@@ -128,5 +129,11 @@ public class ChoreoTrajectoryState implements Interpolatable<ChoreoTrajectorySta
         -this.velocityX,
         this.velocityY,
         -this.angularVelocity);
+  }
+
+  public Trajectory.State toTrajectoryState(double accelerationMetersPerSecondSq) {
+    var vel = Math.hypot(velocityX, velocityY);
+    return new Trajectory.State(
+        timestamp, vel, accelerationMetersPerSecondSq, getPose(), angularVelocity / vel);
   }
 }

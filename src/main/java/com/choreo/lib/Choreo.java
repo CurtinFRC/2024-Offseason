@@ -164,7 +164,6 @@ public class Choreo {
           timer.restart();
         },
         () -> {
-          ;
           outputChassisSpeeds.accept(
               controller.apply(
                   poseSupplier.get(),
