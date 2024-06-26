@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.autos.OneNote;
+import frc.robot.autos.TwoNote;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Climber;
@@ -29,7 +30,7 @@ public class Robot extends TimedRobot {
   private Shooter m_shooter = new Shooter();
   private Climber m_climber = new Climber();
   private Intake m_intake = new Intake();
-  private final CommandSwerveDrivetrain drivetrain = TunerConstants.DriveTrain;
+  private final CommandSwerveDrivetrain m_drivetrain = TunerConstants.DriveTrain;
 
   private SendableChooser<Auto> m_chooser = new SendableChooser<>();
   private Command m_autonomousCommand;
@@ -43,8 +44,8 @@ public class Robot extends TimedRobot {
   private final Telemetry logger = new Telemetry(Constants.DrivebaseMaxSpeed);
 
   private void configureBindings() {
-    drivetrain.setDefaultCommand(
-        drivetrain.applyRequest(
+    m_drivetrain.setDefaultCommand(
+        m_drivetrain.applyRequest(
             () ->
                 drive
                     .withVelocityX(-m_driver.getLeftY() * Constants.DrivebaseMaxSpeed)
@@ -52,15 +53,15 @@ public class Robot extends TimedRobot {
                     .withRotationalRate(
                         -m_driver.getRightX() * Constants.DrivebaseMaxAngularRate)));
 
-    m_driver.a().whileTrue(drivetrain.applyRequest(() -> brake));
-    m_driver.x().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldRelative()));
+    m_driver.a().whileTrue(m_drivetrain.applyRequest(() -> brake));
+    m_driver.x().onTrue(m_drivetrain.runOnce(() -> m_drivetrain.seedFieldRelative()));
   }
 
   public Robot() {
     DataLogManager.start();
     DriverStation.startDataLog(DataLogManager.getLog());
 
-    drivetrain.registerTelemetry(logger::telemeterize);
+    m_drivetrain.registerTelemetry(logger::telemeterize);
 
     CommandScheduler.getInstance().registerSubsystem(m_arm);
     CommandScheduler.getInstance().registerSubsystem(m_shooter);
