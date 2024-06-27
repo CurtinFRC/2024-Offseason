@@ -20,13 +20,15 @@ public class ChoreoTrajectory {
   }
 
   /**
-   * Constructs a new trajectory from a list of trajectory states, without event markers.
+   * Constructs a new trajectory from a list of trajectory states, with event markers included from
+   * a list of markers.
    *
    * @param samples a vector containing a list of ChoreoTrajectoryStates
+   * @param events a vector containing a list of ChoreoMarkers
    */
   public ChoreoTrajectory(List<ChoreoTrajectoryState> samples) {
     this.samples = samples;
-    events = List.of();
+    this.events = List.of();
   }
 
   /**
@@ -126,23 +128,6 @@ public class ChoreoTrajectory {
   }
 
   /**
-   * Finds the event marker in the ChoreoEvent by name.
-   *
-   * @param name The name of the event marker.
-   * @return The event marker, with the specified name, in this ChoreoEvent.
-   */
-  public ChoreoMarker markerFromName(String name) {
-    for (ChoreoMarker marker : events) {
-      if (marker.name() == name) {
-        return marker;
-      }
-    }
-    return nullMarker;
-    // If there is no marker of that name in the trajectory, it will return a defective marker that
-    // can never trigger.
-  }
-
-  /**
    * Returns the initial, non-mirrored pose of the trajectory.
    *
    * @return the initial, non-mirrored pose of the trajectory.
@@ -207,5 +192,22 @@ public class ChoreoTrajectory {
       flippedStates.add(state.flipped());
     }
     return new ChoreoTrajectory(flippedStates);
+  }
+
+  /**
+   * Finds the event marker in the ChoreoEvent by name.
+   *
+   * @param name The name of the event marker.
+   * @return The event marker, with the specified name, in this ChoreoEvent.
+   */
+  public ChoreoMarker markerFromName(String name) {
+    for (ChoreoMarker marker : events) {
+      if (marker.name() == name) {
+        return marker;
+      }
+    }
+    return nullMarker;
+    // If there is no marker of that name in the trajectory, it will return a defective marker that
+    // can never trigger.
   }
 }
