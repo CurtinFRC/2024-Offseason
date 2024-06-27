@@ -9,6 +9,7 @@ import edu.wpi.first.math.interpolation.Interpolatable;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.trajectory.Trajectory;
 import java.util.Arrays;
+import edu.wpi.first.networktables.NetworkTableInstance;
 
 /** A single robot state in a ChoreoTrajectory. */
 public class ChoreoTrajectoryState implements Interpolatable<ChoreoTrajectoryState> {
@@ -151,6 +152,13 @@ public class ChoreoTrajectoryState implements Interpolatable<ChoreoTrajectorySta
 
   public Trajectory.State toTrajectoryState(double accelerationMetersPerSecondSq) {
     var vel = Math.hypot(velocityX, velocityY);
+    var table1 = NetworkTableInstance.getDefault().getTable("trajectory_debug_converted");
+    var table2 = NetworkTableInstance.getDefault().getTable("trajectory_debug_raw");
+    table1.getDoubleTopic("velocity").getEntry(0).set(vel);
+    table1.getDoubleTopic("accel").getEntry(0).set(accelerationMetersPerSecondSq);
+    table1.getDoubleTopic("heading").getEntry(0).set(angularVelocity / vel);
+    table2.getDoubleTopic("velocityX").getEntry(0).set(velocityX);
+    table2.getDoubleTopic("velocityY").getEntry(0).set(velocityY);
     return new Trajectory.State(
         timestamp, vel, accelerationMetersPerSecondSq, getPose(), angularVelocity / vel);
   }

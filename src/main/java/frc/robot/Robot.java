@@ -63,6 +63,7 @@ public class Robot extends TimedRobot {
 
     m_drivetrain.registerTelemetry(logger::telemeterize);
 
+    CommandScheduler.getInstance().registerSubsystem(m_drivetrain);
     CommandScheduler.getInstance().registerSubsystem(m_arm);
     CommandScheduler.getInstance().registerSubsystem(m_shooter);
     CommandScheduler.getInstance().registerSubsystem(m_climber);
@@ -70,7 +71,7 @@ public class Robot extends TimedRobot {
 
     m_chooser.addOption("One Note", new OneNote(m_shooter, m_intake));
     m_chooser.addOption("Two Note", new TwoNote(m_drivetrain, m_shooter, m_intake, true));
-    m_chooser.setDefaultOption("One Note", new OneNote(m_shooter, m_intake));
+    m_chooser.setDefaultOption("Two Note", new TwoNote(m_drivetrain, m_shooter, m_intake, true));
     SmartDashboard.putData(m_chooser);
 
     configureBindings();

@@ -13,6 +13,9 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import java.util.function.Consumer;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.networktables.NetworkTableInstance;
 
 /**
  * A Command to follow a Choreo trajectory. Uses an LTV Unicycle controller.
@@ -60,8 +63,13 @@ public class FollowTrajectory extends Command {
 
   @Override
   public void execute() {
+    var table = NetworkTableInstance.getDefault().getTable("trajectory_debug_middle");
+    table.getDoubleTopic("time").getEntry(0).set(m_timer.get());
+    table.getDoubleTopic("total time").getEntry(0).set(m_trajectory.getTotalTime());
     var speed = m_drivetrain.getState().speeds;
     var speedsDiff = speed.minus(m_lastSpeeds);
+    table.getDoubleTopic("xDiffVel").getEntry(0).set(speedsDiff.vxMetersPerSecond);
+    table.getDoubleTopic("yDiffVel").getEntry(0).set(speedsDiff.vyMetersPerSecond);
     var acceleration =
         Math.hypot(speedsDiff.vxMetersPerSecond, speedsDiff.vyMetersPerSecond) / 0.02;
     var state = m_trajectory.sample(m_timer.get(), m_isRed);
@@ -73,11 +81,11 @@ public class FollowTrajectory extends Command {
 
   @Override
   public void end(boolean interrupted) {
-    if (interrupted) {
+    // if (interrupted) {
       m_output.accept(new ChassisSpeeds());
-    } else {
-      m_output.accept(m_trajectory.getFinalState().getChassisSpeeds());
-    }
+    // } else {
+      // m_output.accept(m_trajectory.getFinalState().getChassisSpeeds());
+    // }
 
     m_timer.stop();
     m_trajectory = new ChoreoTrajectory();
