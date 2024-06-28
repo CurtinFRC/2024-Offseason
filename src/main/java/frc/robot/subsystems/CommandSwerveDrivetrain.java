@@ -4,19 +4,25 @@
 
 package frc.robot.subsystems;
 
+import com.choreo.lib.Choreo;
+import com.choreo.lib.ChoreoTrajectoryState;
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrain;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrainConstants;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
+import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest.ApplyChassisSpeeds;
+import edu.wpi.first.math.controller.LTVUnicycleController;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Subsystem;
-import frc.robot.FollowTrajectory;
+import frc.robot.Constants;
 import java.util.function.Supplier;
 
 /**
@@ -27,6 +33,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
   private static final double kSimLoopPeriod = 0.005; // 5 ms
   private Notifier m_simNotifier = null;
   private double m_lastSimTime;
+  private ChassisSpeeds m_lastSpeeds = new ChassisSpeeds();
 
   /* Blue alliance sees forward as 0 degrees (toward red alliance wall) */
   private final Rotation2d BlueAlliancePerspectiveRotation = Rotation2d.fromDegrees(0);
@@ -106,17 +113,29 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     }
   }
 
+  private ChassisSpeeds controlFunction(Pose2d pose, ChoreoTrajectoryState state) {
+    var controller = new LTVUnicycleController(0.02, Constants.DrivebaseMaxSpeed);
+    var speed = getState().speeds;
+    var speedsDiff = speed.minus(m_lastSpeeds);
+    var acceleration =
+        Math.hypot(speedsDiff.vxMetersPerSecond, speedsDiff.vyMetersPerSecond) / 0.02;
+    m_lastSpeeds = speed;
+    return controller.calculate(pose, state.toTrajectoryState(acceleration));
+  }
+
   /**
    * A command to follow the given Choreo trajectory.
    *
    * @param trajectoryName The name of the trajectory.
    * @param isRed Should the trajectory be from the red perspective.
    */
-  public FollowTrajectory followTrajectory(String trajectoryName, boolean isRed) {
-    return new FollowTrajectory(
-        this,
-        trajectoryName,
-        isRed,
-        (speeds) -> this.setControl(new SwerveRequest.ApplyChassisSpeeds().withSpeeds(speeds)));
+  public Command followTrajectory(String trajectoryName, boolean isRed) {
+    return Choreo.choreoSwerveCommand(
+        Choreo.getTrajectory(trajectoryName),
+        () -> this.getState().Pose,
+        this::controlFunction,
+        (speeds) -> this.setControl(new ApplyChassisSpeeds().withSpeeds(speeds)),
+        () -> isRed,
+        this);
   }
 }

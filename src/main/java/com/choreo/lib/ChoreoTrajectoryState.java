@@ -8,8 +8,8 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.interpolation.Interpolatable;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.trajectory.Trajectory;
-import java.util.Arrays;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import java.util.Arrays;
 
 /** A single robot state in a ChoreoTrajectory. */
 public class ChoreoTrajectoryState implements Interpolatable<ChoreoTrajectoryState> {

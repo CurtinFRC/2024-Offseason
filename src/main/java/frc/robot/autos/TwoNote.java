@@ -4,9 +4,9 @@
 
 package frc.robot.autos;
 
+import com.choreo.lib.Choreo;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Auto;
-import frc.robot.FollowTrajectory;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
@@ -16,7 +16,7 @@ public class TwoNote implements Auto {
   Intake m_intake;
   CommandSwerveDrivetrain m_drivetrain;
 
-  FollowTrajectory m_pathfollower;
+  Command m_pathfollower;
 
   public TwoNote(
       CommandSwerveDrivetrain drivetrain, Shooter shooter, Intake intake, boolean isRed) {
@@ -40,8 +40,8 @@ public class TwoNote implements Auto {
   }
 
   public void configureBindings() {
-    m_pathfollower.event("first-shot").onTrue(shoot());
-    m_pathfollower.event("intake").onTrue(m_intake.intake());
-    m_pathfollower.event("second-shot").onTrue(shoot());
+    Choreo.event("first-shot").onTrue(shoot());
+    Choreo.event("intake").onTrue(m_intake.intake());
+    Choreo.event("second-shot").onTrue(shoot());
   }
 }

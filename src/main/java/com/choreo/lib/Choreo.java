@@ -165,7 +165,6 @@ public class Choreo {
           currentTraj = trajectory;
         },
         () -> {
-          ;
           outputChassisSpeeds.accept(
               controller.apply(
                   poseSupplier.get(),
