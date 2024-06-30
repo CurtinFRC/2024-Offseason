@@ -1,6 +1,7 @@
-#!/usr/bin/env python3
+#!/home/jade/python_venvs/2024frc/bin/python3
 
 from jormungandr.optimization import OptimizationProblem
+import math
 
 def main():
     # Find the x, y pair with the largest product for which x + 3y = 36
@@ -12,9 +13,10 @@ def main():
     y = 5
     x = 3.14159
     h = 1
+    a = 3
 
     problem.minimize(arm_theta)
-    problem.subject_to(theta == (atan(y - a * sin(arm_theta)) + h / 2) / x - a * cos(arm_theta))
+    problem.subject_to(theta == (math.atan(y - a * math.sin(arm_theta)) + h / 2) / x - a * math.cos(arm_theta))
     problem.solve()
 
     # x = 18.0, y = 6.0
