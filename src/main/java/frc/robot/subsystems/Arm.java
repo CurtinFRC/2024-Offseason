@@ -65,7 +65,7 @@ public class Arm extends SubsystemBase {
   private Command achievePosition(double position) {
     return Commands.run(
         () -> {
-          var pid_output = m_pid.calculate(m_encoder.getAbsolutePosition() * 2 * 3.14, position);
+          var pid_output = m_pid.calculate(m_encoder.getAbsolutePosition() * 2 * Math.PI, position);
           log_pid_output.append(pid_output);
           log_pid_setpoint.append(m_pid.getSetpoint());
           var ff_output = m_feedforward.calculate(position, (5676 / 250));
@@ -88,7 +88,8 @@ public class Arm extends SubsystemBase {
    */
   private Command moveToPosition(double position) {
     return achievePosition(position)
-        .until(() -> m_pid.atSetpoint() && m_encoder.getAbsolutePosition() * 2 * 3.14 == position);
+        .until(
+            () -> m_pid.atSetpoint() && m_encoder.getAbsolutePosition() * 2 * Math.PI == position);
   }
 
   /**
