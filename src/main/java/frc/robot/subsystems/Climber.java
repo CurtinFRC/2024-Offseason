@@ -46,7 +46,7 @@ public class Climber extends SubsystemBase {
     return Commands.run(
         () -> {
           var output =
-              m_pid.calculate(Units.rotationsToRadians(m_encoder.getPosition() * -1), -3.14159);
+              m_pid.calculate(Units.rotationsToRadians(m_encoder.getPosition() * -1), -Math.PI);
           log_pid_output.append(output);
           m_motor.setVoltage(output);
         });
