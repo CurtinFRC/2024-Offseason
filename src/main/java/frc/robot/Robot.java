@@ -21,6 +21,7 @@ import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
+import java.util.HashMap;
 
 public class Robot extends TimedRobot {
   private final CommandXboxController m_driver = new CommandXboxController(Constants.driverport);
@@ -57,6 +58,13 @@ public class Robot extends TimedRobot {
   }
 
   public Robot() {
+    HashMap<Integer, String> aliases = new HashMap<>();
+    aliases.put(31, "Shooter");
+    aliases.put(32, "Climber");
+    aliases.put(35, "Intake");
+    aliases.put(21, "Arm Lead");
+    aliases.put(26, "Arm Follower");
+    URCL.start(aliases, false);
     DataLogManager.start();
     DriverStation.startDataLog(DataLogManager.getLog());
 
