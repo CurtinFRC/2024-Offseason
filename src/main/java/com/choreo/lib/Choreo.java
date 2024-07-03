@@ -66,6 +66,10 @@ public final class Choreo {
     var traj_dir = new File(Filesystem.getDeployDirectory(), "choreo");
     File[] files =
         traj_dir.listFiles((file) -> file.getName().matches(trajName + "\\.\\d+\\.traj"));
+    if (files == null) {
+      DriverStation.reportError("ChoreoLib: Cannot get files for trajectory group", false);
+      return null;
+    }
     int segmentCount = files.length;
     // Try to load the segments.
     var trajs = new ArrayList<ChoreoTrajectory>();

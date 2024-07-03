@@ -89,7 +89,9 @@ public class Arm extends SubsystemBase {
   private Command moveToPosition(double position) {
     return achievePosition(position)
         .until(
-            () -> m_pid.atSetpoint() && m_encoder.getAbsolutePosition() * 2 * Math.PI == position);
+            () ->
+                m_pid.atSetpoint()
+                    && ((m_encoder.getAbsolutePosition() * 2 * Math.PI) - position) < 0.001);
   }
 
   /**
