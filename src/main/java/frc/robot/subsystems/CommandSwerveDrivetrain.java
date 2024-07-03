@@ -22,9 +22,10 @@ import java.util.function.Supplier;
  * Class that extends the Phoenix SwerveDrivetrain class and implements subsystem so it can be used
  * in command-based projects easily.
  */
+@SuppressWarnings("PMD.SingularField")
 public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsystem {
   private static final double kSimLoopPeriod = 0.005; // 5 ms
-  private Notifier m_simNotifier = null;
+  private Notifier m_simNotifier;
   private double m_lastSimTime;
 
   /* Blue alliance sees forward as 0 degrees (toward red alliance wall) */
@@ -32,7 +33,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
   /* Red alliance sees forward as 180 degrees (toward blue alliance wall) */
   private final Rotation2d RedAlliancePerspectiveRotation = Rotation2d.fromDegrees(180);
   /* Keep track if we've ever applied the operator perspective before or not */
-  private boolean hasAppliedOperatorPerspective = false;
+  private boolean hasAppliedOperatorPerspective;
 
   public CommandSwerveDrivetrain(
       SwerveDrivetrainConstants driveTrainConstants,

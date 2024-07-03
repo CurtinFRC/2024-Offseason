@@ -45,3 +45,11 @@ jobs:
       run: git --no-pager diff --exit-code HEAD
     - name: Run spotless
       run: ./gradlew spotlessCheck
+
+  pmd:
+    runs-on: ubuntu-latest
+    container: wpilib/roborio-cross-ubuntu:2024-22.04
+    steps:
+    - uses: actions/checkout@v4
+    - name: Run PMD
+      run: ./gradlew pmdMain

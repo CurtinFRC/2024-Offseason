@@ -133,7 +133,7 @@ public class ChoreoTrajectory {
    */
   public ChoreoMarker markerFromName(String name) {
     for (ChoreoMarker marker : events) {
-      if (marker.name() == name) {
+      if (marker.getName().equals(name)) {
         return marker;
       }
     }

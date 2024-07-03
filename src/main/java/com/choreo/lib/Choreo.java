@@ -22,7 +22,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /** Utilities to load and follow ChoreoTrajectories */
-public class Choreo {
+public final class Choreo {
   private static final Gson gson = new Gson();
 
   private static Timer timer = new Timer();
@@ -31,7 +31,7 @@ public class Choreo {
   private static ChoreoTrajectory currTraj = emptyTraj;
 
   /** Default constructor. */
-  public Choreo() {}
+  private Choreo() {}
 
   /**
    * Load a trajectory from the deploy directory. Choreolib expects .traj files to be placed in
@@ -60,6 +60,7 @@ public class Choreo {
    * @param trajName The path name in Choreo for this trajectory.
    * @return The ArrayList of segments, in order, or null.
    */
+  @SuppressWarnings("PMD.ReturnEmptyCollectionRatherThanNull")
   public static ArrayList<ChoreoTrajectory> getTrajectoryGroup(String trajName) {
     // Count files matching the pattern for split parts.
     var traj_dir = new File(Filesystem.getDeployDirectory(), "choreo");
@@ -81,6 +82,7 @@ public class Choreo {
     return trajs;
   }
 
+  @SuppressWarnings({"PMD.AvoidCatchingGenericException", "PMD.AvoidFileStream"})
   private static ChoreoTrajectory loadFile(File path) {
     try {
       var reader = new BufferedReader(new FileReader(path));
@@ -226,7 +228,7 @@ public class Choreo {
   public static Trigger event(String eventName) {
     return new Trigger(
         () ->
-            timer.hasElapsed(currTraj.markerFromName(eventName).startTime())
-                && !timer.hasElapsed(currTraj.markerFromName(eventName).endTime()));
+            timer.hasElapsed(currTraj.markerFromName(eventName).getStartTime())
+                && !timer.hasElapsed(currTraj.markerFromName(eventName).getEndTime()));
   }
 }
