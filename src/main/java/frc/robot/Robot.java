@@ -23,15 +23,15 @@ import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
 
 public class Robot extends TimedRobot {
-  private CommandXboxController m_driver = new CommandXboxController(Constants.driverport);
+  private final CommandXboxController m_driver = new CommandXboxController(Constants.driverport);
 
-  private Arm m_arm = new Arm();
-  private Shooter m_shooter = new Shooter();
-  private Climber m_climber = new Climber();
-  private Intake m_intake = new Intake();
-  private final CommandSwerveDrivetrain drivetrain = TunerConstants.DriveTrain;
+  private final Arm m_arm = new Arm();
+  private final Shooter m_shooter = new Shooter();
+  private final Climber m_climber = new Climber();
+  private final Intake m_intake = new Intake();
+  private static final CommandSwerveDrivetrain drivetrain = TunerConstants.DriveTrain;
 
-  private SendableChooser<Auto> m_chooser = new SendableChooser<>();
+  private final SendableChooser<Auto> m_chooser = new SendableChooser<>();
   private Command m_autonomousCommand;
 
   private final SwerveRequest.FieldCentric drive =

@@ -1,5 +1,6 @@
 plugins {
     id "java"
+    id "pmd"
     id "edu.wpi.first.GradleRIO" version "2024.3.2"
     id 'com.diffplug.spotless' version '6.25.0'
 }
@@ -154,4 +155,13 @@ spotless {
         indentWithSpaces(2)
         endWithNewline()
     }
+}
+
+pmd {
+    toolVersion = "7.3.0"
+    consoleOutput = true
+    sourceSets = [project.sourceSets["main"]]
+    reportsDir = file("${project.buildDir}/reports/pmd")
+    ruleSetFiles = files(file("$rootDir/pmd-ruleset.xml"))
+    ruleSets = []
 }

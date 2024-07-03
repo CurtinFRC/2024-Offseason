@@ -29,20 +29,20 @@ public class Arm extends SubsystemBase {
     kStowed
   }
 
-  private PIDController m_pid;
-  private CANSparkMax m_primaryMotor;
-  private CANSparkMax m_followerMotor;
-  private DutyCycleEncoder m_encoder;
-  private ArmFeedforward m_feedforward;
-  private DataLog m_log = DataLogManager.getLog();
-  private DoubleLogEntry log_pid_output = new DoubleLogEntry(m_log, "/arm/pid/output");
-  private DoubleLogEntry log_pid_setpoint = new DoubleLogEntry(m_log, "/arm/pid/setpoint");
-  private DoubleLogEntry log_ff_position_setpoint =
+  private final PIDController m_pid;
+  private final CANSparkMax m_primaryMotor;
+  private final CANSparkMax m_followerMotor;
+  private final DutyCycleEncoder m_encoder;
+  private final ArmFeedforward m_feedforward;
+  private final DataLog m_log = DataLogManager.getLog();
+  private final DoubleLogEntry log_pid_output = new DoubleLogEntry(m_log, "/arm/pid/output");
+  private final DoubleLogEntry log_pid_setpoint = new DoubleLogEntry(m_log, "/arm/pid/setpoint");
+  private final DoubleLogEntry log_ff_position_setpoint =
       new DoubleLogEntry(m_log, "/arm/ff/position_setpoint");
-  private DoubleLogEntry log_ff_velocity_setpoint =
+  private final DoubleLogEntry log_ff_velocity_setpoint =
       new DoubleLogEntry(m_log, "/arm/ff/velocity_setpoint");
-  private DoubleLogEntry log_ff_output = new DoubleLogEntry(m_log, "/arm/ff/output");
-  private StringLogEntry log_setpoint = new StringLogEntry(m_log, "/arm/setpoint");
+  private final DoubleLogEntry log_ff_output = new DoubleLogEntry(m_log, "/arm/ff/output");
+  private final StringLogEntry log_setpoint = new StringLogEntry(m_log, "/arm/setpoint");
 
   /**
    * Creates a new {@link Arm} {@link edu.wpi.first.wpilibj2.command.Subsystem}.
