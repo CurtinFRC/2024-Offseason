@@ -25,10 +25,10 @@ public class OneNote implements Auto {
   }
 
   public void configureBindings() {
-    // Choreo.event("shoot")
-    //     .onTrue(
-    //         m_shooter
-    //             .spinup(300)
-    //             .andThen(Commands.parallel(m_intake.pass(), m_shooter.maintain())));
+    Choreo.event("shoot")
+        .onTrue(
+            m_shooter
+                .spinup(300)
+                .andThen(Commands.parallel(m_intake.pass(), m_shooter.maintain())));
   }
 }

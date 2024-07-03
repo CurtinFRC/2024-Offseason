@@ -95,7 +95,6 @@ public class Shooter extends SubsystemBase {
 
   public Command shoot() {
     return Commands.parallel(
-        Commands.waitUntil(atSetpoint()),
-        Commands.run(() -> m_indexer.setVoltage(2)));
+      Commands.waitUntil(atSetpoint()),Commands.run(() -> m_indexer.setVoltage(2)));
   }
 }

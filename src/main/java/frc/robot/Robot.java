@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import java.util.function.BooleanSupplier;
+
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
@@ -14,12 +16,16 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.event.BooleanEvent;
+import edu.wpi.first.wpilibj.event.EventLoop;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.autos.OneNote;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Arm;
@@ -107,6 +113,10 @@ public class Robot extends TimedRobot {
     m_codriver.rightTrigger().onTrue(m_shooter.shoot());
 
     m_codriver.povUp().onTrue(m_climber.climb());
+
+    if (m_codriver.getHID().getPOV()==0);
+
+
   }
 
   @SuppressWarnings("removal")
@@ -136,9 +146,17 @@ public class Robot extends TimedRobot {
     CommandScheduler.getInstance().registerSubsystem(m_climber);
 
     m_intake =
-        new Intake(1, new CANSparkMax(Constants.intakePort, CANSparkMaxLowLevel.MotorType.kBrushless));
+        new Intake(Constants.intakebeambreak, new CANSparkMax(Constants.intakePort, CANSparkMaxLowLevel.MotorType.kBrushless));
     CommandScheduler.getInstance().registerSubsystem(m_intake);
+    
+    final EventLoop m_loop = new EventLoop();
 
+    BooleanEvent UpPOV =
+        new BooleanEvent(m_loop, () -> m_codriver.getHID().getPOV()==0)
+            // debounce for more stability
+            .debounce(0.2); 
+    Trigger exampleTrigger = new Trigger(m_loop, () -> m_codriver.getHID().getPOV()==0);
+    
     m_chooser.setDefaultOption("One Note", new OneNote(m_shooter, m_intake));
     SmartDashboard.putData(m_chooser);
 
