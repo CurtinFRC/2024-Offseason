@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.autos.OneNote;
+import frc.robot.autos.TwoNote;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Climber;
@@ -76,7 +77,8 @@ public class Robot extends TimedRobot {
     CommandScheduler.getInstance().registerSubsystem(m_intake);
 
     m_chooser.addOption("One Note", new OneNote(m_shooter, m_intake));
-    m_chooser.setDefaultOption("One Note", new OneNote(m_shooter, m_intake));
+    m_chooser.addOption("Two Note", new TwoNote(m_drivetrain, m_shooter, m_intake, false));
+    m_chooser.setDefaultOption("Two Note", new TwoNote(m_drivetrain, m_shooter, m_intake, false));
     SmartDashboard.putData(m_chooser);
 
     configureBindings();
