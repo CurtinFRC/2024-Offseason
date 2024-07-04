@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import frc.robot.autos.Flex;
 import frc.robot.autos.OneNote;
 import frc.robot.autos.TwoNote;
 import frc.robot.generated.TunerConstants;
@@ -78,7 +79,8 @@ public class Robot extends TimedRobot {
 
     m_chooser.addOption("One Note", new OneNote(m_shooter, m_intake));
     m_chooser.addOption("Two Note", new TwoNote(m_drivetrain, m_shooter, m_intake, false));
-    m_chooser.setDefaultOption("Two Note", new TwoNote(m_drivetrain, m_shooter, m_intake, false));
+    m_chooser.addOption("Flex", new Flex(m_drivetrain));
+    m_chooser.setDefaultOption("Flex", new Flex(m_drivetrain));
     SmartDashboard.putData(m_chooser);
 
     configureBindings();

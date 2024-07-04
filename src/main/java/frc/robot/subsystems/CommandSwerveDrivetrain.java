@@ -13,9 +13,6 @@ import com.ctre.phoenix6.mechanisms.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.networktables.DoublePublisher;
-import edu.wpi.first.networktables.NetworkTable;
-import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Notifier;
@@ -59,7 +56,8 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     m_yController.setTolerance(0.005);
     m_rotationController.setTolerance(0.005);
 
-    m_swerveController = Choreo.choreoSwerveController(m_xController, m_yController, m_rotationController);
+    m_swerveController =
+        Choreo.choreoSwerveController(m_xController, m_yController, m_rotationController);
   }
 
   public CommandSwerveDrivetrain(
@@ -73,7 +71,8 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     m_yController.setTolerance(0.05);
     m_rotationController.setTolerance(0.05);
 
-    m_swerveController = Choreo.choreoSwerveController(m_xController, m_yController, m_rotationController);
+    m_swerveController =
+        Choreo.choreoSwerveController(m_xController, m_yController, m_rotationController);
   }
 
   public Command applyRequest(Supplier<SwerveRequest> requestSupplier) {
