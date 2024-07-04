@@ -30,7 +30,7 @@ public class Robot extends TimedRobot {
   private final Shooter m_shooter = new Shooter();
   private final Climber m_climber = new Climber();
   private final Intake m_intake = new Intake();
-  private static final CommandSwerveDrivetrain drivetrain = TunerConstants.DriveTrain;
+  private static final CommandSwerveDrivetrain m_drivetrain = TunerConstants.DriveTrain;
 
   private final SendableChooser<Auto> m_chooser = new SendableChooser<>();
   private Command m_autonomousCommand;
@@ -44,8 +44,8 @@ public class Robot extends TimedRobot {
   private final Telemetry logger = new Telemetry(Constants.DrivebaseMaxSpeed);
 
   private void configureBindings() {
-    drivetrain.setDefaultCommand(
-        drivetrain.applyRequest(
+    m_drivetrain.setDefaultCommand(
+        m_drivetrain.applyRequest(
             () ->
                 drive
                     .withVelocityX(-m_driver.getLeftY() * Constants.DrivebaseMaxSpeed)
@@ -53,8 +53,8 @@ public class Robot extends TimedRobot {
                     .withRotationalRate(
                         -m_driver.getRightX() * Constants.DrivebaseMaxAngularRate)));
 
-    m_driver.a().whileTrue(drivetrain.applyRequest(() -> brake));
-    m_driver.x().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldRelative()));
+    m_driver.a().whileTrue(m_drivetrain.applyRequest(() -> brake));
+    m_driver.x().onTrue(m_drivetrain.runOnce(() -> m_drivetrain.seedFieldRelative()));
   }
 
   public Robot() {
@@ -68,7 +68,7 @@ public class Robot extends TimedRobot {
     DataLogManager.start();
     DriverStation.startDataLog(DataLogManager.getLog());
 
-    drivetrain.registerTelemetry(logger::telemeterize);
+    m_drivetrain.registerTelemetry(logger::telemeterize);
 
     CommandScheduler.getInstance().registerSubsystem(m_arm);
     CommandScheduler.getInstance().registerSubsystem(m_shooter);
