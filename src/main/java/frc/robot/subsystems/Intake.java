@@ -24,8 +24,6 @@ public class Intake extends SubsystemBase {
   private DoubleLogEntry log_output = new DoubleLogEntry(log, "/intake/output");
   PWM lEDPwm = new PWM(0);
 
-  PWM lEDPwm = new PWM(0);
-
   public Intake() {
     m_motor = new CANSparkMax(Constants.intakePort, MotorType.kBrushless);
     lEDPwm = new PWM(0);

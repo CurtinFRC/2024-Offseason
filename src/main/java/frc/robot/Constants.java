@@ -25,6 +25,10 @@ public final class Constants {
   public static final double armG = 0;
   public static final double armV = 0;
   public static final double armA = 0;
+  public static final int armMaxVelRadPerSec =  0;
+  public static final int armMaxAccelRadPerSec =  0;
+  public static final int armDistPerPulse = 0;
+  public static final int armOffsetRad = 0;
   public static final int armLeadPort = 21;
   public static final int armFollowerPort = 26;
   public static final int armEncoderPort = 3;
