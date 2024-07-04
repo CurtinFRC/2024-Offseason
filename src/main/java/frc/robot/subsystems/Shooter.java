@@ -26,6 +26,8 @@ public class Shooter extends SubsystemBase {
   private final DataLog m_log = DataLogManager.getLog();
   private final DoubleLogEntry log_pid_output = new DoubleLogEntry(m_log, "/shooter/pid/output");
 
+  public final Trigger m_atSetpoint;
+
   /**
    * Creates a new {@link Shooter} {@link edu.wpi.first.wpilibj2.command.Subsystem}.
    *
@@ -35,6 +37,8 @@ public class Shooter extends SubsystemBase {
     m_motor = new CANSparkMax(Constants.shooterPort, MotorType.kBrushless);
     m_encoder = m_motor.getEncoder();
     m_pid = new PIDController(Constants.shooterP, Constants.shooterI, Constants.shooterD);
+
+    m_atSetpoint = new Trigger(m_pid::atSetpoint);
   }
 
   /** Acheives and maintains speed. */
@@ -72,18 +76,5 @@ public class Shooter extends SubsystemBase {
    */
   public Command maintain() {
     return achieveSpeeds(m_pid.getSetpoint());
-  }
-
-  /**
-   * Checks if the Shooter is at its setpoint and the loop is stable.
-   *
-   * @return A {@link Trigger} from the result.
-   */
-  public Trigger atSetpoint() {
-    return new Trigger(
-        () ->
-            m_pid.getSetpoint()
-                    == Units.rotationsPerMinuteToRadiansPerSecond(m_encoder.getVelocity())
-                && m_pid.atSetpoint());
   }
 }
