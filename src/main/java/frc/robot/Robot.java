@@ -114,7 +114,7 @@ public class Robot extends TimedRobot {
 
     m_codriver.povUp().onTrue(m_climber.climb());
 
-    if (m_codriver.getHID().getPOV()==0);
+    // if (m_codriver.getHID().getPOV()==0);
 
 
   }

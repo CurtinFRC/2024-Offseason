@@ -40,22 +40,18 @@ public class Intake extends SubsystemBase {
         return Commands.run(
                 () -> {
                   log_output.append(4);
-                  m_motor.setVoltage(4);
+                  m_motor.setVoltage(8); //todo - tune this value
                   log_output.append(output);
                 })
             .withTimeout(2)
             .andThen(runOnce(() -> m_motor.setVoltage(0)));
       }
     
-
-
-
-    
     public Command achieveSpeed(double speed) {
         return Commands.run(
             () ->
                 m_motor.setVoltage(
-                    m_pid.calculate(Units.rotationsToRadians(m_encoder.getVelocity()), speed)));
+                    m_pid.calculate(Units.rotationsToRadians(m_encoder.getVelocity()), speed)), this);
     }
 
     public Command spinup(double speed) {
