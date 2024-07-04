@@ -44,6 +44,8 @@ public class Arm extends SubsystemBase {
   private final DoubleLogEntry log_ff_output = new DoubleLogEntry(m_log, "/arm/ff/output");
   private final StringLogEntry log_setpoint = new StringLogEntry(m_log, "/arm/setpoint");
 
+  public final Trigger m_atSetpoint;
+
   /**
    * Creates a new {@link Arm} {@link edu.wpi.first.wpilibj2.command.Subsystem}.
    *
@@ -59,6 +61,8 @@ public class Arm extends SubsystemBase {
     m_pid.setTolerance(0.2);
     m_feedforward =
         new ArmFeedforward(Constants.armS, Constants.armG, Constants.armV, Constants.armA);
+
+    m_atSetpoint = new Trigger(m_pid::atSetpoint);
   }
 
   /** Achieves and maintains speed for the primary motor. */
@@ -101,15 +105,6 @@ public class Arm extends SubsystemBase {
    */
   public Command maintain() {
     return achievePosition(m_pid.getSetpoint());
-  }
-
-  /**
-   * Checks if the Arm is at its setpoint and the loop is stable.
-   *
-   * @return A {@link Trigger} from the result.
-   */
-  public Trigger atSetpoint() {
-    return new Trigger(() -> m_pid.atSetpoint());
   }
 
   /**
