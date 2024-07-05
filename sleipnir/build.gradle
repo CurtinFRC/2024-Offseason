@@ -1,0 +1,28 @@
+import edu.wpi.first.toolchain.NativePlatforms
+
+apply plugin: 'cpp'
+apply plugin: 'edu.wpi.first.GradleRIO'
+
+model {
+    components {
+        Sleipnir(NativeLibrarySpec) {
+            targetPlatform NativePlatforms.desktop
+            targetPlatform NativePlatforms.roborio
+
+            sources {
+                cpp {
+                    source {
+                        srcDir 'src/cpp'
+                        include '**/*.cpp', '**/*.cc'
+                    }
+
+                    exportedHeaders {
+                        srcDirs 'src/include', 'src/cpp/'
+                    }
+                }
+            }
+
+            wpi.cpp.deps.wpilib(it)
+        }
+    }
+}
