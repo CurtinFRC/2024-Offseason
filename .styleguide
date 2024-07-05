@@ -16,4 +16,5 @@ modifiableFileExclude {
    gradlew.bat
    src/main/java/com
    src/main/java/frc/robot/URCL.java
+   sleipnir/
 }
