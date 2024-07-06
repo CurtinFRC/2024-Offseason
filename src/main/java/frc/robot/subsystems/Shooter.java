@@ -25,21 +25,14 @@ public class Shooter extends SubsystemBase {
   private DataLog m_log = DataLogManager.getLog();
   private DoubleLogEntry log_pid_output = new DoubleLogEntry(m_log, "/shooter/pid/output");
 
-  private CANSparkMax m_indexer;
-  private RelativeEncoder m_indexerEncoder;
-
   /**
    * Creates a new {@link Shooter} {@link edu.wpi.first.wpilibj2.command.Subsystem}.
    *
    * @param motor The motor that the shooter controls.
    */
-  public Shooter(CANSparkMax motor, CANSparkMax indexer) {
+  public Shooter(CANSparkMax motor) {
     m_motor = motor;
     m_encoder = m_motor.getEncoder();
-
-    m_indexer = indexer;
-    m_indexerEncoder = m_indexer.getEncoder();
-    
     m_pid = new PIDController(Constants.shooterP, Constants.shooterI, Constants.shooterD);
   }
 
@@ -91,11 +84,5 @@ public class Shooter extends SubsystemBase {
             m_pid.getSetpoint()
                     == Units.rotationsPerMinuteToRadiansPerSecond(m_encoder.getVelocity())
                 && m_pid.atSetpoint());
-  }
-
-  public Command shoot() {
-    return Commands.parallel(
-        Commands.waitUntil(atSetpoint()),
-        Commands.run(() -> m_indexer.setVoltage(2)));
   }
 }
