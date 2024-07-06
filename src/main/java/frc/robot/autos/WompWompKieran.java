@@ -9,7 +9,7 @@ import frc.robot.Auto;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 
 public class WompWompKieran implements Auto {
-  private Command m_follower;
+  private final Command m_follower;
 
   public WompWompKieran(CommandSwerveDrivetrain drivetrain, boolean isRed) {
     m_follower = drivetrain.followTrajectory("WompWompKieran", isRed);
