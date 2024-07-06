@@ -14,9 +14,9 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import frc.robot.autos.Flex;
-import frc.robot.autos.OneNote;
-import frc.robot.autos.TwoNote;
+import frc.robot.autos.Centre2541;
+import frc.robot.autos.Centre26541;
+import frc.robot.autos.WompWompKieran;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Climber;
@@ -77,10 +77,13 @@ public class Robot extends TimedRobot {
     CommandScheduler.getInstance().registerSubsystem(m_climber);
     CommandScheduler.getInstance().registerSubsystem(m_intake);
 
-    m_chooser.addOption("One Note", new OneNote(m_shooter, m_intake));
-    m_chooser.addOption("Two Note", new TwoNote(m_drivetrain, m_shooter, m_intake, false));
-    m_chooser.addOption("Flex", new Flex(m_drivetrain));
-    m_chooser.setDefaultOption("Flex", new Flex(m_drivetrain));
+    m_chooser.addOption("Centre2_5_4_1 Blue", new Centre2541(m_drivetrain, false));
+    m_chooser.addOption("Centre2_5_4_1 Red", new Centre2541(m_drivetrain, true));
+    m_chooser.addOption("Centre2_6_5_4_1 Red", new Centre26541(m_drivetrain, true));
+    m_chooser.addOption("Centre2_6_5_4_1 Blue", new Centre26541(m_drivetrain, false));
+    m_chooser.addOption("WompWompKieran Blue", new WompWompKieran(m_drivetrain, false));
+    m_chooser.addOption("WompWompKieran Red", new WompWompKieran(m_drivetrain, true));
+    m_chooser.setDefaultOption("WompWompKieran Blue", new WompWompKieran(m_drivetrain, false));
     SmartDashboard.putData(m_chooser);
 
     configureBindings();
