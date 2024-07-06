@@ -5,6 +5,7 @@
 package frc.robot;
 
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
+import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -69,6 +70,8 @@ public class Robot extends TimedRobot {
     URCL.start(aliases, false);
     DataLogManager.start();
     DriverStation.startDataLog(DataLogManager.getLog());
+    SignalLogger.setPath(DataLogManager.getLogDir());
+    SignalLogger.start();
 
     m_drivetrain.registerTelemetry(logger::telemeterize);
 
