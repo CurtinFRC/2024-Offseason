@@ -24,7 +24,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
 import java.util.function.DoubleSupplier;
 
-public class Arm extends ProfiledPIDSubsystem {
+public class Arm extends SubsystemBase {
 
     public enum Setpoint {
         kAmp,
@@ -32,47 +32,71 @@ public class Arm extends ProfiledPIDSubsystem {
         kSpeaker,
         kStowed
       }
-
+  
+  private PIDController m_pid;
   private final CANSparkMax m_motor = new CANSparkMax(Constants.armLeadPort, MotorType.kBrushless);
-  private final DutyCycleEncoder m_encoder =
-      new DutyCycleEncoder(Constants.armEncoderPort);
+  private DataLog m_log = DataLogManager.getLog();
+  private DoubleLogEntry log_pid_output = new DoubleLogEntry(m_log, "/arm/pid/output");
+  private DoubleLogEntry log_pid_setpoint = new DoubleLogEntry(m_log, "/arm/pid/setpoint");
+  private DoubleLogEntry log_ff_position_setpoint =
+      new DoubleLogEntry(m_log, "/arm/ff/position_setpoint");
+  private DoubleLogEntry log_ff_velocity_setpoint =
+      new DoubleLogEntry(m_log, "/arm/ff/velocity_setpoint");
+  private DoubleLogEntry log_ff_output = new DoubleLogEntry(m_log, "/arm/ff/output");
+  private StringLogEntry log_setpoint = new StringLogEntry(m_log, "/arm/setpoint");
+    private final DutyCycleEncoder m_encoder =
+        new DutyCycleEncoder(Constants.armEncoderPort);
+
+  private Command achievePosition(double position) {
+  return Commands.run(
+    () -> {
+      var pid_output = m_pid.calculate(m_encoder.getAbsolutePosition() * 2 * 3.14, position);
+      log_pid_output.append(pid_output);
+      log_pid_setpoint.append(m_pid.getSetpoint());
+      var ff_output = m_feedforward.calculate(position, (5676 / 250));
+      log_ff_output.append(ff_output);
+      log_ff_position_setpoint.append(position);
+      log_ff_velocity_setpoint.append((5676 / 250));
+      m_motor.setVoltage(-1 * ff_output + pid_output);
+    });
+}
+
   private final ArmFeedforward 
   m_feedforward =
       new ArmFeedforward(
           Constants.armS, Constants.armG,
           Constants.armV, Constants.armA);
 
+
 public Arm() {
-    super(
+  
         new ProfiledPIDController(
             Constants.armP,
             Constants.armI,
             Constants.armD,
             new TrapezoidProfile.Constraints(
                 Constants.armMaxVelRadPerSec,
-                Constants.armMaxAccelRadPerSec)),
-        0);
+                Constants.armMaxAccelRadPerSec));
    
     // Start arm at rest in neutral position
-    setGoal(Constants.armOffsetRad);
+    achievePosition(Constants.armOffsetRad);
   }
 
-  @Override
+
   public void useOutput(double output, TrapezoidProfile.State setpoint) {
     // Calculate the feedforward from the sepoint
     double feedforward = m_feedforward.calculate(setpoint.position, setpoint.velocity);
     // Add the feedforward to the PID output to get the motor output
     m_motor.setVoltage(output + feedforward);
   }
-
-  @Override 
+ 
   public double getMeasurement() {
     return m_encoder.getDistance() + Constants.armOffsetRad;
   }
 
-  public void goToSetpoint(Setpoint setpoint) {
+  public Command goToSetpoint(Setpoint setpoint) {
     double position = 0;
-    // log_setpoint.append(setpoint.name());
+    log_setpoint.append(setpoint.name());
 
     switch (setpoint) {
       case kAmp:
@@ -92,7 +116,7 @@ public Arm() {
         break;
     }
 
-    setGoal(position);
+    return achievePosition(position);
   }
 
 }
