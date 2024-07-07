@@ -26,10 +26,18 @@ import java.util.function.DoubleSupplier;
 
 public class Arm extends ProfiledPIDSubsystem {
 
+    public enum Setpoint {
+        kAmp,
+        kIntake,
+        kSpeaker,
+        kStowed
+      }
+
   private final CANSparkMax m_motor = new CANSparkMax(Constants.armLeadPort, MotorType.kBrushless);
   private final DutyCycleEncoder m_encoder =
       new DutyCycleEncoder(Constants.armEncoderPort);
-  private final ArmFeedforward m_feedforward =
+  private final ArmFeedforward 
+  m_feedforward =
       new ArmFeedforward(
           Constants.armS, Constants.armG,
           Constants.armV, Constants.armA);
@@ -38,8 +46,8 @@ public Arm() {
     super(
         new ProfiledPIDController(
             Constants.armP,
-            0,
-            0,
+            Constants.armI,
+            Constants.armD,
             new TrapezoidProfile.Constraints(
                 Constants.armMaxVelRadPerSec,
                 Constants.armMaxAccelRadPerSec)),
@@ -57,10 +65,36 @@ public Arm() {
     m_motor.setVoltage(output + feedforward);
   }
 
-  @Override
+  @Override 
   public double getMeasurement() {
     return m_encoder.getDistance() + Constants.armOffsetRad;
   }
+
+  public void goToSetpoint(Setpoint setpoint) {
+    double position = 0;
+    // log_setpoint.append(setpoint.name());
+
+    switch (setpoint) {
+      case kAmp:
+        position = 5.34;
+        break;
+
+      case kIntake:
+        position = 3.7;
+        break;
+
+      case kSpeaker:
+        position = 3.7;
+        break;
+
+      case kStowed:
+        position = 3.7;
+        break;
+    }
+
+    setGoal(position);
+  }
+
 }
 
 /** Our Arm Subsystem */
@@ -170,28 +204,28 @@ public Arm() {
 //    *
 //    * @return A {@link Command} to go to the setpoint
 //    */
-//   public Command goToSetpoint(Setpoint setpoint) {
-//     double position = 0;
-//     log_setpoint.append(setpoint.name());
+  // public Command goToSetpoint(Setpoint setpoint) {
+  //   double position = 0;
+  //   log_setpoint.append(setpoint.name());
 
-//     switch (setpoint) {
-//       case kAmp:
-//         position = 5.34;
-//         break;
+  //   switch (setpoint) {
+  //     case kAmp:
+  //       position = 5.34;
+  //       break;
 
-//       case kIntake:
-//         position = 3.7;
-//         break;
+  //     case kIntake:
+  //       position = 3.7;
+  //       break;
 
-//       case kSpeaker:
-//         position = 3.7;
-//         break;
+  //     case kSpeaker:
+  //       position = 3.7;
+  //       break;
 
-//       case kStowed:
-//         position = 3.7;
-//         break;
-//     }
+  //     case kStowed:
+  //       position = 3.7;
+  //       break;
+  //   }
 
-//     return moveToPosition(position);
-//   }
+  //   return moveToPosition(position);
+  // }
 // }

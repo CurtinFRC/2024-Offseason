@@ -24,11 +24,13 @@ import edu.wpi.first.wpilibj.PWM;
 
 /** Our Crescendo shooter Subsystem */
 public class Shooter extends SubsystemBase {
-  private PIDController m_pid;
-  private CANSparkMax m_motor;
-  private RelativeEncoder m_encoder;
-  private DataLog m_log = DataLogManager.getLog();
-  private DoubleLogEntry log_pid_output = new DoubleLogEntry(m_log, "/shooter/pid/output");
+  private final PIDController m_pid;
+  private final CANSparkMax m_motor;
+  private final RelativeEncoder m_encoder;
+  private final DataLog m_log = DataLogManager.getLog();
+  private final DoubleLogEntry log_pid_output = new DoubleLogEntry(m_log, "/shooter/pid/output");
+
+  public final Trigger m_atSetpoint;
   
   PWM lEDPwm = new PWM(0);
   /**
@@ -40,6 +42,8 @@ public class Shooter extends SubsystemBase {
     m_motor = new CANSparkMax(Constants.shooterPort, MotorType.kBrushless);
     m_encoder = m_motor.getEncoder();
     m_pid = new PIDController(Constants.shooterP, Constants.shooterI, Constants.shooterD);
+
+    m_atSetpoint = new Trigger(m_pid::atSetpoint);
   }
 
   /** Acheives and maintains speed. */
@@ -80,18 +84,5 @@ public class Shooter extends SubsystemBase {
   public Command maintain() {
     lEDPwm.setSpeed(0.57); // hot pink //
     return achieveSpeeds(m_pid.getSetpoint());
-  }
-
-  /**
-   * Checks if the Shooter is at its setpoint and the loop is stable.
-   *
-   * @return A {@link Trigger} from the result.
-   */
-  public Trigger atSetpoint() {
-    return new Trigger(
-        () ->
-            m_pid.getSetpoint()
-                    == Units.rotationsPerMinuteToRadiansPerSecond(m_encoder.getVelocity())
-                && m_pid.atSetpoint());
   }
 }
