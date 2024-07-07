@@ -20,13 +20,15 @@ public class ChoreoTrajectory {
   }
 
   /**
-   * Constructs a new trajectory from a list of trajectory states, without event markers.
+   * Constructs a new trajectory from a list of trajectory states, with event markers included from
+   * a list of markers.
    *
    * @param samples a vector containing a list of ChoreoTrajectoryStates
+   * @param events a vector containing a list of ChoreoMarkers
    */
   public ChoreoTrajectory(List<ChoreoTrajectoryState> samples) {
     this.samples = samples;
-    events = List.of();
+    this.events = List.of();
   }
 
   /**
