@@ -44,7 +44,7 @@ public class Robot extends TimedRobot {
           .withRotationalDeadband(Constants.DrivebaseMaxAngularRate * 0.1)
           .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
   private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
-  private final Telemetry logger = new Telemetry(Constants.DrivebaseMaxSpeed);
+  private final Telemetry logger = new Telemetry();
 
   private void configureBindings() {
     m_drivetrain.setDefaultCommand(
