@@ -14,10 +14,18 @@ import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+<<<<<<< HEAD
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
+=======
+import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.networktables.DoublePublisher;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StructArrayPublisher;
+>>>>>>> 1f75da5 ([swerve] Better logging)
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Notifier;
@@ -38,11 +46,14 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
   private static final double kSimLoopPeriod = 0.005; // 5 ms
   private Notifier m_simNotifier;
   private double m_lastSimTime;
-
   private final PIDController m_xController = new PIDController(10, 0, 0.5);
   private final PIDController m_yController = new PIDController(10, 0, 0.5);
   private final PIDController m_rotationController = new PIDController(7, 0, 0.35);
   private final ChoreoControlFunction m_swerveController;
+  private final NetworkTable drive_entry = NetworkTableInstance.getDefault().getTable("Drive");
+  StructArrayPublisher<SwerveModuleState> m_moduleStatesPublisher =
+      drive_entry.getStructArrayTopic("SwerveModuleStates", SwerveModuleState.struct).publish();
+  DoublePublisher m_rotationPublisher = drive_entry.getDoubleTopic("Rotation").publish();
 
   /* Blue alliance sees forward as 0 degrees (toward red alliance wall) */
   private final Rotation2d BlueAlliancePerspectiveRotation = Rotation2d.fromDegrees(0);
@@ -101,6 +112,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
               /* use the measured time delta, get battery voltage from WPILib */
               updateSimState(deltaTime, RobotController.getBatteryVoltage());
             });
+
     m_simNotifier.startPeriodic(kSimLoopPeriod);
   }
 
@@ -155,6 +167,9 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         addVisionMeasurement(m_botpose.toPose2d(), frc.robot.Utils.now());
       }
     }
+
+    m_moduleStatesPublisher.set(m_moduleStates);
+    m_rotationPublisher.set(m_odometry.getEstimatedPosition().getRotation().getRadians());
   }
 
   private boolean reasonablePose(Pose3d pose) {
