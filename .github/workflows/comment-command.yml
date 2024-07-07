@@ -48,7 +48,7 @@ jobs:
       - name: Run wpiformat
         run: wpiformat
       - name: Run spotlessApply
-        run: ./gradlew spotlessApply
+        run: ./gradlew spotlessApply -PwithJavaFormat
       - name: Commit
         run: |
           # Set credentials

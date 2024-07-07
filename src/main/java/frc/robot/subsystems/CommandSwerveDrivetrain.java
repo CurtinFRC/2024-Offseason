@@ -4,11 +4,14 @@
 
 package frc.robot.subsystems;
 
+import com.choreo.lib.Choreo;
+import com.choreo.lib.ChoreoControlFunction;
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrain;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrainConstants;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -22,17 +25,23 @@ import java.util.function.Supplier;
  * Class that extends the Phoenix SwerveDrivetrain class and implements subsystem so it can be used
  * in command-based projects easily.
  */
+@SuppressWarnings("PMD.SingularField")
 public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsystem {
   private static final double kSimLoopPeriod = 0.005; // 5 ms
-  private Notifier m_simNotifier = null;
+  private Notifier m_simNotifier;
   private double m_lastSimTime;
+
+  private final PIDController m_xController = new PIDController(10, 0, 0.5);
+  private final PIDController m_yController = new PIDController(10, 0, 0.5);
+  private final PIDController m_rotationController = new PIDController(7, 0, 0.35);
+  private final ChoreoControlFunction m_swerveController;
 
   /* Blue alliance sees forward as 0 degrees (toward red alliance wall) */
   private final Rotation2d BlueAlliancePerspectiveRotation = Rotation2d.fromDegrees(0);
   /* Red alliance sees forward as 180 degrees (toward blue alliance wall) */
   private final Rotation2d RedAlliancePerspectiveRotation = Rotation2d.fromDegrees(180);
   /* Keep track if we've ever applied the operator perspective before or not */
-  private boolean hasAppliedOperatorPerspective = false;
+  private boolean hasAppliedOperatorPerspective;
 
   public CommandSwerveDrivetrain(
       SwerveDrivetrainConstants driveTrainConstants,
@@ -42,6 +51,13 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     if (Utils.isSimulation()) {
       startSimThread();
     }
+
+    m_xController.setTolerance(0.005);
+    m_yController.setTolerance(0.005);
+    m_rotationController.setTolerance(0.005);
+
+    m_swerveController =
+        Choreo.choreoSwerveController(m_xController, m_yController, m_rotationController);
   }
 
   public CommandSwerveDrivetrain(
@@ -50,6 +66,13 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     if (Utils.isSimulation()) {
       startSimThread();
     }
+
+    m_xController.setTolerance(0.05);
+    m_yController.setTolerance(0.05);
+    m_rotationController.setTolerance(0.05);
+
+    m_swerveController =
+        Choreo.choreoSwerveController(m_xController, m_yController, m_rotationController);
   }
 
   public Command applyRequest(Supplier<SwerveRequest> requestSupplier) {
@@ -76,10 +99,22 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
   @Override
   public void periodic() {
     /* Periodically try to apply the operator perspective */
-    /* If we haven't applied the operator perspective before, then we should apply it regardless of DS state */
-    /* This allows us to correct the perspective in case the robot code restarts mid-match */
-    /* Otherwise, only check and apply the operator perspective if the DS is disabled */
-    /* This ensures driving behavior doesn't change until an explicit disable event occurs during testing*/
+    /*
+     * If we haven't applied the operator perspective before, then we should apply
+     * it regardless of DS state
+     */
+    /*
+     * This allows us to correct the perspective in case the robot code restarts
+     * mid-match
+     */
+    /*
+     * Otherwise, only check and apply the operator perspective if the DS is
+     * disabled
+     */
+    /*
+     * This ensures driving behavior doesn't change until an explicit disable event
+     * occurs during testing
+     */
     if (!hasAppliedOperatorPerspective || DriverStation.isDisabled()) {
       DriverStation.getAlliance()
           .ifPresent(
@@ -91,5 +126,19 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
                 hasAppliedOperatorPerspective = true;
               });
     }
+  }
+
+  public Command followTrajectory(String name, boolean isRed) {
+    var traj = Choreo.getTrajectory(name);
+    var initPose = traj.getInitialPose();
+    m_odometry.resetPosition(initPose.getRotation(), m_modulePositions, initPose);
+
+    return Choreo.choreoSwerveCommand(
+        traj,
+        () -> getState().Pose,
+        m_swerveController,
+        (speeds) -> setControl(new SwerveRequest.ApplyChassisSpeeds().withSpeeds(speeds)),
+        () -> isRed,
+        this);
   }
 }

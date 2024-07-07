@@ -20,10 +20,12 @@ public class OneNote implements Auto {
     m_intake = intake;
   }
 
+  @Override
   public Command followTrajectory() {
     return Commands.print("No path to follow");
   }
 
+  @Override
   public void configureBindings() {
     Choreo.event("shoot")
         .onTrue(
