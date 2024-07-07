@@ -68,10 +68,12 @@ public class Shooter extends SubsystemBase {
    */
   public Command spinup(double speed) {
     lEDPwm.setSpeed(0.69); // yellow //
+    lEDPwm.setSpeed(0.69); // yellow //
     return achieveSpeeds(speed).until(m_pid::atSetpoint);
   }
 
   public Command stop() {
+    lEDPwm.setSpeed(0.73); // lime //
     lEDPwm.setSpeed(0.73); // lime //
     return runOnce(() -> m_motor.set(0));
   }
@@ -82,6 +84,7 @@ public class Shooter extends SubsystemBase {
    * @return A {@link Command} to hold the speed at the setpoint.
    */
   public Command maintain() {
+    lEDPwm.setSpeed(0.57); // hot pink //
     lEDPwm.setSpeed(0.57); // hot pink //
     return achieveSpeeds(m_pid.getSetpoint());
   }
