@@ -12,15 +12,12 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.util.datalog.DataLog;
 import edu.wpi.first.util.datalog.DoubleLogEntry;
 import edu.wpi.first.wpilibj.DataLogManager;
-import edu.wpi.first.util.datalog.DataLog;
-import edu.wpi.first.util.datalog.DoubleLogEntry;
-import edu.wpi.first.wpilibj.DataLogManager;
+import edu.wpi.first.wpilibj.PWM;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
-import edu.wpi.first.wpilibj.PWM;
 
 /** Our Crescendo shooter Subsystem */
 public class Shooter extends SubsystemBase {
@@ -31,8 +28,9 @@ public class Shooter extends SubsystemBase {
   private final DoubleLogEntry log_pid_output = new DoubleLogEntry(m_log, "/shooter/pid/output");
 
   public final Trigger m_atSetpoint;
-  
+
   PWM lEDPwm = new PWM(0);
+
   /**
    * Creates a new {@link Shooter} {@link edu.wpi.first.wpilibj2.command.Subsystem}.
    *
