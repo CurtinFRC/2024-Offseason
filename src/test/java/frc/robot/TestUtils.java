@@ -24,4 +24,13 @@ class TestUtils {
     SimHooks.stepTiming(3);
     assertEquals(Utils.now(), 3.0E12);
   }
+
+  @Test
+  void testDeadzone() {
+    var val1 = 0.001;
+    assertEquals(Utils.deadzone(val1), 0);
+
+    var val2 = 0.5;
+    assertEquals(Utils.deadzone(val2), val2);
+  }
 }
