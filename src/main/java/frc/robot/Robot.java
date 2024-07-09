@@ -77,6 +77,9 @@ public class Robot extends TimedRobot {
     SignalLogger.start();
 
     m_drivetrain.registerTelemetry(logger::telemeterize);
+    m_drivetrain.addMusic("abba", "bad-piggies");
+    m_drivetrain.selectTrack("bad-piggies");
+    m_drivetrain.getOrchestra().play();
 
     CommandScheduler.getInstance().registerSubsystem(m_arm);
     CommandScheduler.getInstance().registerSubsystem(m_shooter);
@@ -104,13 +107,16 @@ public class Robot extends TimedRobot {
   public void disabledInit() {}
 
   @Override
-  public void disabledPeriodic() {}
+  public void disabledPeriodic() {
+    m_drivetrain.getOrchestra().play();
+  }
 
   @Override
   public void disabledExit() {}
 
   @Override
   public void autonomousInit() {
+    m_drivetrain.getOrchestra().stop();
     m_autonomousCommand = getAutonomousCommand();
 
     if (m_autonomousCommand != null) {
@@ -126,6 +132,8 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopInit() {
+    m_drivetrain.getOrchestra().stop();
+
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
