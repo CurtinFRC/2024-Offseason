@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.autos.Centre2541;
 import frc.robot.autos.Centre26541;
 import frc.robot.autos.WompWompKieran;
@@ -61,6 +62,7 @@ public class Robot extends TimedRobot {
 
     m_driver.a().whileTrue(m_drivetrain.applyRequest(() -> brake));
     m_driver.x().onTrue(m_drivetrain.runOnce(() -> m_drivetrain.seedFieldRelative()));
+    new Trigger(this::isDisabled).whileTrue(m_drivetrain.play());
   }
 
   public Robot() {
@@ -79,7 +81,6 @@ public class Robot extends TimedRobot {
     m_drivetrain.registerTelemetry(logger::telemeterize);
     m_drivetrain.addMusic("abba", "bad-piggies");
     m_drivetrain.selectTrack("bad-piggies");
-    m_drivetrain.getOrchestra().play();
 
     CommandScheduler.getInstance().registerSubsystem(m_arm);
     CommandScheduler.getInstance().registerSubsystem(m_shooter);
@@ -107,16 +108,13 @@ public class Robot extends TimedRobot {
   public void disabledInit() {}
 
   @Override
-  public void disabledPeriodic() {
-    m_drivetrain.getOrchestra().play();
-  }
+  public void disabledPeriodic() {}
 
   @Override
   public void disabledExit() {}
 
   @Override
   public void autonomousInit() {
-    m_drivetrain.getOrchestra().stop();
     m_autonomousCommand = getAutonomousCommand();
 
     if (m_autonomousCommand != null) {
@@ -132,8 +130,6 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopInit() {
-    m_drivetrain.getOrchestra().stop();
-
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
