@@ -6,7 +6,9 @@ package frc.robot.subsystems;
 
 import com.choreo.lib.Choreo;
 import com.choreo.lib.ChoreoControlFunction;
+import com.ctre.phoenix6.Orchestra;
 import com.ctre.phoenix6.Utils;
+import com.ctre.phoenix6.configs.AudioConfigs;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrain;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrainConstants;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModuleConstants;
@@ -14,21 +16,11 @@ import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
-<<<<<<< HEAD
-<<<<<<< HEAD
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
-=======
-import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.networktables.DoublePublisher;
-import edu.wpi.first.networktables.NetworkTable;
-import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.networktables.StructArrayPublisher;
->>>>>>> 1f75da5 ([swerve] Better logging)
-=======
->>>>>>> 61b25be ([swerve] Refactor Telemetry (#73))
+import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Notifier;
@@ -36,6 +28,8 @@ import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import frc.robot.Constants;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.function.Supplier;
 
 /**
@@ -53,6 +47,12 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
   private final PIDController m_yController = new PIDController(10, 0, 0.5);
   private final PIDController m_rotationController = new PIDController(7, 0, 0.35);
   private final ChoreoControlFunction m_swerveController;
+
+  /* Orchestra classes */
+  private final Orchestra m_orchestra = new Orchestra();
+  private final ArrayList<String> m_songs = new ArrayList<String>();
+  private static final AudioConfigs m_audioConfig =
+      new AudioConfigs().withAllowMusicDurDisable(true);
 
   /* Blue alliance sees forward as 0 degrees (toward red alliance wall) */
   private final Rotation2d BlueAlliancePerspectiveRotation = Rotation2d.fromDegrees(0);
@@ -113,6 +113,52 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
             });
 
     m_simNotifier.startPeriodic(kSimLoopPeriod);
+  }
+
+  /**
+   * Add the given songs from a chirp file.
+   *
+   * @param songs The name of the chirp files for the songs to add. Doesn't include file extension.
+   */
+  public void addMusic(String... songs) {
+    m_songs.addAll(Arrays.asList(songs));
+  }
+
+  /**
+   * Selects the track to play.
+   *
+   * @param track The selected track. Must be a loaded song.
+   */
+  public void selectTrack(String track) {
+    if (!m_songs.contains(track)) {
+      DataLogManager.log("Track " + track + " not found.");
+    }
+
+    frc.robot.Utils.logStatusCode(m_orchestra.loadMusic(track + ".chrp"));
+
+    for (var i = 0; i < 4; i++) {
+      var module = super.getModule(i);
+      var driveMotor = module.getDriveMotor();
+      var steerMotor = module.getSteerMotor();
+
+      frc.robot.Utils.logStatusCode(driveMotor.getConfigurator().apply(m_audioConfig));
+      frc.robot.Utils.logStatusCode(m_orchestra.addInstrument(driveMotor, 0));
+      frc.robot.Utils.logStatusCode(steerMotor.getConfigurator().apply(m_audioConfig));
+      frc.robot.Utils.logStatusCode(m_orchestra.addInstrument(steerMotor, 1));
+    }
+  }
+
+  /**
+   * A list with the loaded songs.
+   *
+   * @return The list of loaded songs.
+   */
+  public ArrayList<String> getSongs() {
+    return m_songs;
+  }
+
+  public Orchestra getOrchestra() {
+    return m_orchestra;
   }
 
   @Override
