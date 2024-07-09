@@ -20,4 +20,14 @@ public final class Utils {
   public static double now() {
     return WPIUtilJNI.now() * 1e+6;
   }
+
+  /**
+   * A function to apply a 0.05 deadzone.
+   *
+   * @param value The value to apply a deadzone to.
+   * @return The value with the applied deadzone.
+   */
+  public static double deadzone(double value) {
+    return (Math.abs(value) > 0.05) ? value : 0;
+  }
 }
