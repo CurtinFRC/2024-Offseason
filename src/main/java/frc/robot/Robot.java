@@ -51,10 +51,13 @@ public class Robot extends TimedRobot {
         m_drivetrain.applyRequest(
             () ->
                 drive
-                    .withVelocityX(-m_driver.getLeftY() * Constants.DrivebaseMaxSpeed)
-                    .withVelocityY(-m_driver.getLeftX() * Constants.DrivebaseMaxSpeed)
+                    .withVelocityX(
+                        Utils.deadzone(-m_driver.getLeftY() * Constants.DrivebaseMaxSpeed))
+                    .withVelocityY(
+                        Utils.deadzone(-m_driver.getLeftX() * Constants.DrivebaseMaxSpeed))
                     .withRotationalRate(
-                        -m_driver.getRightX() * Constants.DrivebaseMaxAngularRate)));
+                        Utils.deadzone(
+                            -m_driver.getRightX() * Constants.DrivebaseMaxAngularRate))));
 
     m_driver.a().whileTrue(m_drivetrain.applyRequest(() -> brake));
     m_driver.x().onTrue(m_drivetrain.runOnce(() -> m_drivetrain.seedFieldRelative()));
