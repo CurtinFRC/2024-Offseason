@@ -2,7 +2,7 @@
 // Open Source Software, you can modify it according to the terms
 // of the MIT License at the root of this project
 
-package frc.robot.subsystems;
+package frc.robot.subsystems; 
 
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
@@ -26,6 +26,8 @@ import java.util.function.DoubleSupplier;
 
 public class Arm extends SubsystemBase {
 
+
+  
     public enum Setpoint {
         kAmp,
         kIntake,
@@ -33,9 +35,13 @@ public class Arm extends SubsystemBase {
         kStowed
       }
   
+  private TrapezoidProfile m_profile;
+  private TrapezoidProfile.State m_goal = new TrapezoidProfile.State();
+  private TrapezoidProfile.State m_setpoint = new TrapezoidProfile.State();
   private PIDController m_pid;
   private final CANSparkMax m_motor = new CANSparkMax(Constants.armLeadPort, MotorType.kBrushless);
   private DataLog m_log = DataLogManager.getLog();
+  private DoubleLogEntry log_trapezoid_goal = new DoubleLogEntry(m_log, "/arm/trapezoid/goal");
   private DoubleLogEntry log_pid_output = new DoubleLogEntry(m_log, "/arm/pid/output");
   private DoubleLogEntry log_pid_setpoint = new DoubleLogEntry(m_log, "/arm/pid/setpoint");
   private DoubleLogEntry log_ff_position_setpoint =
@@ -47,54 +53,103 @@ public class Arm extends SubsystemBase {
     private final DutyCycleEncoder m_encoder =
         new DutyCycleEncoder(Constants.armEncoderPort);
 
-  private Command achievePosition(double position) {
-  return Commands.run(
-    () -> {
-      var pid_output = m_pid.calculate(m_encoder.getAbsolutePosition() * 2 * 3.14, position);
-      log_pid_output.append(pid_output);
-      log_pid_setpoint.append(m_pid.getSetpoint());
-      var ff_output = m_feedforward.calculate(position, (5676 / 250));
-      log_ff_output.append(ff_output);
-      log_ff_position_setpoint.append(position);
-      log_ff_velocity_setpoint.append((5676 / 250));
-      m_motor.setVoltage(-1 * ff_output + pid_output);
-    });
-}
-
-  private final ArmFeedforward 
+private ArmFeedforward 
   m_feedforward =
       new ArmFeedforward(
           Constants.armS, Constants.armG,
           Constants.armV, Constants.armA);
-
-
-public Arm() {
   
-        new ProfiledPIDController(
-            Constants.armP,
-            Constants.armI,
-            Constants.armD,
-            new TrapezoidProfile.Constraints(
-                Constants.armMaxVelRadPerSec,
-                Constants.armMaxAccelRadPerSec));
-   
-    // Start arm at rest in neutral position
-    achievePosition(Constants.armOffsetRad);
-  }
+  private void useOutput(double output, Double position, Double velocity) {
 
-
-  public void useOutput(double output, TrapezoidProfile.State setpoint) {
     // Calculate the feedforward from the sepoint
-    double feedforward = m_feedforward.calculate(setpoint.position, setpoint.velocity);
+    double feedforward = m_feedforward.calculate(position, velocity);
+
+    log_trapezoid_goal.append(m_goal.position);
+    log_trapezoid_goal.append(m_goal.velocity);
+    log_pid_output.append(output);
+    log_pid_setpoint.append(m_pid.getSetpoint());
+    log_ff_output.append(feedforward);
+    log_ff_position_setpoint.append(position);
+    log_ff_velocity_setpoint.append(velocity);
+
     // Add the feedforward to the PID output to get the motor output
     m_motor.setVoltage(output + feedforward);
   }
  
+ /**
+   * Sets the goal for the ProfiledPIDController.
+   *
+   * @param goal The desired goal state.
+   */
+  private void setGoal(TrapezoidProfile.State goal) {
+    m_goal = goal;
+  }
+
+  /**
+   * Sets the goal for the ProfiledPIDController.
+   *
+   * @param goal The desired goal position.
+   */
+  private void setGoal(double goal) {
+    m_goal = new TrapezoidProfile.State(goal, 0);
+  }
+
+  /**
+   * Gets the goal for the ProfiledPIDController.
+   *
+   * @return The goal.
+   */
+  private TrapezoidProfile.State getGoal() {
+    return m_goal;
+  }
+
+  private double getPeriod() {
+    return m_pid.getPeriod();
+  }
+
+  /**
+   * Returns the next output of the PID controller.
+   *
+   * @param measurement The current measurement of the process variable.
+   * @param goal The new goal of the controller.
+   * @return The controller's next output.
+   */
+  public double calculate(double measurement) {
+    
+    m_setpoint = m_profile.calculate(getPeriod(), m_setpoint, m_goal);
+    return m_pid.calculate(measurement, m_setpoint.position);
+    
+  }
+
+  public double calculate(double measurement, TrapezoidProfile.State goal) {
+    setGoal(goal);
+    return calculate(measurement);
+  }
+  public double calculate(double measurement, double goal) {
+    setGoal(goal);
+    return calculate(measurement);
+  }
+
+  
+public Arm() {
+  
+    m_pid = new PIDController(
+        Constants.armP,
+        Constants.armI,
+        Constants.armD);
+        new TrapezoidProfile(new TrapezoidProfile.Constraints(
+        Constants.armMaxVelRadPerSec,
+        Constants.armMaxAccelRadPerSec));
+   
+    // Start arm at rest in neutral position
+    setGoal(Constants.armOffsetRad);
+  }
+
   public double getMeasurement() {
     return m_encoder.getDistance() + Constants.armOffsetRad;
   }
 
-  public Command goToSetpoint(Setpoint setpoint) {
+  public void goToSetpoint(Setpoint setpoint) {
     double position = 0;
     log_setpoint.append(setpoint.name());
 
@@ -116,7 +171,7 @@ public Arm() {
         break;
     }
 
-    return achievePosition(position);
+    useOutput(calculate(m_encoder.getAbsolutePosition(), position), m_setpoint.position, m_setpoint.velocity);
   }
 
 }
