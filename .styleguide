@@ -10,6 +10,7 @@ cppSrcFileInclude {
 }
 
 modifiableFileExclude {
+   src/main/deploy
    gradle/
    compile_commands.json
    gradlew
