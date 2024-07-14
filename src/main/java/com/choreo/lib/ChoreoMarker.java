@@ -2,9 +2,9 @@ package com.choreo.lib;
 
 /** An event marker loaded from Choreo. */
 public class ChoreoMarker {
-  private String name;
-  private double startTime;
-  private double endTime;
+  private final String name;
+  private final double startTime;
+  private final double endTime;
 
   /**
    * Creates a new ChoreoMarker.
@@ -22,21 +22,21 @@ public class ChoreoMarker {
   /**
    * @return The name of the marker.
    */
-  public String name() {
+  public String getName() {
     return name;
   }
 
   /**
    * @return The start time of the marker.
    */
-  public double startTime() {
+  public double getStartTime() {
     return startTime;
   }
 
   /**
    * @return The end time of the marker.
    */
-  public double endTime() {
+  public double getEndTime() {
     return endTime;
   }
 }

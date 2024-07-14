@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems;
 
+import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.math.controller.PIDController;
@@ -19,11 +20,13 @@ import frc.robot.Constants;
 
 /** Our Crescendo shooter Subsystem */
 public class Shooter extends SubsystemBase {
-  private PIDController m_pid;
-  private CANSparkMax m_motor;
-  private RelativeEncoder m_encoder;
-  private DataLog m_log = DataLogManager.getLog();
-  private DoubleLogEntry log_pid_output = new DoubleLogEntry(m_log, "/shooter/pid/output");
+  private final PIDController m_pid;
+  private final CANSparkMax m_motor;
+  private final RelativeEncoder m_encoder;
+  private final DataLog m_log = DataLogManager.getLog();
+  private final DoubleLogEntry log_pid_output = new DoubleLogEntry(m_log, "/shooter/pid/output");
+
+  public final Trigger m_atSetpoint;
 
   private CANSparkMax m_indexer;
   private RelativeEncoder m_indexerEncoder;
@@ -33,14 +36,18 @@ public class Shooter extends SubsystemBase {
    *
    * @param motor The motor that the shooter controls.
    */
-  public Shooter(CANSparkMax motor, CANSparkMax indexer) {
-    m_motor = motor;
+
+  public Shooter() {
+    m_motor = new CANSparkMax(Constants.shooterPort, MotorType.kBrushless);
+
     m_encoder = m_motor.getEncoder();
 
-    m_indexer = indexer;
+    m_indexer = new CANSparkMax(Constants.indexerPort, MotorType.kBrushless);
     m_indexerEncoder = m_indexer.getEncoder();
     
     m_pid = new PIDController(Constants.shooterP, Constants.shooterI, Constants.shooterD);
+
+    m_atSetpoint = new Trigger(m_pid::atSetpoint);
   }
 
   /** Acheives and maintains speed. */
@@ -96,5 +103,7 @@ public class Shooter extends SubsystemBase {
   public Command shoot() {
     return Commands.parallel(
       Commands.waitUntil(atSetpoint()),Commands.run(() -> m_indexer.setVoltage(2)));
+  } 
+
   }
-}
+

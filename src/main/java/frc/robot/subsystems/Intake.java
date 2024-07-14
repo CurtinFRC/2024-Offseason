@@ -1,10 +1,10 @@
 package frc.robot.subsystems;
 
+import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.util.datalog.DataLog;
 import edu.wpi.first.util.datalog.DoubleLogEntry;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -18,15 +18,20 @@ import edu.wpi.first.wpilibj.DigitalInput;
 
 public class Intake extends SubsystemBase {
     private PIDController m_pid;
-    private CANSparkMax m_motor;
     private RelativeEncoder m_encoder;
     private DigitalInput m_beamBreakSensor;
-    private DataLog log = DataLogManager.getLog();
-    private DoubleLogEntry log_output = new DoubleLogEntry(log, "/intake/output");
     private double output;
 
+public class intake extends SubsystemBase {
+  private final CANSparkMax m_motor;
+  private final DoubleLogEntry log_output =
+      new DoubleLogEntry(DataLogManager.getLog(), "/intake/output");
 
-    public Intake(int intakebeambreak, CANSparkMax motor) {
+  public intake() {
+    m_motor = new CANSparkMax(Constants.intakePort, MotorType.kBrushless);
+  }
+
+    public intake(int intakebeambreak, CANSparkMax motor) {
         m_motor = motor;
         m_encoder = m_motor.getEncoder();
         m_pid = new PIDController(Constants.shooterP, Constants.shooterI, Constants.shooterD);
@@ -36,7 +41,7 @@ public class Intake extends SubsystemBase {
         
     }
 
-    public Command intake() {
+    public Command Intake() {
         return Commands.run(
                 () -> {
                   log_output.append(4);
@@ -79,7 +84,8 @@ public class Intake extends SubsystemBase {
     }
 
     public Command pass() {
-        return intake();
+        return Intake();
       }
-}  
+   } 
+}
     
