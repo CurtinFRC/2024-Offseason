@@ -25,15 +25,6 @@ import frc.robot.Constants;
 import java.util.function.DoubleSupplier;
 
 public class Arm extends SubsystemBase {
-
-
-  
-    public enum Setpoint {
-        kAmp,
-        kIntake,
-        kSpeaker,
-        kStowed
-      }
   
   private TrapezoidProfile m_profile;
   private TrapezoidProfile.State m_goal = new TrapezoidProfile.State();
@@ -52,13 +43,19 @@ public class Arm extends SubsystemBase {
   private StringLogEntry log_setpoint = new StringLogEntry(m_log, "/arm/setpoint");
     private final DutyCycleEncoder m_encoder =
         new DutyCycleEncoder(Constants.armEncoderPort);
-
-private ArmFeedforward 
-  m_feedforward =
-      new ArmFeedforward(
-          Constants.armS, Constants.armG,
-          Constants.armV, Constants.armA);
+  private ArmFeedforward 
+    m_feedforward =
+        new ArmFeedforward(
+            Constants.armS, Constants.armG,
+            Constants.armV, Constants.armA);
   
+  public enum Setpoint {
+    kAmp,
+    kIntake,
+    kSpeaker,
+    kStowed
+  }
+
   private void useOutput(double output, Double position, Double velocity) {
 
     // Calculate the feedforward from the sepoint
@@ -114,18 +111,18 @@ private ArmFeedforward
    * @param goal The new goal of the controller.
    * @return The controller's next output.
    */
-  public double calculate(double measurement) {
+  private double calculate(double measurement) {
     
     m_setpoint = m_profile.calculate(getPeriod(), m_setpoint, m_goal);
     return m_pid.calculate(measurement, m_setpoint.position);
     
   }
 
-  public double calculate(double measurement, TrapezoidProfile.State goal) {
+  private double calculate(double measurement, TrapezoidProfile.State goal) {
     setGoal(goal);
     return calculate(measurement);
   }
-  public double calculate(double measurement, double goal) {
+  private double calculate(double measurement, double goal) {
     setGoal(goal);
     return calculate(measurement);
   }
