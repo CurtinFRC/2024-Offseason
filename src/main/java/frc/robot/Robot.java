@@ -4,122 +4,96 @@
 
 package frc.robot;
 
-import com.ctre.phoenix6.Utils;
+import com.choreo.lib.Auto;
+import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkMaxLowLevel;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.wpilibj.DataLogManager;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import frc.robot.autos.OneNote;
+import frc.robot.autos.Centre2541;
+import frc.robot.autos.Centre26541;
+import frc.robot.autos.WompWompKieran;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
+import java.util.HashMap;
 
 public class Robot extends TimedRobot {
+  private final CommandXboxController m_driver = new CommandXboxController(Constants.driverport);
+
+  private final Arm m_arm = new Arm();
+  private final Shooter m_shooter = new Shooter();
+  private final Climber m_climber = new Climber();
+  private final Intake m_intake = new Intake();
+  private static final CommandSwerveDrivetrain m_drivetrain = TunerConstants.DriveTrain;
+
+  private final SendableChooser<Auto> m_chooser = new SendableChooser<>();
   private Command m_autonomousCommand;
-  private CommandXboxController m_driver;
-  private CommandXboxController m_codriver;
-  private Arm m_arm;
-  private Shooter m_shooter;
-  private Climber m_climber;
-  private SendableChooser<Auto> m_chooser = new SendableChooser<>();
-  private Intake m_intake;
-
-  private Command getAutonomousCommand() {
-    Auto auto = m_chooser.getSelected();
-    auto.configureBindings();
-    return auto.followTrajectory();
-  }
-
-  private double MaxSpeed =
-      TunerConstants.kSpeedAt12VoltsMps; // kSpeedAt12VoltsMps desired top speed
-  private double MaxAngularRate =
-      1.5 * Math.PI; // 3/4 of a rotation per second max angular velocity
-
-  /* Setting up bindings for necessary control of the swerve drive platform */
-  private final CommandSwerveDrivetrain drivetrain = TunerConstants.DriveTrain; // My drivetrain
 
   private final SwerveRequest.FieldCentric drive =
       new SwerveRequest.FieldCentric()
-          .withDeadband(MaxSpeed * 0.1)
-          .withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
-          .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // I want field-centric
-  // driving in open loop
+          .withDeadband(Constants.DrivebaseMaxSpeed * 0.1)
+          .withRotationalDeadband(Constants.DrivebaseMaxAngularRate * 0.1)
+          .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
   private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
-  private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
-
-  private final Telemetry logger = new Telemetry(MaxSpeed);
+  private final Telemetry logger = new Telemetry();
 
   private void configureBindings() {
-    drivetrain.setDefaultCommand( // Drivetrain will execute this command periodically
-        drivetrain.applyRequest(
+    m_drivetrain.setDefaultCommand(
+        m_drivetrain.applyRequest(
             () ->
                 drive
-                    .withVelocityX(-m_driver.getLeftY() * MaxSpeed) // Drive forward with
-                    // negative Y (forward)
+                    .withVelocityX(
+                        Utils.deadzone(-m_driver.getLeftY() * Constants.DrivebaseMaxSpeed))
                     .withVelocityY(
-                        -m_driver.getLeftX() * MaxSpeed) // Drive left with negative X (left)
+                        Utils.deadzone(-m_driver.getLeftX() * Constants.DrivebaseMaxSpeed))
                     .withRotationalRate(
-                        -m_driver.getRightX()
-                            * MaxAngularRate) // Drive counterclockwise with negative X (left)
-            ));
+                        Utils.deadzone(
+                            -m_driver.getRightX() * Constants.DrivebaseMaxAngularRate))));
 
-    m_driver.a().whileTrue(drivetrain.applyRequest(() -> brake));
-    m_driver
-        .b()
-        .whileTrue(
-            drivetrain.applyRequest(
-                () ->
-                    point.withModuleDirection(
-                        new Rotation2d(-m_driver.getLeftY(), -m_driver.getLeftX()))));
-
-    // reset the field-centric heading on left bumper press
-    m_driver.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldRelative()));
-
-    if (Utils.isSimulation()) {
-      drivetrain.seedFieldRelative(new Pose2d(new Translation2d(), Rotation2d.fromDegrees(90)));
-    }
-    drivetrain.registerTelemetry(logger::telemeterize);
+    m_driver.a().whileTrue(m_drivetrain.applyRequest(() -> brake));
+    m_driver.x().onTrue(m_drivetrain.runOnce(() -> m_drivetrain.seedFieldRelative()));
   }
 
-  @SuppressWarnings("removal")
   public Robot() {
-    m_driver = new CommandXboxController(Constants.driverport);
-    m_codriver = new CommandXboxController(Constants.codriverport);
+    HashMap<Integer, String> aliases = new HashMap<>();
+    aliases.put(31, "Shooter");
+    aliases.put(32, "Climber");
+    aliases.put(35, "Intake");
+    aliases.put(21, "Arm Lead");
+    aliases.put(26, "Arm Follower");
+    URCL.start(aliases, false);
+    DataLogManager.start();
+    DriverStation.startDataLog(DataLogManager.getLog());
+    SignalLogger.setPath(DataLogManager.getLogDir());
+    SignalLogger.start();
 
-    var armLead = new CANSparkMax(Constants.armLeadPort, CANSparkMaxLowLevel.MotorType.kBrushless);
-    var armFollower =
-        new CANSparkMax(Constants.armFollowerPort, CANSparkMaxLowLevel.MotorType.kBrushless);
-    armFollower.follow(armLead);
-    m_arm = new Arm(armLead);
+    m_drivetrain.registerTelemetry(logger::telemeterize);
+    m_drivetrain.addMusic("abba", "bad-piggies");
+    m_drivetrain.selectTrack("bad-piggies");
+    m_drivetrain.getOrchestra().play();
+
     CommandScheduler.getInstance().registerSubsystem(m_arm);
-
-    m_shooter =
-        new Shooter(
-            new CANSparkMax(Constants.shooterPort, CANSparkMaxLowLevel.MotorType.kBrushless));
     CommandScheduler.getInstance().registerSubsystem(m_shooter);
-
-    m_climber =
-        new Climber(
-            new CANSparkMax(Constants.climberPort, CANSparkMaxLowLevel.MotorType.kBrushless));
     CommandScheduler.getInstance().registerSubsystem(m_climber);
-
-    m_intake =
-        new Intake(new CANSparkMax(Constants.intakePort, CANSparkMaxLowLevel.MotorType.kBrushless));
     CommandScheduler.getInstance().registerSubsystem(m_intake);
 
-    m_chooser.setDefaultOption("One Note", new OneNote(m_shooter, m_intake));
+    m_chooser.addOption("Centre2_5_4_1 Blue", new Centre2541(m_drivetrain, false));
+    m_chooser.addOption("Centre2_5_4_1 Red", new Centre2541(m_drivetrain, true));
+    m_chooser.addOption("Centre2_6_5_4_1 Red", new Centre26541(m_drivetrain, true));
+    m_chooser.addOption("Centre2_6_5_4_1 Blue", new Centre26541(m_drivetrain, false));
+    m_chooser.addOption("WompWompKieran Blue", new WompWompKieran(m_drivetrain, false));
+    m_chooser.addOption("WompWompKieran Red", new WompWompKieran(m_drivetrain, true));
+    m_chooser.setDefaultOption("WompWompKieran Blue", new WompWompKieran(m_drivetrain, false));
     SmartDashboard.putData(m_chooser);
 
     configureBindings();
@@ -134,14 +108,17 @@ public class Robot extends TimedRobot {
   public void disabledInit() {}
 
   @Override
-  public void disabledPeriodic() {}
+  public void disabledPeriodic() {
+    m_drivetrain.getOrchestra().play();
+  }
 
   @Override
   public void disabledExit() {}
 
   @Override
   public void autonomousInit() {
-    m_autonomousCommand = getAutonomousCommand();
+    m_drivetrain.getOrchestra().stop();
+    m_autonomousCommand = m_chooser.getSelected().followTrajectory();
 
     if (m_autonomousCommand != null) {
       m_autonomousCommand.schedule();
@@ -156,6 +133,8 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopInit() {
+    m_drivetrain.getOrchestra().stop();
+
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }

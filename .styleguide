@@ -10,9 +10,11 @@ cppSrcFileInclude {
 }
 
 modifiableFileExclude {
+   src/main/deploy
    gradle/
    compile_commands.json
    gradlew
    gradlew.bat
    src/main/java/com
+   src/main/java/frc/robot/URCL.java
 }
