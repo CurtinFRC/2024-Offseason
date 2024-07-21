@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import frc.robot.generated.TunerConstants;
+
 public final class Constants {
   public static final int driverport = 0;
   public static final int codriverport = 1;
@@ -26,6 +28,6 @@ public final class Constants {
   public static final int armLeadPort = 21;
   public static final int armFollowerPort = 26;
   public static final int armEncoderPort = 3;
-  public static final int upperElevatorPort = 99;
-  public static final int lowerElevatorPort = 98;
+  public static final double DrivebaseMaxSpeed = TunerConstants.kSpeedAt12VoltsMps;
+  public static final double DrivebaseMaxAngularRate = 1.5 * Math.PI;
 }

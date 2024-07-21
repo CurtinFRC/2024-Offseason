@@ -176,3 +176,8 @@ ctre_sim/
 # clangd
 /.cache
 compile_commands.json
+
+# sim files
+networktables.json
+simgui.json
+simgui-*.json
