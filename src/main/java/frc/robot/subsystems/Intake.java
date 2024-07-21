@@ -9,13 +9,10 @@ import com.revrobotics.CANSparkMax;
 import edu.wpi.first.util.datalog.DoubleLogEntry;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.util.datalog.DataLog;
-import edu.wpi.first.util.datalog.DoubleLogEntry;
-import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
-import edu.wpi.first.wpilibj.PWM;
 import edu.wpi.first.wpilibj.PWM;
 
 public class Intake extends SubsystemBase {
@@ -23,16 +20,13 @@ public class Intake extends SubsystemBase {
   private final DoubleLogEntry log_output =
       new DoubleLogEntry(DataLogManager.getLog(), "/intake/output");
 
-  PWM lEDPwm = new PWM(0);
 
   public Intake() {
     m_motor = new CANSparkMax(Constants.intakePort, MotorType.kBrushless);
-    lEDPwm = new PWM(0);
   }
 
   public Command intake() {
-    lEDPwm.setSpeed(0.59); // dark red //
-    lEDPwm.setSpeed(0.59); // dark red //
+    LED.Intake();
     return Commands.run(
             () -> {
               log_output.append(4);
@@ -47,8 +41,7 @@ public class Intake extends SubsystemBase {
   }
 
   public Command outake() {
-    lEDPwm.setSpeed(0.63); // red orange, 0.65 for normal orange //
-    lEDPwm.setSpeed(0.63); // red orange, 0.65 for normal orange //
+    LED.Outake();
     return Commands.run(
             () -> {
               log_output.append(-4);
