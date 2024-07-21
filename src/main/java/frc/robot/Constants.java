@@ -13,6 +13,7 @@ public final class Constants {
   public static final double shooterP = 0.5;
   public static final double shooterI = 0;
   public static final double shooterD = 0;
+  public static final double shootFromFarSpeed = 500;
   public static final int climberPort = 32;
   public static final double climberP = 0.35;
   public static final double climberI = 0;
@@ -25,6 +26,8 @@ public final class Constants {
   public static final double armG = 0;
   public static final double armV = 0;
   public static final double armA = 0;
+  public static final double armLength = 0.65;
+  public static final double armPositionOffset = 0;
   public static final int armLeadPort = 21;
   public static final int armFollowerPort = 26;
   public static final int armEncoderPort = 3;

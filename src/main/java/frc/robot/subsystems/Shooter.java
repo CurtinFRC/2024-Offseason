@@ -94,6 +94,6 @@ public class Shooter extends SubsystemBase {
   }
 
   public Command shootFromFar() {
-    return Commands.run(() -> spinup(500));
+    return Commands.run(() -> spinup(Constants.shootFromFarSpeed));
   }
 }

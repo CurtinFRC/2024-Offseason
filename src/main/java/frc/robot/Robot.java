@@ -58,13 +58,13 @@ public class Robot extends TimedRobot {
                     .withVelocityY(
                         Utils.deadzone(-m_driver.getLeftX() * Constants.DrivebaseMaxSpeed))
                     .withRotationalRate(
-                        -m_driver.getRightX() * Constants.DrivebaseMaxAngularRate)));
-       
-    m_driver.a().whileTrue(drivetrain.applyRequest(() -> brake));
-    m_driver.x().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldRelative()));
+                        Utils.deadzone(-m_driver.getRightX() * Constants.DrivebaseMaxAngularRate))));
 
-    m_driver.leftTrigger().onTrue(m_arm.runOnce(() -> m_arm.shootFromFar()));
-    m_driver.leftTrigger().onTrue(m_shooter.runOnce(() -> m_shooter.shootFromFar()));
+    m_driver.a().whileTrue(m_drivetrain.applyRequest(() -> brake));
+    m_driver.x().onTrue(m_drivetrain.runOnce(() -> m_drivetrain.seedFieldRelative()));
+    // m_driver.leftTrigger().onTrue(m_arm.runOnce(() -> m_arm.shootFromFar()));
+    // m_driver.leftTrigger().onTrue(m_shooter.runOnce(() -> m_shooter.shootFromFar()));
+    m_driver.leftTrigger().onTrue(m_arm.runOnce(m_arm::shootFromFar)).onTrue(m_shooter.runOnce(m_shooter::shootFromFar));
   }
 
   public Robot() {

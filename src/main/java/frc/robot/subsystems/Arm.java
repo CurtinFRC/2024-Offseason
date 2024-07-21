@@ -15,6 +15,7 @@ import edu.wpi.first.util.datalog.DataLog;
 import edu.wpi.first.util.datalog.DoubleLogEntry;
 import edu.wpi.first.util.datalog.StringLogEntry;
 import edu.wpi.first.wpilibj.DataLogManager;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -157,22 +158,21 @@ public class Arm extends SubsystemBase {
     return moveToPosition(position);
   }
 
-  public double calculateArmAngle() {
-    double arm_length = 0.65;
-    double H = 2.46 - (Math.sin(m_encoder.getAbsolutePosition())*arm_length); // Height from top of the arm to the speaker shooting area
-    double arm_vertical_offset_from_floor = 0.3; // offset of floor to bottom of arm
-    double horizontal_robot_offset_from_speaker_wall = 0.5; // offset of the robot to the speaker wall when the robot is flush against the speaker
-    double K3 = arm_length*Math.sin(129);
+  public double calculateArmAngle(CommandSwerveDrivetrain drivetrain) {
+    double H = 2.46 - (Math.sin(m_encoder.getAbsolutePosition() * 360 + Constants.armPositionOffset) * Constants.armLength); // Height from top of the arm to the speaker shooting area
+    double arm_vertical_offset_from_floor = Math.sin(m_encoder.getAbsolutePosition()); // converts it from 0-1 to 0-365 and adds an offset depending where 0 degrees is.
+    double horizontal_robot_offset_from_speaker_wall = drivetrain.getEstimatedPosition(); // to be changed to wherever the robot is on field (get its value from drivetrain/drivebase)// offset of the robot to the speaker wall when the robot is flush against the speaker
+    double K3 = Constants.armLength * Math.sin(129);
     double K2 = horizontal_robot_offset_from_speaker_wall;
-    double K1 = H-arm_vertical_offset_from_floor;
-    double R = Math.sqrt(K2*K2-K1*K1);
-    double a = Math.atan(K3/K1);
-    return 51 - a + Math.acos(K3/R);
+    double K1 = H - arm_vertical_offset_from_floor;
+    double R = Math.sqrt(K2 * K2-K1 * K1);
+    double a = Math.atan(K3 / K1);
+    return 51 - a + Math.acos(K3 / R);
   }
 
   public Command shootFromFar() {
     return Commands.run(() -> moveToPosition(calculateArmAngle()));
-    /** you have to press a button on the controller. then you need to no move the arm angle using the thing and then shoot note */
+    /* you have to press a button on the controller. then you need to no move the arm angle using the thing and then shoot note */
   }
 
 }
