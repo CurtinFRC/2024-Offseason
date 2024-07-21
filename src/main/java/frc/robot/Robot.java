@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import com.choreo.lib.Auto;
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
@@ -44,17 +45,20 @@ public class Robot extends TimedRobot {
           .withRotationalDeadband(Constants.DrivebaseMaxAngularRate * 0.1)
           .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
   private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
-  private final Telemetry logger = new Telemetry(Constants.DrivebaseMaxSpeed);
+  private final Telemetry logger = new Telemetry();
 
   private void configureBindings() {
     m_drivetrain.setDefaultCommand(
         m_drivetrain.applyRequest(
             () ->
                 drive
-                    .withVelocityX(-m_driver.getLeftY() * Constants.DrivebaseMaxSpeed)
-                    .withVelocityY(-m_driver.getLeftX() * Constants.DrivebaseMaxSpeed)
+                    .withVelocityX(
+                        Utils.deadzone(-m_driver.getLeftY() * Constants.DrivebaseMaxSpeed))
+                    .withVelocityY(
+                        Utils.deadzone(-m_driver.getLeftX() * Constants.DrivebaseMaxSpeed))
                     .withRotationalRate(
-                        -m_driver.getRightX() * Constants.DrivebaseMaxAngularRate)));
+                        Utils.deadzone(
+                            -m_driver.getRightX() * Constants.DrivebaseMaxAngularRate))));
 
     m_driver.a().whileTrue(m_drivetrain.applyRequest(() -> brake));
     m_driver.x().onTrue(m_drivetrain.runOnce(() -> m_drivetrain.seedFieldRelative()));
@@ -74,6 +78,9 @@ public class Robot extends TimedRobot {
     SignalLogger.start();
 
     m_drivetrain.registerTelemetry(logger::telemeterize);
+    m_drivetrain.addMusic("abba", "bad-piggies");
+    m_drivetrain.selectTrack("bad-piggies");
+    m_drivetrain.getOrchestra().play();
 
     CommandScheduler.getInstance().registerSubsystem(m_arm);
     CommandScheduler.getInstance().registerSubsystem(m_shooter);
@@ -101,14 +108,17 @@ public class Robot extends TimedRobot {
   public void disabledInit() {}
 
   @Override
-  public void disabledPeriodic() {}
+  public void disabledPeriodic() {
+    m_drivetrain.getOrchestra().play();
+  }
 
   @Override
   public void disabledExit() {}
 
   @Override
   public void autonomousInit() {
-    m_autonomousCommand = getAutonomousCommand();
+    m_drivetrain.getOrchestra().stop();
+    m_autonomousCommand = m_chooser.getSelected().followTrajectory();
 
     if (m_autonomousCommand != null) {
       m_autonomousCommand.schedule();
@@ -123,6 +133,8 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopInit() {
+    m_drivetrain.getOrchestra().stop();
+
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
@@ -144,10 +156,4 @@ public class Robot extends TimedRobot {
 
   @Override
   public void testExit() {}
-
-  private Command getAutonomousCommand() {
-    Auto auto = m_chooser.getSelected();
-    auto.configureBindings();
-    return auto.followTrajectory();
-  }
 }
