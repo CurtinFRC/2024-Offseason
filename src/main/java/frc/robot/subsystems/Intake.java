@@ -14,20 +14,18 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 
 public class Intake extends SubsystemBase {
-  private final CANSparkMax m_motor;
-  private final DoubleLogEntry log_output =
-      new DoubleLogEntry(DataLogManager.getLog(), "/intake/output");
+  private final CANSparkMax m_motor = new CANSparkMax(Constants.intakePort, MotorType.kBrushless);;
 
-  public Intake() {
-    m_motor = new CANSparkMax(Constants.intakePort, MotorType.kBrushless);
-  }
+  private final DoubleLogEntry log_output = new DoubleLogEntry(DataLogManager.getLog(), "/intake/output");
+
+  public Intake() {}
 
   public Command intake() {
     return Commands.run(
-            () -> {
-              log_output.append(4);
-              m_motor.setVoltage(4);
-            })
+        () -> {
+          log_output.append(4);
+          m_motor.setVoltage(4);
+        })
         .withTimeout(2)
         .andThen(runOnce(() -> m_motor.setVoltage(0)));
   }
@@ -38,10 +36,10 @@ public class Intake extends SubsystemBase {
 
   public Command outake() {
     return Commands.run(
-            () -> {
-              log_output.append(-4);
-              m_motor.setVoltage(-4);
-            })
+        () -> {
+          log_output.append(-4);
+          m_motor.setVoltage(-4);
+        })
         .withTimeout(4)
         .andThen(runOnce(() -> m_motor.setVoltage(0)));
   }

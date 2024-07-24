@@ -18,23 +18,18 @@ import frc.robot.Constants;
 
 /** Our Crescendo climber Subsystem */
 public class Climber extends SubsystemBase {
-  private final PIDController m_pid;
-  private final CANSparkMax m_motor;
-  private final RelativeEncoder m_encoder;
-  private final DoubleLogEntry log_pid_output =
-      new DoubleLogEntry(DataLogManager.getLog(), "/climber/pid/output");
+  private final CANSparkMax m_motor = new CANSparkMax(Constants.climberPort, MotorType.kBrushless);;
+  private final RelativeEncoder m_encoder = m_motor.getEncoder();;
+
+  private final PIDController m_pid = new PIDController(Constants.climberP, Constants.climberI, Constants.climberD);
+
+  private final DoubleLogEntry log_pid_output = new DoubleLogEntry(DataLogManager.getLog(), "/climber/pid/output");
 
   /**
-   * Creates a new {@link Climber} {@link edu.wpi.first.wpilibj2.command.Subsystem}.
-   *
-   * @param motor The motor that the climber controls.
+   * Creates a new {@link Climber}
+   * {@link edu.wpi.first.wpilibj2.command.Subsystem}.
    */
-  public Climber() {
-    m_motor = new CANSparkMax(Constants.climberPort, MotorType.kBrushless);
-    m_encoder = m_motor.getEncoder();
-    m_pid = new PIDController(Constants.climberP, Constants.climberI, Constants.climberD);
-    m_pid.setTolerance(0.2, 0.5);
-  }
+  public Climber() {}
 
   /**
    * Climb the robot!
@@ -44,8 +39,7 @@ public class Climber extends SubsystemBase {
   public Command climb() {
     return Commands.run(
         () -> {
-          var output =
-              m_pid.calculate(Units.rotationsToRadians(m_encoder.getPosition() * -1), -Math.PI);
+          var output = m_pid.calculate(Units.rotationsToRadians(m_encoder.getPosition() * -1), -Math.PI);
           log_pid_output.append(output);
           m_motor.setVoltage(output);
         });

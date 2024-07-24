@@ -29,40 +29,29 @@ public class Arm extends SubsystemBase {
     kStowed
   }
 
-  private final PIDController m_pid;
-  private final CANSparkMax m_primaryMotor;
-  private final CANSparkMax m_followerMotor;
-  private final DutyCycleEncoder m_encoder;
-  private final ArmFeedforward m_feedforward;
+  private final CANSparkMax m_primaryMotor = new CANSparkMax(Constants.armLeadPort, MotorType.kBrushless);
+  private final CANSparkMax m_followerMotor = new CANSparkMax(Constants.armFollowerPort, MotorType.kBrushless);
+  private final DutyCycleEncoder m_encoder = new DutyCycleEncoder(Constants.armEncoderPort);
+
+  private final PIDController m_pid = new PIDController(Constants.armP, Constants.armI, Constants.armD);
+  private final ArmFeedforward m_feedforward = new ArmFeedforward(Constants.armS, Constants.armG, Constants.armV,
+      Constants.armA);
+
   private final DataLog m_log = DataLogManager.getLog();
   private final DoubleLogEntry log_pid_output = new DoubleLogEntry(m_log, "/arm/pid/output");
   private final DoubleLogEntry log_pid_setpoint = new DoubleLogEntry(m_log, "/arm/pid/setpoint");
-  private final DoubleLogEntry log_ff_position_setpoint =
-      new DoubleLogEntry(m_log, "/arm/ff/position_setpoint");
-  private final DoubleLogEntry log_ff_velocity_setpoint =
-      new DoubleLogEntry(m_log, "/arm/ff/velocity_setpoint");
+  private final DoubleLogEntry log_ff_position_setpoint = new DoubleLogEntry(m_log, "/arm/ff/position_setpoint");
+  private final DoubleLogEntry log_ff_velocity_setpoint = new DoubleLogEntry(m_log, "/arm/ff/velocity_setpoint");
   private final DoubleLogEntry log_ff_output = new DoubleLogEntry(m_log, "/arm/ff/output");
   private final StringLogEntry log_setpoint = new StringLogEntry(m_log, "/arm/setpoint");
 
-  public final Trigger m_atSetpoint;
+  public final Trigger m_atSetpoint = new Trigger(m_pid::atSetpoint);;
 
   /**
    * Creates a new {@link Arm} {@link edu.wpi.first.wpilibj2.command.Subsystem}.
-   *
-   * @param primaryMotor The primary motor that controls the arm.
    */
   public Arm() {
-    m_primaryMotor = new CANSparkMax(Constants.armLeadPort, MotorType.kBrushless);
-    m_followerMotor = new CANSparkMax(Constants.armFollowerPort, MotorType.kBrushless);
     m_followerMotor.follow(m_primaryMotor);
-
-    m_encoder = new DutyCycleEncoder(Constants.armEncoderPort);
-    m_pid = new PIDController(Constants.armP, Constants.armI, Constants.armD);
-    m_pid.setTolerance(0.2);
-    m_feedforward =
-        new ArmFeedforward(Constants.armS, Constants.armG, Constants.armV, Constants.armA);
-
-    m_atSetpoint = new Trigger(m_pid::atSetpoint);
   }
 
   /** Achieves and maintains speed for the primary motor. */
@@ -93,9 +82,8 @@ public class Arm extends SubsystemBase {
   private Command moveToPosition(double position) {
     return achievePosition(position)
         .until(
-            () ->
-                m_pid.atSetpoint()
-                    && ((m_encoder.getAbsolutePosition() * 2 * Math.PI) - position) < 0.001);
+            () -> m_pid.atSetpoint()
+                && ((m_encoder.getAbsolutePosition() * 2 * Math.PI) - position) < 0.001);
   }
 
   /**
