@@ -8,7 +8,6 @@ import com.choreo.lib.Auto;
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
-
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.TimedRobot;
@@ -58,11 +57,17 @@ public class Robot extends TimedRobot {
                     .withVelocityY(
                         Utils.deadzone(-m_driver.getLeftX() * Constants.DrivebaseMaxSpeed))
                     .withRotationalRate(
-                        Utils.deadzone(-m_driver.getRightX() * Constants.DrivebaseMaxAngularRate))));
+                        Utils.deadzone(
+                            -m_driver.getRightX() * Constants.DrivebaseMaxAngularRate))));
 
     m_driver.a().whileTrue(m_drivetrain.applyRequest(() -> brake));
     m_driver.x().onTrue(m_drivetrain.runOnce(() -> m_drivetrain.seedFieldRelative()));
-    m_driver.leftTrigger().onTrue(m_arm.runOnce(() -> m_arm.goToSetpoint(m_drivetrain.getEstimatedPosition())).andThen(m_shooter.runOnce(() -> m_shooter.shootFromFar())));
+    m_driver
+        .leftTrigger()
+        .onTrue(
+            m_arm
+                .runOnce(() -> m_arm.goToSetpoint(m_drivetrain.getEstimatedPosition()))
+                .andThen(m_shooter.runOnce(() -> m_shooter.shootFromFar())));
     // m_driver.leftTrigger().onTrue(m_shooter.runOnce(() -> m_shooter.shootFromFar()));
   }
 
@@ -97,7 +102,7 @@ public class Robot extends TimedRobot {
     m_chooser.addOption("WompWompKieran Red", new WompWompKieran(m_drivetrain, true));
     m_chooser.setDefaultOption("WompWompKieran Blue", new WompWompKieran(m_drivetrain, false));
     SmartDashboard.putData(m_chooser);
-    
+
     configureBindings();
   }
 

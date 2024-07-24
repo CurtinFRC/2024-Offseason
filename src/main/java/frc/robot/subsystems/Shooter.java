@@ -7,7 +7,6 @@ package frc.robot.subsystems;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
-
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.util.datalog.DataLog;
@@ -75,7 +74,6 @@ public class Shooter extends SubsystemBase {
    *
    * @return A {@link Command} to hold the speed at the setpoint.
    */
-
   public Command maintain() {
     return achieveSpeeds(m_pid.getSetpoint());
   }
