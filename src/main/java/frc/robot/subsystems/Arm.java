@@ -129,21 +129,10 @@ public class Arm extends SubsystemBase {
     log_setpoint.append(setpoint.name());
 
     switch (setpoint) {
-      case kAmp:
-        position = 5.34;
-        break;
-
-      case kIntake:
-        position = 3.7;
-        break;
-
-      case kSpeaker:
-        position = 3.7;
-        break;
-
-      case kStowed:
-        position = 3.7;
-        break;
+      case kAmp -> position = 5.34;
+      case kIntake -> position = 3.7;
+      case kSpeaker -> position = 3.7;
+      case kStowed -> position = 3.7;
     }
 
     return moveToPosition(position);
