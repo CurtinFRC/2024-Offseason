@@ -28,6 +28,7 @@ public final class Constants {
   public static final double armA = 0;
   public static final double armLength = 0.65;
   public static final double armPositionOffset = 0;
+  public static final double robotHeight = 0; // height of robot from ground to bottom of arm
   public static final int armLeadPort = 21;
   public static final int armFollowerPort = 26;
   public static final int armEncoderPort = 3;

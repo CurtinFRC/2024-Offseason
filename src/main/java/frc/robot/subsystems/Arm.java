@@ -11,16 +11,15 @@ import com.revrobotics.CANSparkMax;
 
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.util.datalog.DataLog;
 import edu.wpi.first.util.datalog.DoubleLogEntry;
 import edu.wpi.first.util.datalog.StringLogEntry;
 import edu.wpi.first.wpilibj.DataLogManager;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
 
@@ -134,34 +133,20 @@ public class Arm extends SubsystemBase {
     log_setpoint.append(setpoint.name());
 
     switch (setpoint) {
-      case kAmp:
-        position = 5.34;
-        break;
-
-      case kIntake:
-        position = 3.7;
-        break;
-
-      case kSpeaker:
-        position = 3.7;
-        break;
-
-      case kStowed:
-        position = 3.7;
-        break;
-
-      case kFarShoot:
-        position = calculateArmAngle();
-        break;
+        case kAmp -> position = 5.34;
+        case kIntake -> position = 3.7;
+        case kSpeaker -> position = 3.7;
+        case kStowed -> position = 3.7;
+        case kFarShoot -> DataLogManager.log("WARNING: Invalid state kFarShoot with no pose.");
     }
 
-    return moveToPosition(position);
+        return moveToPosition(position);
   }
 
-  public double calculateArmAngle(CommandSwerveDrivetrain drivetrain) {
-    double H = 2.46 - (Math.sin(m_encoder.getAbsolutePosition() * 360 + Constants.armPositionOffset) * Constants.armLength); // Height from top of the arm to the speaker shooting area
-    double arm_vertical_offset_from_floor = Math.sin(m_encoder.getAbsolutePosition()); // converts it from 0-1 to 0-365 and adds an offset depending where 0 degrees is.
-    double horizontal_robot_offset_from_speaker_wall = drivetrain.getEstimatedPosition(); // to be changed to wherever the robot is on field (get its value from drivetrain/drivebase)// offset of the robot to the speaker wall when the robot is flush against the speaker
+  public double calculateArmAngle(Pose2d currentPose) {
+    double H = 2.46 - (Math.sin(m_encoder.getAbsolutePosition() * 360 + Constants.armPositionOffset) * Constants.armLength); // converts it from 0-1 to 0-365 and adds an offset depending where 0 degrees is.
+    double arm_vertical_offset_from_floor = (Constants.armLength * Math.sin(m_encoder.getAbsolutePosition())) + Constants.robotHeight;
+    double horizontal_robot_offset_from_speaker_wall = currentPose.getX(); // to be changed to wherever the robot is on field (get its value from drivetrain/drivebase)// offset of the robot to the speaker wall when the robot is flush against the speaker
     double K3 = Constants.armLength * Math.sin(129);
     double K2 = horizontal_robot_offset_from_speaker_wall;
     double K1 = H - arm_vertical_offset_from_floor;
@@ -169,10 +154,8 @@ public class Arm extends SubsystemBase {
     double a = Math.atan(K3 / K1);
     return 51 - a + Math.acos(K3 / R);
   }
-
-  public Command shootFromFar() {
-    return Commands.run(() -> moveToPosition(calculateArmAngle()));
-    /* you have to press a button on the controller. then you need to no move the arm angle using the thing and then shoot note */
+  
+  public void goToSetpoint(Pose2d currentPose) {
+    double position = calculateArmAngle(currentPose);
   }
-
 }
