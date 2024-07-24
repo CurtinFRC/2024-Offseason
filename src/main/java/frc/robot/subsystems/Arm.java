@@ -29,27 +29,31 @@ public class Arm extends SubsystemBase {
     kStowed
   }
 
-  private final CANSparkMax m_primaryMotor = new CANSparkMax(Constants.armLeadPort, MotorType.kBrushless);
-  private final CANSparkMax m_followerMotor = new CANSparkMax(Constants.armFollowerPort, MotorType.kBrushless);
+  private final CANSparkMax m_primaryMotor =
+      new CANSparkMax(Constants.armLeadPort, MotorType.kBrushless);
+  private final CANSparkMax m_followerMotor =
+      new CANSparkMax(Constants.armFollowerPort, MotorType.kBrushless);
   private final DutyCycleEncoder m_encoder = new DutyCycleEncoder(Constants.armEncoderPort);
 
-  private final PIDController m_pid = new PIDController(Constants.armP, Constants.armI, Constants.armD);
-  private final ArmFeedforward m_feedforward = new ArmFeedforward(Constants.armS, Constants.armG, Constants.armV,
-      Constants.armA);
+  private final PIDController m_pid =
+      new PIDController(Constants.armP, Constants.armI, Constants.armD);
+  private final ArmFeedforward m_feedforward =
+      new ArmFeedforward(Constants.armS, Constants.armG, Constants.armV, Constants.armA);
 
   private final DataLog m_log = DataLogManager.getLog();
   private final DoubleLogEntry log_pid_output = new DoubleLogEntry(m_log, "/arm/pid/output");
   private final DoubleLogEntry log_pid_setpoint = new DoubleLogEntry(m_log, "/arm/pid/setpoint");
-  private final DoubleLogEntry log_ff_position_setpoint = new DoubleLogEntry(m_log, "/arm/ff/position_setpoint");
-  private final DoubleLogEntry log_ff_velocity_setpoint = new DoubleLogEntry(m_log, "/arm/ff/velocity_setpoint");
+  private final DoubleLogEntry log_ff_position_setpoint =
+      new DoubleLogEntry(m_log, "/arm/ff/position_setpoint");
+  private final DoubleLogEntry log_ff_velocity_setpoint =
+      new DoubleLogEntry(m_log, "/arm/ff/velocity_setpoint");
   private final DoubleLogEntry log_ff_output = new DoubleLogEntry(m_log, "/arm/ff/output");
   private final StringLogEntry log_setpoint = new StringLogEntry(m_log, "/arm/setpoint");
 
-  public final Trigger m_atSetpoint = new Trigger(m_pid::atSetpoint);;
+  public final Trigger m_atSetpoint = new Trigger(m_pid::atSetpoint);
+  ;
 
-  /**
-   * Creates a new {@link Arm} {@link edu.wpi.first.wpilibj2.command.Subsystem}.
-   */
+  /** Creates a new {@link Arm} {@link edu.wpi.first.wpilibj2.command.Subsystem}. */
   public Arm() {
     m_followerMotor.follow(m_primaryMotor);
   }
@@ -82,8 +86,9 @@ public class Arm extends SubsystemBase {
   private Command moveToPosition(double position) {
     return achievePosition(position)
         .until(
-            () -> m_pid.atSetpoint()
-                && ((m_encoder.getAbsolutePosition() * 2 * Math.PI) - position) < 0.001);
+            () ->
+                m_pid.atSetpoint()
+                    && ((m_encoder.getAbsolutePosition() * 2 * Math.PI) - position) < 0.001);
   }
 
   /**
