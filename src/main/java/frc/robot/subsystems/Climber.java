@@ -20,7 +20,6 @@ import frc.robot.Constants;
 public class Climber extends SubsystemBase {
   private final CANSparkMax m_motor = new CANSparkMax(Constants.climberPort, MotorType.kBrushless);
   private final RelativeEncoder m_encoder = m_motor.getEncoder();
-  ;
 
   private final PIDController m_pid =
       new PIDController(Constants.climberP, Constants.climberI, Constants.climberD);
