@@ -22,9 +22,11 @@ public class Intake extends SubsystemBase {
   private final RelativeEncoder m_encoder = m_motor.getEncoder();
   private final DigitalInput m_beamBreakSensor = new DigitalInput(Constants.intakebeambreak);
 
-  private final PIDController m_pid = new PIDController(Constants.shooterP, Constants.shooterI, Constants.shooterD);
+  private final PIDController m_pid =
+      new PIDController(Constants.shooterP, Constants.shooterI, Constants.shooterD);
 
-  public final Trigger m_isbeambreakInterrupted = new Trigger(m_beamBreakSensor::get).negate();;
+  public final Trigger m_isbeambreakInterrupted = new Trigger(m_beamBreakSensor::get).negate();
+  ;
 
   public Intake() {}
 
