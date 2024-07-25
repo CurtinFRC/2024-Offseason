@@ -21,7 +21,8 @@ import frc.robot.Constants;
 /** Our Crescendo shooter Subsystem */
 public class Shooter extends SubsystemBase {
   private final CANSparkMax m_motor = new CANSparkMax(Constants.shooterPort, MotorType.kBrushless);
-  private final CANSparkMax m_indexer = new CANSparkMax(Constants.indexerPort, MotorType.kBrushless);
+  private final CANSparkMax m_indexer =
+      new CANSparkMax(Constants.indexerPort, MotorType.kBrushless);
   private final RelativeEncoder m_encoder = m_motor.getEncoder();
 
   private final PIDController m_pid =
