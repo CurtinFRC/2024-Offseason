@@ -19,7 +19,6 @@ import frc.robot.Constants;
 /** Our Crescendo climber Subsystem */
 public class Climber extends SubsystemBase {
   private final CANSparkMax m_motor = new CANSparkMax(Constants.climberPort, MotorType.kBrushless);
-  ;
   private final RelativeEncoder m_encoder = m_motor.getEncoder();
   ;
 
