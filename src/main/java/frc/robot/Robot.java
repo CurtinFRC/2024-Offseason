@@ -12,6 +12,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandRobot;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.autos.Centre2541;
 import frc.robot.autos.Centre26541;
 import frc.robot.autos.WompWompKieran;
@@ -41,6 +42,9 @@ public class Robot extends CommandRobot {
           .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
   private final SwerveRequest.SwerveDriveBrake m_brake = new SwerveRequest.SwerveDriveBrake();
   private final Telemetry m_logger = new Telemetry();
+
+  private boolean m_overriden;
+  private final Trigger m_codriverX = m_codriver.x();
 
   public Robot() {
     HashMap<Integer, String> aliases = new HashMap<>();
@@ -102,5 +106,17 @@ public class Robot extends CommandRobot {
         .leftTrigger()
         .onTrue(m_arm.goToSetpoint(Arm.Setpoint.kSpeaker).andThen(m_shooter.shoot()))
         .onFalse(m_arm.goToSetpoint(Arm.Setpoint.kStowed));
+
+    m_codriver.x().whileTrue(m_intake.spinup(20));
+    m_codriverX.whileTrue(m_intake.spinup(20));
+    m_scheduler
+        .getDefaultButtonLoop()
+        .bind(
+            () -> {
+              if (m_codriver.getHID().getYButton()) {
+                m_overriden = true;
+              }
+            });
+    m_codriverX.and(() -> !m_overriden).onFalse(m_intake.stopIntake());
   }
 }
