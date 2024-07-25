@@ -51,7 +51,6 @@ public class Arm extends SubsystemBase {
   private final StringLogEntry log_setpoint = new StringLogEntry(m_log, "/arm/setpoint");
 
   public final Trigger m_atSetpoint = new Trigger(m_pid::atSetpoint);
-  ;
 
   /** Creates a new {@link Arm} {@link edu.wpi.first.wpilibj2.command.Subsystem}. */
   public Arm() {
