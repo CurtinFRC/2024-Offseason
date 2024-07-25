@@ -80,19 +80,6 @@ public class Shooter extends SubsystemBase {
     return achieveSpeeds(m_pid.getSetpoint());
   }
 
-  /**
-   * Checks if the Shooter is at its setpoint and the loop is stable.
-   *
-   * @return A {@link Trigger} from the result.
-   */
-  public Trigger atSetpoint() {
-    return new Trigger(
-        () ->
-            m_pid.getSetpoint()
-                    == Units.rotationsPerMinuteToRadiansPerSecond(m_encoder.getVelocity())
-                && m_pid.atSetpoint());
-  }
-
   public Command shootFromFar() {
     return Commands.run(() -> spinup(Constants.shootFromFarSpeed));
   }

@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import java.util.HashMap;
+
 import com.choreo.lib.Auto;
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
@@ -26,7 +28,6 @@ import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
-import java.util.HashMap;
 
 public class Robot extends TimedRobot {
   private final CommandXboxController m_driver = new CommandXboxController(Constants.driverport);
@@ -62,8 +63,7 @@ public class Robot extends TimedRobot {
 
     m_driver.a().whileTrue(m_drivetrain.applyRequest(() -> brake));
     m_driver.x().onTrue(m_drivetrain.runOnce(() -> m_drivetrain.seedFieldRelative()));
-    m_driver.leftTrigger().onTrue(m_arm.runOnce(() -> m_arm.goToSetpoint(m_drivetrain.getEstimatedPosition())).andThen(m_shooter.runOnce(() -> m_shooter.shootFromFar())));
-    // m_driver.leftTrigger().onTrue(m_shooter.runOnce(() -> m_shooter.shootFromFar()));
+    m_driver.leftTrigger().onTrue(m_arm.run(() -> m_arm.goToSetpoint(m_drivetrain.getState().Pose)).andThen(m_shooter.run(() -> m_shooter.shootFromFar())));
   }
 
   public Robot() {

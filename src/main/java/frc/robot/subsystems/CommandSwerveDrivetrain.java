@@ -208,7 +208,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         this);
   }
 
-  public Pose2d getEstimatedPosition() {
-    return m_odometry.getEstimatedPosition();
-  }
+  // public Pose2d getEstimatedPosition() {
+  //   return m_odometry.getEstimatedPosition();
+  // }
 }
