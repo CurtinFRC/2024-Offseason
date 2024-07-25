@@ -15,7 +15,6 @@ import frc.robot.Constants;
 
 public class Intake extends SubsystemBase {
   private final CANSparkMax m_motor = new CANSparkMax(Constants.intakePort, MotorType.kBrushless);
-  ;
 
   private final DoubleLogEntry log_output =
       new DoubleLogEntry(DataLogManager.getLog(), "/intake/output");
