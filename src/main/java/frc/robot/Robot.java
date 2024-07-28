@@ -12,6 +12,8 @@ import com.revrobotics.CANSparkMaxLowLevel;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.TimedRobot;
@@ -28,6 +30,9 @@ import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import javax.swing.JFrame;
 
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
@@ -87,11 +92,8 @@ public class Robot extends TimedRobot {
                     point.withModuleDirection(
                         new Rotation2d(-m_driver.getLeftY(), -m_driver.getLeftX()))));
 
-    m_codriver.x().onTrue(m_shooter.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
-    m_codriver.y().onTrue(m_shooter.sysIdDynamic(SysIdRoutine.Direction.kForward));
-
-    m_codriver.a().onTrue(m_arm.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
-    m_codriver.b().onTrue(m_arm.sysIdDynamic(SysIdRoutine.Direction.kForward));
+    // m_codriver.leftTrigger().whileTrue(m_shooter.spinup(10));
+    // m_shooter.setDefaultCommand(m_shooter.spinup(10));
 
     // reset the field-centric heading on left bumper press
     m_driver.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldRelative()));

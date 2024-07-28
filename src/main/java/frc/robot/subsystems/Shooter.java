@@ -13,6 +13,7 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.units.Angle;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.MutableMeasure;
@@ -33,7 +34,7 @@ import edu.wpi.first.wpilibj.RobotController;
 public class Shooter extends SubsystemBase {
   private PIDController m_pid;
   private CANSparkMax m_motor;
-  private RelativeEncoder m_encoder;
+  public RelativeEncoder m_encoder;
   private DataLog m_log = DataLogManager.getLog();
   private DoubleLogEntry log_pid_output = new DoubleLogEntry(m_log, "/shooter/pid/output");
 
@@ -83,6 +84,10 @@ public class Shooter extends SubsystemBase {
           var output =
               m_pid.calculate(
                   -1 * Units.rotationsPerMinuteToRadiansPerSecond(m_encoder.getVelocity()));
+
+          NetworkTableInstance.getDefault().getTable("shooter").getEntry("error").setNumber(m_pid.getVelocityError());
+          NetworkTableInstance.getDefault().getTable("shooter").getEntry("setpoint").setNumber(m_pid.getSetpoint());
+          NetworkTableInstance.getDefault().getTable("shooter").getEntry("current_speed").setNumber(Units.rotationsPerMinuteToRadiansPerSecond(m_encoder.getVelocity()));
           log_pid_output.append(output);
           m_motor.setVoltage(output);
         });
@@ -105,7 +110,6 @@ public class Shooter extends SubsystemBase {
   /**
    * Holds the shooter at the current speed setpoint.
    *
-   * @return A {@link Command} to hold the speed at the setpoint.
    */
   public Command maintain() {
     return achieveSpeeds(m_pid.getSetpoint());
