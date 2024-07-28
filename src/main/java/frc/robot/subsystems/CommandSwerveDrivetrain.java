@@ -31,6 +31,8 @@ import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static edu.wpi.first.units.Units.Rotations;
@@ -216,5 +218,19 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
 
   public Command sysIdDynamicSteer(int moduleIndex, SysIdRoutine.Direction direction) {
     return m_steerSysIdRoutines[moduleIndex].dynamic(direction);
+  }
+
+  public List<java.util.function.Function<SysIdRoutine.Direction, Command>> getSysIdCommands() {
+    List<Function<SysIdRoutine.Direction, Command>> sysidCommands = new ArrayList<>();
+
+    for (int i = 0; i < 4; i++) {
+      int moduleIndex = i;
+      sysidCommands.add(direction -> sysIdDynamicDrive(moduleIndex, direction));
+      sysidCommands.add(direction -> sysIdQuasistaticDrive(moduleIndex, direction));
+      sysidCommands.add(direction -> sysIdDynamicSteer(moduleIndex, direction));
+      sysidCommands.add(direction -> sysIdQuasistaticSteer(moduleIndex, direction));
+    }
+
+    return sysidCommands;
   }
 }

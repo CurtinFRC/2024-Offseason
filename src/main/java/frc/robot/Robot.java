@@ -12,6 +12,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandRobot;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.autos.Centre2541;
 import frc.robot.autos.Centre26541;
 import frc.robot.autos.WompWompKieran;
@@ -21,6 +22,8 @@ import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
+import frc.robot.subsystems.Sysid;
+
 import java.util.HashMap;
 
 public class Robot extends CommandRobot {
@@ -31,6 +34,8 @@ public class Robot extends CommandRobot {
   private final Climber m_climber = new Climber();
   private final Intake m_intake = new Intake();
   private static final CommandSwerveDrivetrain m_drivetrain = TunerConstants.DriveTrain;
+
+  private final Sysid m_sysid = new Sysid();
 
   private final SwerveRequest.FieldCentric m_drive =
       new SwerveRequest.FieldCentric()
@@ -52,6 +57,23 @@ public class Robot extends CommandRobot {
     DriverStation.startDataLog(DataLogManager.getLog());
     SignalLogger.setPath(DataLogManager.getLogDir());
     SignalLogger.start();
+
+    m_sysid.add(m_shooter::sysIdDynamic);
+    m_sysid.add(m_shooter::sysIdQuasistatic);
+
+    m_sysid.add(m_arm::sysIdDynamic);
+    m_sysid.add(m_arm::sysIdQuasistatic);
+
+    m_sysid.add(m_climber::sysIdDynamic);
+    m_sysid.add(m_climber::sysIdQuasistatic);
+
+    m_sysid.add(m_intake::sysIdDynamic);
+    m_sysid.add(m_intake::sysIdQuasistatic);
+
+    m_sysid.addAll(m_drivetrain.getSysIdCommands());
+    
+    m_sysid.getAllCommands();
+
     m_drivetrain.registerTelemetry(m_logger::telemeterize);
 
     m_scheduler.registerSubsystem(m_arm);
