@@ -154,7 +154,7 @@ public class Arm extends SubsystemBase {
     double a = Math.atan(K3 / K1);
     return 51 - a + Math.acos(K3 / R);
   }
-  
+
   public Command goToSetpoint(Pose2d currentPose) {
     double position = calculateArmAngle(currentPose);
         return moveToPosition(position);

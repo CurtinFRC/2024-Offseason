@@ -9,6 +9,7 @@ import java.util.HashMap;
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
+
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -40,24 +41,6 @@ public class Robot extends CommandRobot {
           .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
   private final SwerveRequest.SwerveDriveBrake m_brake = new SwerveRequest.SwerveDriveBrake();
   private final Telemetry m_logger = new Telemetry();
-
-  private void configureBindings() {
-    m_drivetrain.setDefaultCommand(
-        m_drivetrain.applyRequest(
-            () ->
-                m_drive
-                    .withVelocityX(
-                        Utils.deadzone(-m_driver.getLeftY() * Constants.DrivebaseMaxSpeed))
-                    .withVelocityY(
-                        Utils.deadzone(-m_driver.getLeftX() * Constants.DrivebaseMaxSpeed))
-                    .withRotationalRate(
-                        Utils.deadzone(
-                            -m_driver.getRightX() * Constants.DrivebaseMaxAngularRate))));
-
-    m_driver.a().whileTrue(m_drivetrain.applyRequest(() -> m_brake));
-    m_driver.x().onTrue(m_drivetrain.runOnce(() -> m_drivetrain.seedFieldRelative()));
-    m_driver.leftTrigger().onTrue(m_arm.goToSetpoint(m_drivetrain.getState().Pose).andThen(m_shooter.shootFromFar()));
-  }
 
   public Robot() {
     HashMap<Integer, String> aliases = new HashMap<>();
@@ -108,5 +91,7 @@ public class Robot extends CommandRobot {
 
     m_driver.a().whileTrue(m_drivetrain.applyRequest(() -> m_brake));
     m_driver.x().onTrue(m_drivetrain.runOnce(() -> m_drivetrain.seedFieldRelative()));
+    m_driver.leftTrigger().onTrue(m_arm.goToSetpoint(m_drivetrain.getState().Pose).andThen(m_shooter.shootFromFar()));
+
   }
 }
