@@ -4,12 +4,9 @@
 
 package frc.robot;
 
-import java.util.HashMap;
-
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
-
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -24,6 +21,7 @@ import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
+import java.util.HashMap;
 
 public class Robot extends CommandRobot {
   private final CommandXboxController m_driver = new CommandXboxController(Constants.driverport);
@@ -91,7 +89,8 @@ public class Robot extends CommandRobot {
 
     m_driver.a().whileTrue(m_drivetrain.applyRequest(() -> m_brake));
     m_driver.x().onTrue(m_drivetrain.runOnce(() -> m_drivetrain.seedFieldRelative()));
-    m_driver.leftTrigger().onTrue(m_arm.goToSetpoint(m_drivetrain.getState().Pose).andThen(m_shooter.shootFromFar()));
-
+    m_driver
+        .leftTrigger()
+        .onTrue(m_arm.goToSetpoint(m_drivetrain.getState().Pose).andThen(m_shooter.shootFromFar()));
   }
 }
