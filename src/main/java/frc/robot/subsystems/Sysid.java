@@ -1,3 +1,7 @@
+// Copyright (c) 2024 CurtinFRC
+// Open Source Software, you can modify it according to the terms
+// of the MIT License at the root of this project
+
 package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj2.command.Command;
@@ -36,4 +40,3 @@ public class Sysid {
     return getAllCommands(SysIdRoutine.Direction.kForward).andThen(getAllCommands(SysIdRoutine.Direction.kReverse));
   }
 }
-

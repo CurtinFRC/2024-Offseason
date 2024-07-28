@@ -71,7 +71,7 @@ public class Robot extends CommandRobot {
     m_sysid.add(m_intake::sysIdQuasistatic);
 
     m_sysid.addAll(m_drivetrain.getSysIdCommands());
-    
+
     m_sysid.getAllCommands();
 
     m_drivetrain.registerTelemetry(m_logger::telemeterize);

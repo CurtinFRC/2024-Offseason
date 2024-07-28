@@ -68,9 +68,9 @@ public class Arm extends SubsystemBase {
   private final MutableMeasure<Angle> m_angle = mutable(Rotations.of(0));
   private final MutableMeasure<Velocity<Angle>> m_velocity = mutable(RotationsPerSecond.of(0));
 
-  private final SysIdRoutine m_sysIdRoutine = 
+  private final SysIdRoutine m_sysIdRoutine =
     new SysIdRoutine(
-      new SysIdRoutine.Config(), 
+      new SysIdRoutine.Config(),
       new SysIdRoutine.Mechanism(
         (Measure<Voltage> volts) -> {
           m_primaryMotor.setVoltage(volts.in(Volts));
