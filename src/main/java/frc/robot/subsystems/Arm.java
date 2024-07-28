@@ -4,11 +4,7 @@
 
 package frc.robot.subsystems;
 
-import static edu.wpi.first.units.Units.Rotations;
-import static edu.wpi.first.units.Units.RotationsPerSecond;
-import static edu.wpi.first.units.Units.Volts;
-import static edu.wpi.first.units.MutableMeasure.mutable;
-
+import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.PIDController;
@@ -40,59 +36,32 @@ public class Arm extends SubsystemBase {
     kStowed
   }
 
-  private PIDController m_pid;
-  private CANSparkMax m_primaryMotor;
-  private DutyCycleEncoder m_encoder;
-  private ArmFeedforward m_feedforward;
-  private DataLog m_log = DataLogManager.getLog();
-  private DoubleLogEntry log_pid_output = new DoubleLogEntry(m_log, "/arm/pid/output");
-  private DoubleLogEntry log_pid_setpoint = new DoubleLogEntry(m_log, "/arm/pid/setpoint");
-  private DoubleLogEntry log_ff_position_setpoint =
+  private final CANSparkMax m_primaryMotor =
+      new CANSparkMax(Constants.armLeadPort, MotorType.kBrushless);
+  private final CANSparkMax m_followerMotor =
+      new CANSparkMax(Constants.armFollowerPort, MotorType.kBrushless);
+  private final DutyCycleEncoder m_encoder = new DutyCycleEncoder(Constants.armEncoderPort);
+
+  private final PIDController m_pid =
+      new PIDController(Constants.armP, Constants.armI, Constants.armD);
+  private final ArmFeedforward m_feedforward =
+      new ArmFeedforward(Constants.armS, Constants.armG, Constants.armV, Constants.armA);
+
+  private final DataLog m_log = DataLogManager.getLog();
+  private final DoubleLogEntry log_pid_output = new DoubleLogEntry(m_log, "/arm/pid/output");
+  private final DoubleLogEntry log_pid_setpoint = new DoubleLogEntry(m_log, "/arm/pid/setpoint");
+  private final DoubleLogEntry log_ff_position_setpoint =
       new DoubleLogEntry(m_log, "/arm/ff/position_setpoint");
-  private DoubleLogEntry log_ff_velocity_setpoint =
+  private final DoubleLogEntry log_ff_velocity_setpoint =
       new DoubleLogEntry(m_log, "/arm/ff/velocity_setpoint");
-  private DoubleLogEntry log_ff_output = new DoubleLogEntry(m_log, "/arm/ff/output");
-  private StringLogEntry log_setpoint = new StringLogEntry(m_log, "/arm/setpoint");
+  private final DoubleLogEntry log_ff_output = new DoubleLogEntry(m_log, "/arm/ff/output");
+  private final StringLogEntry log_setpoint = new StringLogEntry(m_log, "/arm/setpoint");
 
-  private final MutableMeasure<Voltage> m_appliedVoltage = mutable(Volts.of(0));
-  private final MutableMeasure<Angle> m_angle = mutable(Rotations.of(0));
-  private final MutableMeasure<Velocity<Angle>> m_velocity = mutable(RotationsPerSecond.of(0));
+  public final Trigger m_atSetpoint = new Trigger(m_pid::atSetpoint);
 
-  private final SysIdRoutine m_sysIdRoutine = 
-    new SysIdRoutine(
-      new SysIdRoutine.Config(), 
-      new SysIdRoutine.Mechanism(
-        (Measure<Voltage> volts) -> {
-          m_primaryMotor.setVoltage(volts.in(Volts));
-        },
-        log -> {
-          log.motor("arm").voltage(
-            m_appliedVoltage.mut_replace(
-              m_primaryMotor.get() * RobotController.getBatteryVoltage(), Volts))
-            .angularPosition(
-              m_angle.mut_replace(m_encoder.getAbsolutePosition(), Rotations)
-            )
-            .angularVelocity(
-              m_velocity.mut_replace((m_encoder.get() * 2 * Math.PI / 60), RotationsPerSecond)
-            );
-        },
-        this
-      )
-    );
-
-  /**
-   * Creates a new {@link Arm} {@link edu.wpi.first.wpilibj2.command.Subsystem}.
-   *
-   * @param primaryMotor The primary motor that controls the arm.
-   */
-  public Arm(CANSparkMax primaryMotor) {
-    m_primaryMotor = primaryMotor;
-
-    m_encoder = new DutyCycleEncoder(Constants.armEncoderPort);
-    m_pid = new PIDController(Constants.armP, Constants.armI, Constants.armD);
-    m_pid.setTolerance(0.2);
-    m_feedforward =
-        new ArmFeedforward(Constants.armS, Constants.armG, Constants.armV, Constants.armA);
+  /** Creates a new {@link Arm} {@link edu.wpi.first.wpilibj2.command.Subsystem}. */
+  public Arm() {
+    m_followerMotor.follow(m_primaryMotor);
   }
 
   /** Achieves and maintains speed for the primary motor. */
@@ -122,7 +91,10 @@ public class Arm extends SubsystemBase {
    */
   private Command moveToPosition(double position) {
     return achievePosition(position)
-        .until(() -> m_pid.atSetpoint() && m_encoder.getAbsolutePosition() * 2 * Math.PI == position);
+        .until(
+            () ->
+                m_pid.atSetpoint()
+                    && ((m_encoder.getAbsolutePosition() * 2 * Math.PI) - position) < 0.001);
   }
 
   /**
@@ -132,15 +104,6 @@ public class Arm extends SubsystemBase {
    */
   public Command maintain() {
     return achievePosition(m_pid.getSetpoint());
-  }
-
-  /**
-   * Checks if the Arm is at its setpoint and the loop is stable.
-   *
-   * @return A {@link Trigger} from the result.
-   */
-  public Trigger atSetpoint() {
-    return new Trigger(() -> m_pid.atSetpoint());
   }
 
   /**
@@ -165,21 +128,10 @@ public class Arm extends SubsystemBase {
     log_setpoint.append(setpoint.name());
 
     switch (setpoint) {
-      case kAmp:
-        position = 5.34;
-        break;
-
-      case kIntake:
-        position = 3.7;
-        break;
-
-      case kSpeaker:
-        position = 3.7;
-        break;
-
-      case kStowed:
-        position = 3.7;
-        break;
+      case kAmp -> position = 5.34;
+      case kIntake -> position = 3.7;
+      case kSpeaker -> position = 3.7;
+      case kStowed -> position = 3.7;
     }
 
     return moveToPosition(position);

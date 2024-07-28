@@ -4,11 +4,7 @@
 
 package frc.robot.subsystems;
 
-import static edu.wpi.first.units.Units.Rotations;
-import static edu.wpi.first.units.Units.RotationsPerSecond;
-import static edu.wpi.first.units.Units.Volts;
-import static edu.wpi.first.units.MutableMeasure.mutable;
-
+import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.math.controller.PIDController;
@@ -32,48 +28,19 @@ import edu.wpi.first.wpilibj.RobotController;
 
 /** Our Crescendo shooter Subsystem */
 public class Shooter extends SubsystemBase {
-  private PIDController m_pid;
-  private CANSparkMax m_motor;
-  public RelativeEncoder m_encoder;
-  private DataLog m_log = DataLogManager.getLog();
-  private DoubleLogEntry log_pid_output = new DoubleLogEntry(m_log, "/shooter/pid/output");
+  private final PIDController m_pid =
+      new PIDController(Constants.shooterP, Constants.shooterI, Constants.shooterD);
+  private final CANSparkMax m_motor = new CANSparkMax(Constants.shooterPort, MotorType.kBrushless);
+  private final RelativeEncoder m_encoder = m_motor.getEncoder();
 
-  private final MutableMeasure<Voltage> m_appliedVoltage = mutable(Volts.of(0));
-  private final MutableMeasure<Angle> m_angle = mutable(Rotations.of(0));
-  private final MutableMeasure<Velocity<Angle>> m_velocity = mutable(RotationsPerSecond.of(0));
+  private final DataLog m_log = DataLogManager.getLog();
+  private final DoubleLogEntry log_pid_output = new DoubleLogEntry(m_log, "/shooter/pid/output");
 
-  private final SysIdRoutine m_sysIdRoutine = 
-    new SysIdRoutine(
-      new SysIdRoutine.Config(), 
-      new SysIdRoutine.Mechanism(
-        (Measure<Voltage> volts) -> {
-          m_motor.setVoltage(volts.in(Volts));
-        },
-        log -> {
-          log.motor("shooter").voltage(
-            m_appliedVoltage.mut_replace(
-              m_motor.get() * RobotController.getBatteryVoltage(), Volts))
-            .angularPosition(
-              m_angle.mut_replace(m_encoder.getPosition(), Rotations)
-            )
-            .angularVelocity(
-              m_velocity.mut_replace(m_encoder.getVelocity(), RotationsPerSecond)
-            );
-        },
-        this
-      )
-    );
+  public final Trigger m_atSetpoint = new Trigger(m_pid::atSetpoint);
+  ;
 
-  /**
-   * Creates a new {@link Shooter} {@link edu.wpi.first.wpilibj2.command.Subsystem}.
-   *
-   * @param motor The motor that the shooter controls.
-   */
-  public Shooter(CANSparkMax motor) {
-    m_motor = motor;
-    m_encoder = m_motor.getEncoder();
-    m_pid = new PIDController(Constants.shooterP, Constants.shooterI, Constants.shooterD);
-  }
+  /** Creates a new {@link Shooter} {@link edu.wpi.first.wpilibj2.command.Subsystem}. */
+  public Shooter() {}
 
   /** Acheives and maintains speed. */
   private Command achieveSpeeds(double speed) {
@@ -113,26 +80,5 @@ public class Shooter extends SubsystemBase {
    */
   public Command maintain() {
     return achieveSpeeds(m_pid.getSetpoint());
-  }
-
-  /**
-   * Checks if the Shooter is at its setpoint and the loop is stable.
-   *
-   * @return A {@link Trigger} from the result.
-   */
-  public Trigger atSetpoint() {
-    return new Trigger(
-        () ->
-            m_pid.getSetpoint()
-                    == Units.rotationsPerMinuteToRadiansPerSecond(m_encoder.getVelocity())
-                && m_pid.atSetpoint());
-  }
-
-  public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
-    return m_sysIdRoutine.quasistatic(direction);
-  }
-
-  public Command sysIdDynamic(SysIdRoutine.Direction direction) {
-    return m_sysIdRoutine.dynamic(direction);
   }
 }
