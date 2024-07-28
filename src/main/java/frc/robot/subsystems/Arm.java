@@ -4,11 +4,8 @@
 
 package frc.robot.subsystems;
 
-import java.util.function.DoubleSupplier;
-
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
-
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -22,6 +19,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
+import java.util.function.DoubleSupplier;
 
 /** Our Arm Subsystem */
 public class Arm extends SubsystemBase {
@@ -157,6 +155,6 @@ public class Arm extends SubsystemBase {
 
   public Command goToSetpoint(Pose2d currentPose) {
     double position = calculateArmAngle(currentPose);
-        return moveToPosition(position);
+    return moveToPosition(position);
   }
 }
