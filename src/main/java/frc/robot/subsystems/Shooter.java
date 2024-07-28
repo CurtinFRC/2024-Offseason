@@ -56,7 +56,7 @@ public class Shooter extends SubsystemBase {
                 m_motor.setVoltage(volts.in(Volts));
               },
               log -> {
-                log.motor("climber")
+                log.motor("shooter")
                     .voltage(
                         m_appliedVoltage.mut_replace(
                             m_motor.get() * RobotController.getBatteryVoltage(), Volts))

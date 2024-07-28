@@ -46,7 +46,7 @@ public class Intake extends SubsystemBase {
                 m_motor.setVoltage(volts.in(Volts));
               },
               log -> {
-                log.motor("climber")
+                log.motor("intake")
                     .voltage(
                         m_appliedVoltage.mut_replace(
                             m_motor.get() * RobotController.getBatteryVoltage(), Volts))
