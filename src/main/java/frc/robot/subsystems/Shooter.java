@@ -20,26 +20,19 @@ import frc.robot.Constants;
 
 /** Our Crescendo shooter Subsystem */
 public class Shooter extends SubsystemBase {
-  private final PIDController m_pid;
-  private final CANSparkMax m_motor;
-  private final RelativeEncoder m_encoder;
+  private final PIDController m_pid =
+      new PIDController(Constants.shooterP, Constants.shooterI, Constants.shooterD);
+  private final CANSparkMax m_motor = new CANSparkMax(Constants.shooterPort, MotorType.kBrushless);
+  private final RelativeEncoder m_encoder = m_motor.getEncoder();
+
   private final DataLog m_log = DataLogManager.getLog();
   private final DoubleLogEntry log_pid_output = new DoubleLogEntry(m_log, "/shooter/pid/output");
 
-  public final Trigger m_atSetpoint;
+  public final Trigger m_atSetpoint = new Trigger(m_pid::atSetpoint);
+  ;
 
-  /**
-   * Creates a new {@link Shooter} {@link edu.wpi.first.wpilibj2.command.Subsystem}.
-   *
-   * @param motor The motor that the shooter controls.
-   */
-  public Shooter() {
-    m_motor = new CANSparkMax(Constants.shooterPort, MotorType.kBrushless);
-    m_encoder = m_motor.getEncoder();
-    m_pid = new PIDController(Constants.shooterP, Constants.shooterI, Constants.shooterD);
-
-    m_atSetpoint = new Trigger(m_pid::atSetpoint);
-  }
+  /** Creates a new {@link Shooter} {@link edu.wpi.first.wpilibj2.command.Subsystem}. */
+  public Shooter() {}
 
   /** Acheives and maintains speed. */
   private Command achieveSpeeds(double speed) {
