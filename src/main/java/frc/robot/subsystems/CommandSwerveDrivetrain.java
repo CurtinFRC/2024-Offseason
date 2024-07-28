@@ -1,7 +1,3 @@
-// Copyright (c) 2024 CurtinFRC
-// Open Source Software, you can modify it according to the terms
-// of the MIT License at the root of this project
-
 package frc.robot.subsystems;
 
 import com.choreo.lib.Choreo;
@@ -9,22 +5,38 @@ import com.choreo.lib.ChoreoControlFunction;
 import com.ctre.phoenix6.Orchestra;
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.configs.AudioConfigs;
+import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrain;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrainConstants;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
+import com.revrobotics.CANSparkMax;
+import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.units.Angle;
+import edu.wpi.first.units.Measure;
+import edu.wpi.first.units.MutableMeasure;
+import edu.wpi.first.units.Velocity;
+import edu.wpi.first.units.Voltage;
+import edu.wpi.first.util.datalog.DoubleLogEntry;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.Subsystem;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.function.Supplier;
+
+import static edu.wpi.first.units.Units.Rotations;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static edu.wpi.first.units.Units.Volts;
+import static edu.wpi.first.units.MutableMeasure.mutable;
 
 /**
  * Class that extends the Phoenix SwerveDrivetrain class and implements subsystem so it can be used
@@ -38,13 +50,12 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
   private final PIDController m_xController = new PIDController(10, 0, 0.5);
   private final PIDController m_yController = new PIDController(10, 0, 0.5);
   private final PIDController m_rotationController = new PIDController(7, 0, 0.35);
-  private final ChoreoControlFunction m_swerveController;
+  private ChoreoControlFunction m_swerveController;
 
   /* Orchestra classes */
   private final Orchestra m_orchestra = new Orchestra();
-  private final ArrayList<String> m_songs = new ArrayList<String>();
-  private static final AudioConfigs m_audioConfig =
-      new AudioConfigs().withAllowMusicDurDisable(true);
+  private final ArrayList<String> m_songs = new ArrayList<>();
+  private static final AudioConfigs m_audioConfig = new AudioConfigs().withAllowMusicDurDisable(true);
 
   /* Blue alliance sees forward as 0 degrees (toward red alliance wall) */
   private final Rotation2d BlueAlliancePerspectiveRotation = Rotation2d.fromDegrees(0);
@@ -53,11 +64,25 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
   /* Keep track if we've ever applied the operator perspective before or not */
   private boolean hasAppliedOperatorPerspective;
 
+  /* SysId Routines for each motor */
+  private final SysIdRoutine[] m_driveSysIdRoutines = new SysIdRoutine[4];
+  private final SysIdRoutine[] m_steerSysIdRoutines = new SysIdRoutine[4];
+
   public CommandSwerveDrivetrain(
       SwerveDrivetrainConstants driveTrainConstants,
       double OdometryUpdateFrequency,
       SwerveModuleConstants... modules) {
     super(driveTrainConstants, OdometryUpdateFrequency, modules);
+    init();
+  }
+
+  public CommandSwerveDrivetrain(
+      SwerveDrivetrainConstants driveTrainConstants, SwerveModuleConstants... modules) {
+    super(driveTrainConstants, modules);
+    init();
+  }
+
+  private void init() {
     if (Utils.isSimulation()) {
       startSimThread();
     }
@@ -68,21 +93,31 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
 
     m_swerveController =
         Choreo.choreoSwerveController(m_xController, m_yController, m_rotationController);
+
+    for (int i = 0; i < 4; i++) {
+      var module = getModule(i);
+      m_driveSysIdRoutines[i] = createSysIdRoutine(module.getDriveMotor());
+      m_steerSysIdRoutines[i] = createSysIdRoutine(module.getSteerMotor());
+    }
   }
 
-  public CommandSwerveDrivetrain(
-      SwerveDrivetrainConstants driveTrainConstants, SwerveModuleConstants... modules) {
-    super(driveTrainConstants, modules);
-    if (Utils.isSimulation()) {
-      startSimThread();
-    }
+  private SysIdRoutine createSysIdRoutine(TalonFX motor) {
+    // RelativeEncoder encoder = motor.clearStickyFault_ReverseHardLimit();
+    MutableMeasure<Voltage> appliedVoltage = mutable(Volts.of(0));
+    MutableMeasure<Angle> angle = mutable(Rotations.of(0));
+    MutableMeasure<Velocity<Angle>> velocity = mutable(RotationsPerSecond.of(0));
 
-    m_xController.setTolerance(0.05);
-    m_yController.setTolerance(0.05);
-    m_rotationController.setTolerance(0.05);
-
-    m_swerveController =
-        Choreo.choreoSwerveController(m_xController, m_yController, m_rotationController);
+    return new SysIdRoutine(
+        new SysIdRoutine.Config(),
+        new SysIdRoutine.Mechanism(
+            (Measure<Voltage> volts) -> motor.setVoltage(volts.in(Volts)),
+            log -> log.motor("swerveMotor").voltage(
+                    appliedVoltage.mut_replace(motor.get() * RobotController.getBatteryVoltage(), Volts))
+                .angularPosition(
+                    angle.mut_replace(motor.getPosition().getValue(), Rotations))
+                .angularVelocity(
+                    velocity.mut_replace((motor.getVelocity() .getValue()/ 2048.0 * 10), RotationsPerSecond)),
+            this));
   }
 
   public Command applyRequest(Supplier<SwerveRequest> requestSupplier) {
@@ -107,20 +142,10 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     m_simNotifier.startPeriodic(kSimLoopPeriod);
   }
 
-  /**
-   * Add the given songs from a chirp file.
-   *
-   * @param songs The name of the chirp files for the songs to add. Doesn't include file extension.
-   */
   public void addMusic(String... songs) {
     m_songs.addAll(Arrays.asList(songs));
   }
 
-  /**
-   * Selects the track to play.
-   *
-   * @param track The selected track. Must be a loaded song.
-   */
   public void selectTrack(String track) {
     if (!m_songs.contains(track)) {
       DataLogManager.log("Track " + track + " not found.");
@@ -140,11 +165,6 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     }
   }
 
-  /**
-   * A list with the loaded songs.
-   *
-   * @return The list of loaded songs.
-   */
   public ArrayList<String> getSongs() {
     return m_songs;
   }
@@ -155,21 +175,6 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
 
   @Override
   public void periodic() {
-    /*
-     * Periodically try to apply the operator perspective
-     *
-     * If we haven't applied the operator perspective before, then we should apply
-     * it regardless of DS state
-     *
-     * This allows us to correct the perspective in case the robot code restarts
-     * mid-match
-     *
-     * Otherwise, only check and apply the operator perspective if the DS is
-     * disabled
-     *
-     * This ensures driving behavior doesn't change until an explicit disable event
-     * occurs during testing
-     */
     if (!hasAppliedOperatorPerspective || DriverStation.isDisabled()) {
       DriverStation.getAlliance()
           .ifPresent(
@@ -183,13 +188,6 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     }
   }
 
-  /**
-   * Follow the given trajectory.
-   *
-   * @param name The name of the trajectory.
-   * @param isRed The perspective of the trajectory.
-   * @return A Command to follow the given trajectory.
-   */
   public Command followTrajectory(String name, boolean isRed) {
     var traj = Choreo.getTrajectory(name);
     var initPose = traj.getInitialPose();
@@ -202,5 +200,21 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         (speeds) -> setControl(new SwerveRequest.ApplyChassisSpeeds().withSpeeds(speeds)),
         () -> isRed,
         this);
+  }
+
+  public Command sysIdQuasistaticDrive(int moduleIndex, SysIdRoutine.Direction direction) {
+    return m_driveSysIdRoutines[moduleIndex].quasistatic(direction);
+  }
+
+  public Command sysIdDynamicDrive(int moduleIndex, SysIdRoutine.Direction direction) {
+    return m_driveSysIdRoutines[moduleIndex].dynamic(direction);
+  }
+
+  public Command sysIdQuasistaticSteer(int moduleIndex, SysIdRoutine.Direction direction) {
+    return m_steerSysIdRoutines[moduleIndex].quasistatic(direction);
+  }
+
+  public Command sysIdDynamicSteer(int moduleIndex, SysIdRoutine.Direction direction) {
+    return m_steerSysIdRoutines[moduleIndex].dynamic(direction);
   }
 }
