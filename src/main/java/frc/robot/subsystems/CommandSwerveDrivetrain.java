@@ -71,6 +71,13 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
   private final SysIdRoutine[] m_driveSysIdRoutines = new SysIdRoutine[4];
   private final SysIdRoutine[] m_steerSysIdRoutines = new SysIdRoutine[4];
 
+  /**
+   * Constructs a new CommandSwerveDrivetrain with the given drivetrain constants and modules.
+   *
+   * @param driveTrainConstants The drivetrain constants.
+   * @param OdometryUpdateFrequency The frequency to update odometry.
+   * @param modules The swerve modules.
+   */
   public CommandSwerveDrivetrain(
       SwerveDrivetrainConstants driveTrainConstants,
       double OdometryUpdateFrequency,
@@ -79,12 +86,22 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     init();
   }
 
+  /**
+   * Constructs a new CommandSwerveDrivetrain with the given drivetrain constants and modules.
+   *
+   * @param driveTrainConstants The drivetrain constants.
+   * @param modules The swerve modules.
+   */
   public CommandSwerveDrivetrain(
       SwerveDrivetrainConstants driveTrainConstants, SwerveModuleConstants... modules) {
     super(driveTrainConstants, modules);
     init();
   }
 
+  /**
+   * Initializes the CommandSwerveDrivetrain by setting up PID controllers, the swerve controller,
+   * and SysId routines.
+   */
   private void init() {
     if (Utils.isSimulation()) {
       startSimThread();
@@ -104,8 +121,13 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     }
   }
 
+  /**
+   * Creates a SysIdRoutine for the given motor.
+   *
+   * @param motor The motor for which to create the SysIdRoutine.
+   * @return A SysIdRoutine for the given motor.
+   */
   private SysIdRoutine createSysIdRoutine(TalonFX motor) {
-    // RelativeEncoder encoder = motor.clearStickyFault_ReverseHardLimit();
     MutableMeasure<Voltage> appliedVoltage = mutable(Volts.of(0));
     MutableMeasure<Angle> angle = mutable(Rotations.of(0));
     MutableMeasure<Velocity<Angle>> velocity = mutable(RotationsPerSecond.of(0));
@@ -126,10 +148,17 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
             this));
   }
 
+  /**
+   * Creates a command to apply a swerve drive request.
+   *
+   * @param requestSupplier Supplier that provides the swerve drive request.
+   * @return A command that applies the swerve drive request.
+   */
   public Command applyRequest(Supplier<SwerveRequest> requestSupplier) {
     return run(() -> this.setControl(requestSupplier.get()));
   }
 
+  /** Starts the simulation thread to periodically update the simulation state. */
   private void startSimThread() {
     m_lastSimTime = Utils.getCurrentTimeSeconds();
 
@@ -148,10 +177,20 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     m_simNotifier.startPeriodic(kSimLoopPeriod);
   }
 
+  /**
+   * Adds the given songs to the orchestra from chirp files.
+   *
+   * @param songs The names of the chirp files for the songs to add (without file extension).
+   */
   public void addMusic(String... songs) {
     m_songs.addAll(Arrays.asList(songs));
   }
 
+  /**
+   * Selects the track to play.
+   *
+   * @param track The name of the track to select.
+   */
   public void selectTrack(String track) {
     if (!m_songs.contains(track)) {
       DataLogManager.log("Track " + track + " not found.");
@@ -171,16 +210,41 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     }
   }
 
+  /**
+   * Gets the list of loaded songs.
+   *
+   * @return The list of loaded songs.
+   */
   public ArrayList<String> getSongs() {
     return m_songs;
   }
 
+  /**
+   * Gets the orchestra instance.
+   *
+   * @return The orchestra instance.
+   */
   public Orchestra getOrchestra() {
     return m_orchestra;
   }
 
   @Override
   public void periodic() {
+    /*
+     * Periodically try to apply the operator perspective
+     *
+     * If we haven't applied the operator perspective before, then we should apply
+     * it regardless of DS state
+     *
+     * This allows us to correct the perspective in case the robot code restarts
+     * mid-match
+     *
+     * Otherwise, only check and apply the operator perspective if the DS is
+     * disabled
+     *
+     * This ensures driving behavior doesn't change until an explicit disable event
+     * occurs during testing
+     */
     if (!hasAppliedOperatorPerspective || DriverStation.isDisabled()) {
       DriverStation.getAlliance()
           .ifPresent(
@@ -194,6 +258,13 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     }
   }
 
+  /**
+   * Follows the given trajectory.
+   *
+   * @param name The name of the trajectory.
+   * @param isRed The perspective of the trajectory.
+   * @return A Command to follow the given trajectory.
+   */
   public Command followTrajectory(String name, boolean isRed) {
     var traj = Choreo.getTrajectory(name);
     var initPose = traj.getInitialPose();
@@ -208,23 +279,56 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         this);
   }
 
+  /**
+   * Creates a command for a quasistatic drive SysId routine for the specified module.
+   *
+   * @param moduleIndex The index of the module.
+   * @param direction The direction of the SysId routine.
+   * @return A command for the quasistatic drive SysId routine.
+   */
   public Command sysIdQuasistaticDrive(int moduleIndex, SysIdRoutine.Direction direction) {
     return m_driveSysIdRoutines[moduleIndex].quasistatic(direction);
   }
 
+  /**
+   * Creates a command for a dynamic drive SysId routine for the specified module.
+   *
+   * @param moduleIndex The index of the module.
+   * @param direction The direction of the SysId routine.
+   * @return A command for the dynamic drive SysId routine.
+   */
   public Command sysIdDynamicDrive(int moduleIndex, SysIdRoutine.Direction direction) {
     return m_driveSysIdRoutines[moduleIndex].dynamic(direction);
   }
 
+  /**
+   * Creates a command for a quasistatic steer SysId routine for the specified module.
+   *
+   * @param moduleIndex The index of the module.
+   * @param direction The direction of the SysId routine.
+   * @return A command for the quasistatic steer SysId routine.
+   */
   public Command sysIdQuasistaticSteer(int moduleIndex, SysIdRoutine.Direction direction) {
     return m_steerSysIdRoutines[moduleIndex].quasistatic(direction);
   }
 
+  /**
+   * Creates a command for a dynamic steer SysId routine for the specified module.
+   *
+   * @param moduleIndex The index of the module.
+   * @param direction The direction of the SysId routine.
+   * @return A command for the dynamic steer SysId routine.
+   */
   public Command sysIdDynamicSteer(int moduleIndex, SysIdRoutine.Direction direction) {
     return m_steerSysIdRoutines[moduleIndex].dynamic(direction);
   }
 
-  public List<java.util.function.Function<SysIdRoutine.Direction, Command>> getSysIdCommands() {
+  /**
+   * Gets a list of SysId commands for all modules.
+   *
+   * @return A list of SysId commands.
+   */
+  public List<Function<SysIdRoutine.Direction, Command>> getSysIdCommands() {
     List<Function<SysIdRoutine.Direction, Command>> sysidCommands = new ArrayList<>();
 
     for (int i = 0; i < 4; i++) {

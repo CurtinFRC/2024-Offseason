@@ -70,8 +70,6 @@ public class Robot extends CommandRobot {
 
     m_sysid.addAll(m_drivetrain.getSysIdCommands());
 
-    m_sysid.getAllCommands();
-
     m_drivetrain.registerTelemetry(m_logger::telemeterize);
 
     m_scheduler.registerSubsystem(m_arm);
@@ -109,5 +107,7 @@ public class Robot extends CommandRobot {
 
     m_driver.a().whileTrue(m_drivetrain.applyRequest(() -> m_brake));
     m_driver.x().onTrue(m_drivetrain.runOnce(() -> m_drivetrain.seedFieldRelative()));
+
+    m_driver.b().onTrue(m_sysid.getAllCommands());
   }
 }
