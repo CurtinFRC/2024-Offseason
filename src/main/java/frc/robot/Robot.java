@@ -12,7 +12,6 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandRobot;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.autos.Centre2541;
 import frc.robot.autos.Centre26541;
 import frc.robot.autos.WompWompKieran;
@@ -23,7 +22,6 @@ import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.Sysid;
-
 import java.util.HashMap;
 
 public class Robot extends CommandRobot {

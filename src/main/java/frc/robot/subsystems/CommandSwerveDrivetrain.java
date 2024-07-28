@@ -4,6 +4,11 @@
 
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.MutableMeasure.mutable;
+import static edu.wpi.first.units.Units.Rotations;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static edu.wpi.first.units.Units.Volts;
+
 import com.choreo.lib.Choreo;
 import com.choreo.lib.ChoreoControlFunction;
 import com.ctre.phoenix6.Orchestra;
@@ -14,8 +19,6 @@ import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrain;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrainConstants;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.Angle;
@@ -23,14 +26,12 @@ import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.MutableMeasure;
 import edu.wpi.first.units.Velocity;
 import edu.wpi.first.units.Voltage;
-import edu.wpi.first.util.datalog.DoubleLogEntry;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import java.util.ArrayList;
@@ -38,11 +39,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
-
-import static edu.wpi.first.units.Units.Rotations;
-import static edu.wpi.first.units.Units.RotationsPerSecond;
-import static edu.wpi.first.units.Units.Volts;
-import static edu.wpi.first.units.MutableMeasure.mutable;
 
 /**
  * Class that extends the Phoenix SwerveDrivetrain class and implements subsystem so it can be used
@@ -61,7 +57,8 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
   /* Orchestra classes */
   private final Orchestra m_orchestra = new Orchestra();
   private final ArrayList<String> m_songs = new ArrayList<>();
-  private static final AudioConfigs m_audioConfig = new AudioConfigs().withAllowMusicDurDisable(true);
+  private static final AudioConfigs m_audioConfig =
+      new AudioConfigs().withAllowMusicDurDisable(true);
 
   /* Blue alliance sees forward as 0 degrees (toward red alliance wall) */
   private final Rotation2d BlueAlliancePerspectiveRotation = Rotation2d.fromDegrees(0);
@@ -117,12 +114,15 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         new SysIdRoutine.Config(),
         new SysIdRoutine.Mechanism(
             (Measure<Voltage> volts) -> motor.setVoltage(volts.in(Volts)),
-            log -> log.motor("swerveMotor").voltage(
-                    appliedVoltage.mut_replace(motor.get() * RobotController.getBatteryVoltage(), Volts))
-                .angularPosition(
-                    angle.mut_replace(motor.getPosition().getValue(), Rotations))
-                .angularVelocity(
-                    velocity.mut_replace((motor.getVelocity() .getValue()/ 2048.0 * 10), RotationsPerSecond)),
+            log ->
+                log.motor("swerveMotor")
+                    .voltage(
+                        appliedVoltage.mut_replace(
+                            motor.get() * RobotController.getBatteryVoltage(), Volts))
+                    .angularPosition(angle.mut_replace(motor.getPosition().getValue(), Rotations))
+                    .angularVelocity(
+                        velocity.mut_replace(
+                            (motor.getVelocity().getValue() / 2048.0 * 10), RotationsPerSecond)),
             this));
   }
 

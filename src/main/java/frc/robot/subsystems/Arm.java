@@ -4,10 +4,10 @@
 
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.MutableMeasure.mutable;
 import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.Volts;
-import static edu.wpi.first.units.MutableMeasure.mutable;
 
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
@@ -69,26 +69,24 @@ public class Arm extends SubsystemBase {
   private final MutableMeasure<Velocity<Angle>> m_velocity = mutable(RotationsPerSecond.of(0));
 
   private final SysIdRoutine m_sysIdRoutine =
-    new SysIdRoutine(
-      new SysIdRoutine.Config(),
-      new SysIdRoutine.Mechanism(
-        (Measure<Voltage> volts) -> {
-          m_primaryMotor.setVoltage(volts.in(Volts));
-        },
-        log -> {
-          log.motor("arm").voltage(
-            m_appliedVoltage.mut_replace(
-              m_primaryMotor.get() * RobotController.getBatteryVoltage(), Volts))
-            .angularPosition(
-              m_angle.mut_replace(m_encoder.getAbsolutePosition(), Rotations)
-            )
-            .angularVelocity(
-              m_velocity.mut_replace((m_encoder.get() * 2 * Math.PI / 60), RotationsPerSecond)
-            );
-        },
-        this
-      )
-    );
+      new SysIdRoutine(
+          new SysIdRoutine.Config(),
+          new SysIdRoutine.Mechanism(
+              (Measure<Voltage> volts) -> {
+                m_primaryMotor.setVoltage(volts.in(Volts));
+              },
+              log -> {
+                log.motor("arm")
+                    .voltage(
+                        m_appliedVoltage.mut_replace(
+                            m_primaryMotor.get() * RobotController.getBatteryVoltage(), Volts))
+                    .angularPosition(
+                        m_angle.mut_replace(m_encoder.getAbsolutePosition(), Rotations))
+                    .angularVelocity(
+                        m_velocity.mut_replace(
+                            (m_encoder.get() * 2 * Math.PI / 60), RotationsPerSecond));
+              },
+              this));
 
   /** Creates a new {@link Arm} {@link edu.wpi.first.wpilibj2.command.Subsystem}. */
   public Arm() {
