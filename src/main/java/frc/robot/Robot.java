@@ -54,6 +54,7 @@ public class Robot extends CommandRobot {
     SignalLogger.start();
     m_drivetrain.registerTelemetry(m_logger::telemeterize);
 
+    m_scheduler.registerSubsystem(m_drivetrain);
     m_scheduler.registerSubsystem(m_arm);
     m_scheduler.registerSubsystem(m_shooter);
     m_scheduler.registerSubsystem(m_climber);
