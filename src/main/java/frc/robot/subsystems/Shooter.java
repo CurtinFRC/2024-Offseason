@@ -12,15 +12,11 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.util.datalog.DataLog;
 import edu.wpi.first.util.datalog.DoubleLogEntry;
 import edu.wpi.first.wpilibj.DataLogManager;
-import edu.wpi.first.util.datalog.DataLog;
-import edu.wpi.first.util.datalog.DoubleLogEntry;
-import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
-import edu.wpi.first.wpilibj.PWM;
 
 /** Our Crescendo shooter Subsystem */
 public class Shooter extends SubsystemBase {
@@ -59,12 +55,10 @@ public class Shooter extends SubsystemBase {
    * @return a {@link Command} to get to the desired speed.
    */
   public Command spinup(double speed) {
-
     return achieveSpeeds(speed).until(m_pid::atSetpoint);
   }
 
   public Command stop() {
-
     return runOnce(() -> m_motor.set(0));
   }
 
@@ -74,7 +68,6 @@ public class Shooter extends SubsystemBase {
    * @return A {@link Command} to hold the speed at the setpoint.
    */
   public Command maintain() {
-
     return achieveSpeeds(m_pid.getSetpoint());
   }
 }

@@ -12,7 +12,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
-import edu.wpi.first.wpilibj.PWM;
 
 public class Intake extends SubsystemBase {
   private final CANSparkMax m_motor = new CANSparkMax(Constants.intakePort, MotorType.kBrushless);
@@ -23,7 +22,6 @@ public class Intake extends SubsystemBase {
   public Intake() {}
 
   public Command intake() {
-
     return Commands.run(
             () -> {
               log_output.append(4);
@@ -38,7 +36,6 @@ public class Intake extends SubsystemBase {
   }
 
   public Command outake() {
-
     return Commands.run(
             () -> {
               log_output.append(-4);

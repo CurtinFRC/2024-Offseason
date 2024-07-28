@@ -2,30 +2,23 @@
 // Open Source Software, you can modify it according to the terms
 // of the MIT License at the root of this project
 
-package frc.robot.subsystems; 
+package frc.robot.subsystems;
 
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.util.datalog.DataLog;
 import edu.wpi.first.util.datalog.DoubleLogEntry;
 import edu.wpi.first.util.datalog.StringLogEntry;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.ProfiledPIDSubsystem;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
-import java.util.function.DoubleSupplier;
 
 public class Arm extends SubsystemBase {
-  
+
   private TrapezoidProfile m_profile;
   private TrapezoidProfile.State m_goal = new TrapezoidProfile.State();
   private TrapezoidProfile.State m_setpoint = new TrapezoidProfile.State();
@@ -41,14 +34,12 @@ public class Arm extends SubsystemBase {
       new DoubleLogEntry(m_log, "/arm/ff/velocity_setpoint");
   private DoubleLogEntry log_ff_output = new DoubleLogEntry(m_log, "/arm/ff/output");
   private StringLogEntry log_setpoint = new StringLogEntry(m_log, "/arm/setpoint");
-    private final DutyCycleEncoder m_encoder =
-        new DutyCycleEncoder(Constants.armEncoderPort);
-  private ArmFeedforward 
-    m_feedforward =
-        new ArmFeedforward(
-            Constants.armS, Constants.armG,
-            Constants.armV, Constants.armA);
-  
+  private final DutyCycleEncoder m_encoder = new DutyCycleEncoder(Constants.armEncoderPort);
+  private ArmFeedforward m_feedforward =
+      new ArmFeedforward(
+          Constants.armS, Constants.armG,
+          Constants.armV, Constants.armA);
+
   public enum Setpoint {
     kAmp,
     kIntake,
@@ -57,7 +48,6 @@ public class Arm extends SubsystemBase {
   }
 
   private void useOutput(double output, Double position, Double velocity) {
-
     // Calculate the feedforward from the sepoint
     double feedforward = m_feedforward.calculate(position, velocity);
 
@@ -72,8 +62,8 @@ public class Arm extends SubsystemBase {
     // Add the feedforward to the PID output to get the motor output
     m_motor.setVoltage(output + feedforward);
   }
- 
- /**
+
+  /**
    * Sets the goal for the ProfiledPIDController.
    *
    * @param goal The desired goal state.
@@ -112,32 +102,28 @@ public class Arm extends SubsystemBase {
    * @return The controller's next output.
    */
   private double calculate(double measurement) {
-    
+
     m_setpoint = m_profile.calculate(getPeriod(), m_setpoint, m_goal);
     return m_pid.calculate(measurement, m_setpoint.position);
-    
   }
 
   private double calculate(double measurement, TrapezoidProfile.State goal) {
     setGoal(goal);
     return calculate(measurement);
   }
+
   private double calculate(double measurement, double goal) {
     setGoal(goal);
     return calculate(measurement);
   }
 
-  
-public Arm() {
-  
-    m_pid = new PIDController(
-        Constants.armP,
-        Constants.armI,
-        Constants.armD);
-        new TrapezoidProfile(new TrapezoidProfile.Constraints(
-        Constants.armMaxVelRadPerSec,
-        Constants.armMaxAccelRadPerSec));
-   
+  public Arm() {
+
+    m_pid = new PIDController(Constants.armP, Constants.armI, Constants.armD);
+    new TrapezoidProfile(
+        new TrapezoidProfile.Constraints(
+            Constants.armMaxVelRadPerSec, Constants.armMaxAccelRadPerSec));
+
     // Start arm at rest in neutral position
     setGoal(Constants.armOffsetRad);
   }
@@ -168,4 +154,5 @@ public Arm() {
         break;
     }
   }
-};
+}
+;
