@@ -36,7 +36,7 @@ public class Climber extends SubsystemBase {
    * @return A {@link Command} to climb the robot.
    */
   public Command climb() {
-    return Commands.run(
+    return run(
         () -> {
           var output =
               m_pid.calculate(Units.rotationsToRadians(m_encoder.getPosition() * -1), -Math.PI);

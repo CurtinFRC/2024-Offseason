@@ -40,7 +40,7 @@ public class Shooter extends SubsystemBase {
   private Command achieveSpeeds(double speed) {
     m_pid.reset();
     m_pid.setSetpoint(speed);
-    return Commands.run(
+    return run(
         () -> {
           var output =
               m_pid.calculate(
@@ -75,6 +75,6 @@ public class Shooter extends SubsystemBase {
 
   public Command shoot() {
     return spinup(500)
-        .andThen(Commands.parallel(Commands.run(() -> m_indexer.setVoltage(2)), maintain()));
+        .andThen(Commands.parallel(run(() -> m_indexer.setVoltage(2)), maintain()));
   }
 }

@@ -59,7 +59,7 @@ public class Arm extends SubsystemBase {
 
   /** Achieves and maintains speed for the primary motor. */
   private Command achievePosition(double position) {
-    return Commands.run(
+    return run(
         () -> {
           var pid_output = m_pid.calculate(m_encoder.getAbsolutePosition() * 2 * Math.PI, position);
           log_pid_output.append(pid_output);
@@ -106,7 +106,7 @@ public class Arm extends SubsystemBase {
    * @return A {@link Command} to control the arm manually.
    */
   public Command manualControl(DoubleSupplier speed) {
-    return Commands.run(() -> m_primaryMotor.set(speed.getAsDouble()), this);
+    return run(() -> m_primaryMotor.set(speed.getAsDouble()));
   }
 
   /*
