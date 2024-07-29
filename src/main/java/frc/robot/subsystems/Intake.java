@@ -31,7 +31,7 @@ public class Intake extends SubsystemBase {
   public Intake() {}
 
   public Command achieveSpeed(double speed) {
-    return Commands.run(
+    return run(
         () ->
             m_motor.setVoltage(
                 m_pid.calculate(Units.rotationsToRadians(m_encoder.getVelocity()), speed)));
@@ -50,7 +50,7 @@ public class Intake extends SubsystemBase {
   }
 
   public Command stopIntake() {
-    return new RunCommand(() -> m_motor.stopMotor(), this);
+    return run(() -> m_motor.stopMotor());
   }
 
   public Command outake() {
