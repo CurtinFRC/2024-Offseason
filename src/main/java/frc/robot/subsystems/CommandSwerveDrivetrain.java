@@ -33,6 +33,7 @@ import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Subsystem;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -70,6 +71,19 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
   /* SysId Routines for each motor */
   private final SysIdRoutine[] m_driveSysIdRoutines = new SysIdRoutine[4];
   private final SysIdRoutine[] m_steerSysIdRoutines = new SysIdRoutine[4];
+
+  private static final double BLUE_AMP_X = 1.5;
+  private static final double BLUE_AMP_Y = 2.0;
+  private static final double RED_AMP_X = 1.5;
+  private static final double RED_AMP_Y = 14.54;
+
+  // Define the coordinates for the speaker locations for both alliances
+  private static final double BLUE_SPEAKER_X = 0.0;
+  private static final double BLUE_SPEAKER_Y = 0.0;
+  private static final double RED_SPEAKER_X = 0.0;
+  private static final double RED_SPEAKER_Y = 16.54;
+
+  private static final double RANGE_RADIUS = 1.0;
 
   /**
    * Constructs a new CommandSwerveDrivetrain with the given drivetrain constants and modules.
@@ -340,5 +354,79 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     }
 
     return sysidCommands;
+  }
+
+  /**
+   * Trigger to check if the robot is within range of the amp.
+   *
+   * @return a Trigger that activates when the robot is within the defined range of the amp.
+   */
+  public Trigger isInAmpRange() {
+    return new Trigger(
+        () -> {
+          var _side = DriverStation.getAlliance();
+          if (_side.isPresent()) {
+            var side = _side.get();
+            var currentPose =
+                getState().Pose; // Assuming getState().Pose returns the current pose of the robot
+            double robotX = currentPose.getX();
+            double robotY = currentPose.getY();
+            double targetX, targetY;
+
+            // Determine the target coordinates based on the alliance
+            if (side == Alliance.Blue) {
+              targetX = BLUE_AMP_X;
+              targetY = BLUE_AMP_Y;
+            } else {
+              targetX = RED_AMP_X;
+              targetY = RED_AMP_Y;
+            }
+
+            // Calculate the distance to the target (amp)
+            double distance =
+                Math.sqrt(Math.pow(robotX - targetX, 2) + Math.pow(robotY - targetY, 2));
+
+            // Return true if within the specified range radius
+            return distance <= RANGE_RADIUS;
+          }
+          return false;
+        });
+  }
+
+  /**
+   * Trigger to check if the robot is within range of the speaker.
+   *
+   * @return a Trigger that activates when the robot is within the defined range of the speaker.
+   */
+  public Trigger isInSpeakerRange() {
+    return new Trigger(
+        () -> {
+          var _side = DriverStation.getAlliance();
+          if (_side.isPresent()) {
+            var side = _side.get();
+            var currentPose =
+                getState().Pose; // Assuming getState().Pose returns the current pose of the robot
+            double robotX = currentPose.getX();
+            double robotY = currentPose.getY();
+            double targetX, targetY;
+
+            // Determine the target coordinates based on the alliance
+            if (side == Alliance.Blue) {
+              targetX = BLUE_SPEAKER_X;
+              targetY = BLUE_SPEAKER_Y;
+            } else {
+              targetX = RED_SPEAKER_X;
+              targetY = RED_SPEAKER_Y;
+            }
+
+            // Calculate the distance to the target (speaker)
+            double distance =
+                Math.sqrt(Math.pow(robotX - targetX, 2) + Math.pow(robotY - targetY, 2));
+
+            // Return true if within the specified range radius
+            return distance <= RANGE_RADIUS;
+          }
+          return false;
+        });
   }
 }

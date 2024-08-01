@@ -23,6 +23,8 @@ import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.Sysid;
+import frc.robot.subsystems.Arm.Setpoint;
+
 import java.util.HashMap;
 
 public class Robot extends CommandRobot {
@@ -111,5 +113,8 @@ public class Robot extends CommandRobot {
     m_driver.x().onTrue(m_drivetrain.runOnce(() -> m_drivetrain.seedFieldRelative()));
 
     m_driver.b().onTrue(m_sysid.getAllCommands());
+
+    m_drivetrain.isInSpeakerRange().onTrue(m_arm.goToSetpointDynamic(Setpoint.kSpeaker));
+    m_drivetrain.isInAmpRange().onTrue(m_arm.goToSetpointDynamic(Setpoint.kAmp));
   }
 }

@@ -173,4 +173,10 @@ public class Arm extends SubsystemBase {
   public Command sysIdDynamic(SysIdRoutine.Direction direction) {
     return m_sysIdRoutine.dynamic(direction);
   }
+
+  public Command goToSetpointDynamic(Setpoint setpoint) {
+    return Commands.run(() -> {
+      
+    });
+  }
 }
