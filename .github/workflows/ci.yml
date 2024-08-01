@@ -37,6 +37,8 @@ jobs:
         java-version: 17
         distribution: temurin
     - uses: gradle/gradle-build-action@v3
+    - name: Install roboRIO toolchain
+      run: ./gradlew installRoboRioToolchain
     - uses: actions/setup-python@v5
       with:
         python-version: 3.8
