@@ -1,7 +1,3 @@
-// Copyright (c) 2024 CurtinFRC
-// Open Source Software, you can modify it according to the terms
-// of the MIT License at the root of this project
-
 #include "ShooterTrajopt.h"
 
 #include <cmath>
@@ -12,12 +8,6 @@
 #include <sleipnir/optimization/OptimizationProblem.hpp>
 
 #include "wpi/array.h"
-
-// FRC 2024 shooter trajectory optimization.
-//
-// This program finds the initial velocity, pitch, and yaw for a game piece to
-// hit the 2024 FRC game's target that minimizes z sensitivity to initial
-// velocity.
 
 namespace slp = sleipnir;
 
@@ -40,14 +30,6 @@ constexpr Vector6d target_wrt_field{{field_length - target_depth / 2.0},
 constexpr double g = 9.806;  // m/s²
 
 slp::VariableMatrix f(const slp::VariableMatrix& x) {
-  // x' = x'
-  // y' = y'
-  // z' = z'
-  // x" = −a_D(v_x)
-  // y" = −a_D(v_y)
-  // z" = −g − a_D(v_z)
-  //
-  // where a_D(v) = ½ρv² C_D A / m
   constexpr double rho = 1.204;  // kg/m³
   constexpr double C_D = 0.5;
   constexpr double A = std::numbers::pi * 0.3;
@@ -60,14 +42,40 @@ slp::VariableMatrix f(const slp::VariableMatrix& x) {
   return slp::VariableMatrix{{v_x}, {v_y}, {v_z}, {-a_D(v_x)}, {-a_D(v_y)}, {-g - a_D(v_z)}};
 }
 
+/// @brief Calculates the z-offset of the shooter based on the arm's pitch angle.
+///
+/// @param arm_length The length of the arm in meters.
+/// @param pitch The pitch angle of the arm in radians.
+/// @param pivot_height The height of the pivot point (gear) above the ground in meters.
+/// @return The z-offset of the shooter.
+double calculateShooterZOffset(double arm_length, double pitch, double pivot_height) {
+  return pivot_height + arm_length * std::sin(pitch);
+}
+
+/// @brief Calculates the optimal trajectory for the shooter to hit the target.
+///
+/// @param x_meter X-coordinate of the robot's position in meters.
+/// @param y_meter Y-coordinate of the robot's position in meters.
+/// @param vel_x Initial velocity in the X direction in m/s.
+/// @param vel_y Initial velocity in the Y direction in m/s.
+/// @param pitch The pitch angle of the arm in radians.
+/// @param pivot_height The height of the pivot point (gear) above the ground in meters.
+/// @return An array containing the angular velocity, yaw, and pitch angles.
 wpi::array<double, 3> calculate_trajectory(const double x_meter, const double y_meter, const double vel_x,
-                                           const double vel_y) {
+                                           const double vel_y, const double pitch, const double pivot_height) {
   // Robot initial state
   Vector6d robot_wrt_field{{x_meter}, {y_meter}, {0.0}, {vel_x}, {vel_y}, {0.0}};
 
   constexpr double max_initial_velocity = 15.0;  // m/s
 
-  Vector6d shooter_wrt_robot{{0.0}, {0.0}, {0.6096}, {0.0}, {0.0}, {0.0}};
+  // Length of the arm (constant)
+  constexpr double arm_length = 1.0;  // Example length in meters
+
+  // Calculate the z-offset based on the arm pitch and pivot height
+  double shooter_z_offset = calculateShooterZOffset(arm_length, pitch, pivot_height);
+
+  // Shooter's position relative to the robot
+  Vector6d shooter_wrt_robot{{0.0}, {0.0}, {shooter_z_offset}, {0.0}, {0.0}, {0.0}};
   Vector6d shooter_wrt_field = robot_wrt_field + shooter_wrt_robot;
 
   slp::OptimizationProblem problem;
@@ -79,14 +87,7 @@ wpi::array<double, 3> calculate_trajectory(const double x_meter, const double y_
   T.SetValue(1);
   auto dt = T / N;
 
-  // Disc state in field frame
-  //
-  //     [x position]
-  //     [y position]
-  //     [z position]
-  // x = [x velocity]
-  //     [y velocity]
-  //     [z velocity]
+  // Disc state in the field frame
   auto x = problem.DecisionVariable(6);
 
   // Position initial guess is start position
@@ -101,9 +102,6 @@ wpi::array<double, 3> calculate_trajectory(const double x_meter, const double y_
   problem.SubjectTo(x.Segment(0, 3) == shooter_wrt_field.block(0, 0, 3, 1));
 
   // Require initial velocity is below max
-  //
-  //   √{v_x² + v_y² + v_z²) ≤ vₘₐₓ
-  //   v_x² + v_y² + v_z² ≤ vₘₐₓ²
   problem.SubjectTo(slp::pow(x(3) - robot_wrt_field(3), 2) + slp::pow(x(4) - robot_wrt_field(4), 2) +
                         slp::pow(x(5) - robot_wrt_field(5), 2) <=
                     max_initial_velocity * max_initial_velocity);
@@ -137,9 +135,9 @@ wpi::array<double, 3> calculate_trajectory(const double x_meter, const double y_
   double velocity = v0.norm();
   double angular_velocity = velocity * 0.0254;
 
-  double pitch = std::atan2(v0(2), std::hypot(v0(0), v0(1)));
+  double pitch_angle = std::atan2(v0(2), std::hypot(v0(0), v0(1)));
 
   double yaw = std::atan2(v0(1), v0(0));
 
-  return {angular_velocity, yaw, pitch};
+  return {angular_velocity, yaw, pitch_angle};
 }

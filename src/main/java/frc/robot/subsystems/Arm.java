@@ -93,6 +93,10 @@ public class Arm extends SubsystemBase {
     m_followerMotor.follow(m_primaryMotor);
   }
 
+  public double pitch() {
+    return m_encoder.getAbsolutePosition() * 2 * Math.PI;
+  }
+
   /** Achieves and maintains speed for the primary motor. */
   private Command achievePosition(double position) {
     return Commands.run(

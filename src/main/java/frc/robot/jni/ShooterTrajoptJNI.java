@@ -25,5 +25,5 @@ public class ShooterTrajoptJNI {
   }
 
   public static native void calculateTrajectory(
-      double[] javatraj, double x, double y, double vel_x, double vel_y);
+      double[] javatraj, double x, double y, double vel_x, double vel_y, double pitch, double pivot_height);
 }

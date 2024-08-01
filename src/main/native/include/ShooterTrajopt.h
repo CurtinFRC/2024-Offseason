@@ -13,4 +13,4 @@ struct traj {
 };
 
 wpi::array<double, 3> calculate_trajectory(const double x_meter, const double y_meter, const double vel_x,
-                                           const double vel_y);
+                                           const double vel_y, const double pitch, const double pivot_height);

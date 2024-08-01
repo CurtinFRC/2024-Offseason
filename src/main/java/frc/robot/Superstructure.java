@@ -33,7 +33,7 @@ public class Superstructure {
     var pose = m_drivetrain.getState().Pose;
     double[] traj = new double[3];
 
-    ShooterTrajoptJNI.calculateTrajectory(traj, pose.getX(), pose.getY(), 0, 0);
+    ShooterTrajoptJNI.calculateTrajectory(traj, pose.getX(), pose.getY(), 0, 0, m_arm.pitch(), 0.1);
     return Commands.parallel(
             m_arm.goToAngle(traj[2]),
             m_drivetrain.applyRequest(
