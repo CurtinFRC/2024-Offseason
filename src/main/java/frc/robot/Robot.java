@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj2.command.CommandRobot;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.autos.Centre2541;
 import frc.robot.autos.Centre26541;
+import frc.robot.autos.SysIDAuto;
 import frc.robot.autos.WompWompKieran;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Arm;
@@ -89,6 +90,7 @@ public class Robot extends CommandRobot {
         "WompWompKieran Blue", new WompWompKieran(m_drivetrain, false).followTrajectory());
     m_autoChooser.addOption(
         "WompWompKieran Red", new WompWompKieran(m_drivetrain, true).followTrajectory());
+    m_autoChooser.addOption("Sysid BM", new SysIDAuto(m_sysid).followTrajectory());
     m_autoChooser.setDefaultOption(
         "WompWompKieran Blue", new WompWompKieran(m_drivetrain, false).followTrajectory());
     SmartDashboard.putData(m_autoChooser);

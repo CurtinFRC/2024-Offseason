@@ -137,7 +137,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         new SysIdRoutine.Mechanism(
             (Measure<Voltage> volts) -> motor.setVoltage(volts.in(Volts)),
             log ->
-                log.motor("swerveMotor")
+                log.motor("swerveMotor" + motor.hashCode())
                     .voltage(
                         appliedVoltage.mut_replace(
                             motor.get() * RobotController.getBatteryVoltage(), Volts))
