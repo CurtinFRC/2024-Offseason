@@ -47,7 +47,8 @@ public class Intake extends SubsystemBase {
   }
 
   public Command pass() {
-    return intake(); }
+    return intake(); 
+  }
 
   public boolean noteInIntake() {
     return m_intakeSensor.get();
