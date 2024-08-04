@@ -4,27 +4,17 @@
 
 package frc.robot;
 
-import java.util.function.BooleanSupplier;
-import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkLowLevel.MotorType;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.event.BooleanEvent;
-import edu.wpi.first.wpilibj.event.EventLoop;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.autos.OneNote;
 import frc.robot.autos.Centre2541;
 import frc.robot.autos.Centre26541;
 import frc.robot.autos.WompWompKieran;
@@ -38,7 +28,7 @@ import java.util.HashMap;
 
 public class Robot extends TimedRobot {
   private final CommandXboxController m_driver = new CommandXboxController(Constants.driverport);
-  private final CommandXboxController m_codriver = new CommandXboxController(Constants.codriverport);
+
   private final Arm m_arm = new Arm();
   private final Shooter m_shooter = new Shooter();
   private final Climber m_climber = new Climber();
@@ -70,31 +60,7 @@ public class Robot extends TimedRobot {
                             -m_driver.getRightX() * Constants.DrivebaseMaxAngularRate))));
 
     m_driver.a().whileTrue(m_drivetrain.applyRequest(() -> brake));
-    // reset the field-centric heading on left bumper press
-    m_driver.leftBumper().onTrue(m_drivetrain.runOnce(() -> m_drivetrain.seedFieldRelative()));
-
-    m_drivetrain.registerTelemetry(logger::telemeterize);
-
-    m_intake.setDefaultCommand(m_intake.spinUntilBeamBreak(20));     
-
-    m_codriver.a().onTrue(m_arm.goToSetpoint(Arm.Setpoint.kAmp));
-    m_codriver.b().onTrue(m_arm.goToSetpoint(Arm.Setpoint.kIntake));
-    m_codriver.x().onTrue(m_arm.goToSetpoint(Arm.Setpoint.kSpeaker));
-    m_codriver.y().onTrue(m_arm.goToSetpoint(Arm.Setpoint.kStowed));
-
-    m_codriver.leftBumper().onTrue(m_shooter.spinup(100));
-    m_codriver.rightBumper().onTrue(m_shooter.stop());
-
-    m_codriver.rightTrigger().onTrue(m_shooter.shoot());
-
-    m_codriver.povUp().onTrue(m_climber.climb());
-
-    // if (m_codriver.getHID().getPOV()==0);
-
-
-    m_driver.a().whileTrue(m_drivetrain.applyRequest(() -> brake));
     m_driver.x().onTrue(m_drivetrain.runOnce(() -> m_drivetrain.seedFieldRelative()));
-
   }
 
   public Robot() {
@@ -116,30 +82,9 @@ public class Robot extends TimedRobot {
     m_drivetrain.getOrchestra().play();
 
     CommandScheduler.getInstance().registerSubsystem(m_arm);
-    new Shooter(
-        new CANSparkMax(Constants.shooterPort, CANSparkMax.MotorType.kBrushless),
-        new CANSparkMax(Constants.indexerPort, CANSparkMax.MotorType.kBrushless)
-        );
-
-    
     CommandScheduler.getInstance().registerSubsystem(m_shooter);
     CommandScheduler.getInstance().registerSubsystem(m_climber);
-
-
-    m_intake =
-        new Intake(Constants.intakebeambreak, new CANSparkMax(Constants.intakePort, CANSparkMaxLowLevel.MotorType.kBrushless));
-
     CommandScheduler.getInstance().registerSubsystem(m_intake);
-    
-    final EventLoop m_loop = new EventLoop();
-
-    BooleanEvent UpPOV =
-        new BooleanEvent(m_loop, () -> m_codriver.getHID().getPOV()==0)
-            // debounce for more stability
-            .debounce(0.2); 
-    Trigger exampleTrigger = new Trigger(m_loop, () -> m_codriver.getHID().getPOV()==0);
-    
-    m_chooser.setDefaultOption("One Note", new OneNote(m_shooter, m_intake));
 
     m_chooser.addOption("Centre2_5_4_1 Blue", new Centre2541(m_drivetrain, false));
     m_chooser.addOption("Centre2_5_4_1 Red", new Centre2541(m_drivetrain, true));
@@ -148,7 +93,6 @@ public class Robot extends TimedRobot {
     m_chooser.addOption("WompWompKieran Blue", new WompWompKieran(m_drivetrain, false));
     m_chooser.addOption("WompWompKieran Red", new WompWompKieran(m_drivetrain, true));
     m_chooser.setDefaultOption("WompWompKieran Blue", new WompWompKieran(m_drivetrain, false));
-
     SmartDashboard.putData(m_chooser);
 
     configureBindings();
@@ -173,7 +117,7 @@ public class Robot extends TimedRobot {
   @Override
   public void autonomousInit() {
     m_drivetrain.getOrchestra().stop();
-    m_autonomousCommand = getAutonomousCommand();
+    m_autonomousCommand = m_chooser.getSelected().followTrajectory();
 
     if (m_autonomousCommand != null) {
       m_autonomousCommand.schedule();
@@ -211,10 +155,4 @@ public class Robot extends TimedRobot {
 
   @Override
   public void testExit() {}
-
-  private Command getAutonomousCommand() {
-    Auto auto = m_chooser.getSelected();
-    auto.configureBindings();
-    return auto.followTrajectory();
-  }
 }
