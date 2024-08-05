@@ -12,29 +12,22 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.util.datalog.DoubleLogEntry;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 
 /** Our Crescendo climber Subsystem */
 public class Climber extends SubsystemBase {
-  private final PIDController m_pid;
-  private final CANSparkMax m_motor;
-  private final RelativeEncoder m_encoder;
+  private final CANSparkMax m_motor = new CANSparkMax(Constants.climberPort, MotorType.kBrushless);
+  private final RelativeEncoder m_encoder = m_motor.getEncoder();
+
+  private final PIDController m_pid =
+      new PIDController(Constants.climberP, Constants.climberI, Constants.climberD);
+
   private final DoubleLogEntry log_pid_output =
       new DoubleLogEntry(DataLogManager.getLog(), "/climber/pid/output");
 
-  /**
-   * Creates a new {@link Climber} {@link edu.wpi.first.wpilibj2.command.Subsystem}.
-   *
-   * @param motor The motor that the climber controls.
-   */
-  public Climber() {
-    m_motor = new CANSparkMax(Constants.climberPort, MotorType.kBrushless);
-    m_encoder = m_motor.getEncoder();
-    m_pid = new PIDController(Constants.climberP, Constants.climberI, Constants.climberD);
-    m_pid.setTolerance(0.2, 0.5);
-  }
+  /** Creates a new {@link Climber} {@link edu.wpi.first.wpilibj2.command.Subsystem}. */
+  public Climber() {}
 
   /**
    * Climb the robot!
@@ -42,7 +35,7 @@ public class Climber extends SubsystemBase {
    * @return A {@link Command} to climb the robot.
    */
   public Command climb() {
-    return Commands.run(
+    return run(
         () -> {
           var output =
               m_pid.calculate(Units.rotationsToRadians(m_encoder.getPosition() * -1), -Math.PI);
