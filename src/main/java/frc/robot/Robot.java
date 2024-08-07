@@ -13,13 +13,12 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandRobot;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.autos.Centre2541;
-import frc.robot.autos.Centre26541;
 import frc.robot.autos.WompWompKieran;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.Index;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
 import java.util.HashMap;
@@ -33,6 +32,8 @@ public class Robot extends CommandRobot {
   private final Shooter m_shooter = new Shooter();
   private final Climber m_climber = new Climber();
   private final Intake m_intake = new Intake();
+  private final Index m_index = new Index();
+  private final Superstructure m_superstructure = new Superstructure(m_shooter, m_intake, m_index);
   private static final CommandSwerveDrivetrain m_drivetrain = TunerConstants.DriveTrain;
 
   private final SwerveRequest.FieldCentric m_drive =
@@ -66,14 +67,6 @@ public class Robot extends CommandRobot {
     m_scheduler.registerSubsystem(m_intake);
 
     m_autoChooser.addOption(
-        "Centre2_5_4_1 Blue", new Centre2541(m_drivetrain, false).followTrajectory());
-    m_autoChooser.addOption(
-        "Centre2_5_4_1 Red", new Centre2541(m_drivetrain, true).followTrajectory());
-    m_autoChooser.addOption(
-        "Centre2_6_5_4_1 Red", new Centre26541(m_drivetrain, true).followTrajectory());
-    m_autoChooser.addOption(
-        "Centre2_6_5_4_1 Blue", new Centre26541(m_drivetrain, false).followTrajectory());
-    m_autoChooser.addOption(
         "WompWompKieran Blue", new WompWompKieran(m_drivetrain, false).followTrajectory());
     m_autoChooser.addOption(
         "WompWompKieran Red", new WompWompKieran(m_drivetrain, true).followTrajectory());
@@ -92,7 +85,7 @@ public class Robot extends CommandRobot {
                     .withRotationalRate(
                         Utils.deadzone(
                             -m_driver.getRightX() * Constants.DrivebaseMaxAngularRate))));
-    m_intake.setDefaultCommand(m_intake.spinUntilBeamBreak(50));
+    m_intake.setDefaultCommand(m_superstructure.intake());
     m_shooter.setDefaultCommand(m_shooter.stop());
 
     m_driver.a().whileTrue(m_drivetrain.applyRequest(() -> m_brake));
@@ -117,6 +110,6 @@ public class Robot extends CommandRobot {
                 m_overriden = true;
               }
             });
-    m_codriverX.and(() -> !m_overriden).onFalse(m_intake.stopIntake());
+    m_codriverX.and(() -> !m_overriden).onFalse(m_intake.stop());
   }
 }

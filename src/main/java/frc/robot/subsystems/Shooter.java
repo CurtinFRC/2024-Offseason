@@ -13,7 +13,6 @@ import edu.wpi.first.util.datalog.DataLog;
 import edu.wpi.first.util.datalog.DoubleLogEntry;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
@@ -21,8 +20,6 @@ import frc.robot.Constants;
 /** Our Crescendo shooter Subsystem */
 public class Shooter extends SubsystemBase {
   private final CANSparkMax m_motor = new CANSparkMax(Constants.shooterPort, MotorType.kBrushless);
-  private final CANSparkMax m_indexer =
-      new CANSparkMax(Constants.indexerPort, MotorType.kBrushless);
   private final RelativeEncoder m_encoder = m_motor.getEncoder();
 
   private final PIDController m_pid =
@@ -74,6 +71,6 @@ public class Shooter extends SubsystemBase {
   }
 
   public Command shoot() {
-    return spinup(500).andThen(Commands.parallel(run(() -> m_indexer.setVoltage(2)), maintain()));
+    return spinup(500).andThen(maintain());
   }
 }

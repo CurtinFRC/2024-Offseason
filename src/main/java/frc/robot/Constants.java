@@ -12,7 +12,6 @@ public final class Constants {
 
   public static final int shooterPort = 31;
   public static final int indexerPort = 99;
-  public static final int intakebeambreak = 1;
   public static final double shooterP = 0.5;
   public static final double shooterI = 0;
   public static final double shooterD = 0;
@@ -23,6 +22,8 @@ public final class Constants {
   public static final double climberD = 0;
 
   public static final int intakePort = 35;
+  public static final int intakeFrontBeambreak = 99;
+  public static final int intakeBackBeambreak = 99;
 
   public static final double armP = 21.0;
   public static final double armI = 0;
