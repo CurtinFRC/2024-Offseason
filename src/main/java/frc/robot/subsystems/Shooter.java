@@ -70,4 +70,8 @@ public class Shooter extends SubsystemBase {
   public Command maintain() {
     return achieveSpeeds(m_pid.getSetpoint());
   }
+
+  public Command shootFromFar() {
+    return Commands.run(() -> spinup(Constants.shootFromFarSpeed));
+  }
 }

@@ -89,5 +89,8 @@ public class Robot extends CommandRobot {
 
     m_driver.a().whileTrue(m_drivetrain.applyRequest(() -> m_brake));
     m_driver.x().onTrue(m_drivetrain.runOnce(() -> m_drivetrain.seedFieldRelative()));
+    m_driver
+        .leftTrigger()
+        .onTrue(m_arm.goToSetpoint(m_drivetrain.getState().Pose).andThen(m_shooter.shootFromFar()));
   }
 }

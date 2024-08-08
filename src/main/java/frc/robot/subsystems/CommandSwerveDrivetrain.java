@@ -203,4 +203,8 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         () -> isRed,
         this);
   }
+
+  // public Pose2d getEstimatedPosition() {
+  //   return m_odometry.getEstimatedPosition();
+  // }
 }
