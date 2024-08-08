@@ -13,23 +13,22 @@ import edu.wpi.first.util.datalog.DataLog;
 import edu.wpi.first.util.datalog.DoubleLogEntry;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
 
 /** Our Crescendo shooter Subsystem */
 public class Shooter extends SubsystemBase {
-  private final PIDController m_pid =
-      new PIDController(Constants.shooterP, Constants.shooterI, Constants.shooterD);
   private final CANSparkMax m_motor = new CANSparkMax(Constants.shooterPort, MotorType.kBrushless);
   private final RelativeEncoder m_encoder = m_motor.getEncoder();
+
+  private final PIDController m_pid =
+      new PIDController(Constants.shooterP, Constants.shooterI, Constants.shooterD);
 
   private final DataLog m_log = DataLogManager.getLog();
   private final DoubleLogEntry log_pid_output = new DoubleLogEntry(m_log, "/shooter/pid/output");
 
   public final Trigger m_atSetpoint = new Trigger(m_pid::atSetpoint);
-  ;
 
   /** Creates a new {@link Shooter} {@link edu.wpi.first.wpilibj2.command.Subsystem}. */
   public Shooter() {}
@@ -38,7 +37,7 @@ public class Shooter extends SubsystemBase {
   private Command achieveSpeeds(double speed) {
     m_pid.reset();
     m_pid.setSetpoint(speed);
-    return Commands.run(
+    return run(
         () -> {
           var output =
               m_pid.calculate(
@@ -69,5 +68,9 @@ public class Shooter extends SubsystemBase {
    */
   public Command maintain() {
     return achieveSpeeds(m_pid.getSetpoint());
+  }
+
+  public Command shoot() {
+    return spinup(500).andThen(maintain());
   }
 }

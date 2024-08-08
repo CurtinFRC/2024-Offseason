@@ -32,6 +32,6 @@ public class OneNote implements Auto {
         .onTrue(
             m_shooter
                 .spinup(300)
-                .andThen(Commands.parallel(m_intake.pass(), m_shooter.maintain())));
+                .andThen(Commands.parallel(m_intake.spinup(200), m_shooter.maintain())));
   }
 }
