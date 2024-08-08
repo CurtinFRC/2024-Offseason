@@ -82,7 +82,7 @@ public class Arm extends SubsystemBase {
    * @param position The desired position.
    * @return a {@link Command} to get to the desired position.
    */
-  private Command moveToPosition(double position) {
+  public Command goToAngle(double position) {
     return achievePosition(position)
         .until(
             () ->
@@ -127,6 +127,6 @@ public class Arm extends SubsystemBase {
       case kStowed -> position = 3.7;
     }
 
-    return moveToPosition(position);
+    return goToAngle(position);
   }
 }
