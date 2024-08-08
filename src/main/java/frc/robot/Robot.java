@@ -8,10 +8,12 @@ import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
 import edu.wpi.first.wpilibj.DataLogManager;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandRobot;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import frc.robot.autos.Amp123_8_;
 import frc.robot.autos.Centre2541;
 import frc.robot.autos.Centre26541;
 import frc.robot.autos.WompWompKieran;
@@ -71,6 +73,10 @@ public class Robot extends CommandRobot {
         "WompWompKieran Blue", new WompWompKieran(m_drivetrain, false).followTrajectory());
     m_autoChooser.addOption(
         "WompWompKieran Red", new WompWompKieran(m_drivetrain, true).followTrajectory());
+    m_autoChooser.addOption(
+        "Amp123_8_ Blue", new Amp123_8_(m_drivetrain, false).followTrajectory());
+    m_autoChooser.addOption(
+        "Amp123_8_ Red", new Amp123_8_(m_drivetrain, true).followTrajectory());
     m_autoChooser.setDefaultOption(
         "WompWompKieran Blue", new WompWompKieran(m_drivetrain, false).followTrajectory());
     SmartDashboard.putData(m_autoChooser);
