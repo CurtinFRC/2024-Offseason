@@ -18,7 +18,7 @@ public class Intake extends SubsystemBase {
   private final RelativeEncoder m_encoder = m_motor.getEncoder();
 
   private final PIDController m_pid =
-      new PIDController(Constants.shooterP, Constants.shooterI, Constants.shooterD);
+      new PIDController(Constants.intakeP, Constants.intakeI, Constants.intakeD);
 
   public Intake() {}
 
@@ -42,6 +42,6 @@ public class Intake extends SubsystemBase {
   }
 
   public Command intake() {
-    return spinup(300);
+    return spinup(100);
   }
 }

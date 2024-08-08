@@ -10,7 +10,7 @@ public final class Constants {
   public static final int driverport = 0;
   public static final int codriverport = 1;
 
-  public static final int shooterPort = 32;
+  public static final int shooterPort = 31;
   public static final int indexerPort = 21;
   public static final double shooterP = 0.5;
   public static final double shooterI = 0;
@@ -21,9 +21,12 @@ public final class Constants {
   public static final double climberI = 0;
   public static final double climberD = 0;
 
-  public static final int intakePort = 31;
+  public static final int intakePort = 32;
   public static final int intakeFrontBeambreak = 8;
   public static final int intakeBackBeambreak = 9;
+  public static final double intakeP = 0.1;
+  public static final double intakeI = 0;
+  public static final double intakeD = 0;
 
   public static final double armP = 10.5;
   public static final double armI = 0;

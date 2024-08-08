@@ -31,4 +31,8 @@ public class Superstructure {
   public Command shooter() {
     return m_shooter.spinup(500).andThen(Commands.parallel(m_shooter.maintain(), m_index.shoot()));
   }
+
+  public Command stop() {
+    return Commands.parallel(m_shooter.stop(), m_intake.stop(), m_index.stop());
+  }
 }

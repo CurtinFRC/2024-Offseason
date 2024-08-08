@@ -7,6 +7,10 @@ package frc.robot;
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
+
+import edu.wpi.first.networktables.BooleanPublisher;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -21,14 +25,12 @@ import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Index;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
-import frc.robot.subsystems.Arm.Setpoint;
 
 import java.util.HashMap;
 
 public class Robot extends CommandRobot {
   private final CommandXboxController m_driver = new CommandXboxController(Constants.driverport);
-  private final CommandXboxController m_codriver =
-      new CommandXboxController(Constants.codriverport);
+  private final CommandXboxController m_codriver = new CommandXboxController(Constants.codriverport);
 
   private final Arm m_arm = new Arm();
   private final Shooter m_shooter = new Shooter();
@@ -38,15 +40,13 @@ public class Robot extends CommandRobot {
   private final Superstructure m_superstructure = new Superstructure(m_shooter, m_intake, m_index);
   private static final CommandSwerveDrivetrain m_drivetrain = TunerConstants.DriveTrain;
 
-  private final SwerveRequest.FieldCentric m_drive =
-      new SwerveRequest.FieldCentric()
-          .withDeadband(Constants.DrivebaseMaxSpeed * 0.1)
-          .withRotationalDeadband(Constants.DrivebaseMaxAngularRate * 0.1)
-          .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
+  private final SwerveRequest.FieldCentric m_drive = new SwerveRequest.FieldCentric()
+      .withDeadband(Constants.DrivebaseMaxSpeed * 0.1)
+      .withRotationalDeadband(Constants.DrivebaseMaxAngularRate * 0.1)
+      .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
   private final SwerveRequest.SwerveDriveBrake m_brake = new SwerveRequest.SwerveDriveBrake();
   private final Telemetry m_logger = new Telemetry();
 
-  private boolean m_overriden;
   private final Trigger m_codriverX = m_codriver.x();
 
   public Robot() {
@@ -78,16 +78,15 @@ public class Robot extends CommandRobot {
 
     m_drivetrain.setDefaultCommand(
         m_drivetrain.applyRequest(
-            () ->
-                m_drive
-                    .withVelocityX(
-                        Utils.deadzone(-m_driver.getLeftY() * Constants.DrivebaseMaxSpeed))
-                    .withVelocityY(
-                        Utils.deadzone(-m_driver.getLeftX() * Constants.DrivebaseMaxSpeed))
-                    .withRotationalRate(
-                        Utils.deadzone(
-                            -m_driver.getRightX() * Constants.DrivebaseMaxAngularRate))));
-    // m_intake.setDefaultCommand(m_superstructure.intake());
+            () -> m_drive
+                .withVelocityX(
+                    Utils.deadzone(-m_driver.getLeftY() * Constants.DrivebaseMaxSpeed))
+                .withVelocityY(
+                    Utils.deadzone(-m_driver.getLeftX() * Constants.DrivebaseMaxSpeed))
+                .withRotationalRate(
+                    Utils.deadzone(
+                        -m_driver.getRightX() * Constants.DrivebaseMaxAngularRate))));
+    m_intake.setDefaultCommand(m_superstructure.intake());
     m_shooter.setDefaultCommand(m_shooter.stop());
 
     m_driver.a().whileTrue(m_drivetrain.applyRequest(() -> m_brake));
@@ -103,18 +102,16 @@ public class Robot extends CommandRobot {
         .onFalse(m_arm.goToSetpoint(Arm.Setpoint.kStowed));
 
     m_codriver.x().whileTrue(m_intake.spinup(20));
-    m_codriver.y().onTrue(m_arm.goToSetpoint(Setpoint.kSpeaker)).onFalse(m_arm.stop());
-    m_codriver.b().onTrue(m_arm.goToSetpoint(Setpoint.kAmp)).onFalse(m_arm.stop());
     m_arm.setDefaultCommand(m_arm.manualControl(m_codriver::getRightY));
-    m_codriverX.whileTrue(m_intake.spinup(20));
+    m_codriverX.whileTrue(m_intake.spinup(20)).onFalse(m_intake.stop());
     m_scheduler
         .getDefaultButtonLoop()
         .bind(
             () -> {
               if (m_codriver.getHID().getYButton()) {
-                m_overriden = true;
+                m_intake.removeDefaultCommand();
               }
             });
-    m_codriverX.and(() -> !m_overriden).onFalse(m_intake.stop());
+    m_codriver.y().onTrue(m_superstructure.stop());
   }
 }
