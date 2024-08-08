@@ -21,6 +21,8 @@ import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Index;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
+import frc.robot.subsystems.Sysid;
+
 import java.util.HashMap;
 
 public class Robot extends CommandRobot {
@@ -33,6 +35,7 @@ public class Robot extends CommandRobot {
   private final Climber m_climber = new Climber();
   private final Intake m_intake = new Intake();
   private final Index m_index = new Index();
+  private final Sysid m_sysid = new Sysid();
   private final Superstructure m_superstructure = new Superstructure(m_shooter, m_intake, m_index);
   private static final CommandSwerveDrivetrain m_drivetrain = TunerConstants.DriveTrain;
 
@@ -58,6 +61,20 @@ public class Robot extends CommandRobot {
     DriverStation.startDataLog(DataLogManager.getLog());
     SignalLogger.setPath(DataLogManager.getLogDir());
     SignalLogger.start();
+    m_sysid.add(m_shooter::sysIdDynamic);
+    m_sysid.add(m_shooter::sysIdQuasistatic);
+
+    m_sysid.add(m_arm::sysIdDynamic);
+    m_sysid.add(m_arm::sysIdQuasistatic);
+
+    m_sysid.add(m_climber::sysIdDynamic);
+    m_sysid.add(m_climber::sysIdQuasistatic);
+
+    m_sysid.add(m_intake::sysIdDynamic);
+    m_sysid.add(m_intake::sysIdQuasistatic);
+
+    m_sysid.addAll(m_drivetrain.getSysIdCommands());
+
     m_drivetrain.registerTelemetry(m_logger::telemeterize);
 
     m_scheduler.registerSubsystem(m_arm);
