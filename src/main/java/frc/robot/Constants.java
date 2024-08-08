@@ -24,7 +24,7 @@ public final class Constants {
   public static final int intakePort = 32;
   public static final int intakeFrontBeambreak = 5;
   public static final int intakeBackBeambreak = 6;
-  public static final double intakeP = 0.1;
+  public static final double intakeP = 0.01;
   public static final double intakeI = 0;
   public static final double intakeD = 0;
 
