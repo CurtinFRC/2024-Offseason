@@ -49,9 +49,9 @@ public class URCL {
   private static RawPublisher aliasesPublisher;
   private static Notifier notifier;
   private static final DataLog datalog = DataLogManager.getLog();
-  private static RawLogEntry persistentLogEntry = new RawLogEntry(datalog, "URCL/Raw/Persistent");
-  private static RawLogEntry periodicLogEntry = new RawLogEntry(datalog, "/URCL/Raw/Periodic");
-  private static RawLogEntry aliasLogEntry = new RawLogEntry(datalog, "/URCL/Raw/Aliases");
+  private static RawLogEntry persistentLogEntry = new RawLogEntry(datalog, "URCL/Raw/Persistent", "", "URCLr2_persistent");
+  private static RawLogEntry periodicLogEntry = new RawLogEntry(datalog, "/URCL/Raw/Periodic", "", "URCLr2_periodic");
+  private static RawLogEntry aliasLogEntry = new RawLogEntry(datalog, "/URCL/Raw/Aliases", "", "URCLr2_aliases");
 
   /**
    * Start capturing data from REV motor controllers to NetworkTables. This method should only be
