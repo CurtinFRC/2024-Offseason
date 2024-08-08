@@ -22,6 +22,7 @@ public class Intake extends SubsystemBase {
   public Intake() {}
 
   public Command intake() {
+    LED.Intake();
     return Commands.run(
             () -> {
               log_output.append(4);
@@ -36,6 +37,7 @@ public class Intake extends SubsystemBase {
   }
 
   public Command outake() {
+    LED.Outake();
     return Commands.run(
             () -> {
               log_output.append(-4);

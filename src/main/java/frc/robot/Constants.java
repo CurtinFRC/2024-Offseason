@@ -7,6 +7,8 @@ package frc.robot;
 import frc.robot.generated.TunerConstants;
 
 public final class Constants {
+  public static final int LEDport = 0;
+
   public static final int driverport = 0;
   public static final int codriverport = 1;
 
