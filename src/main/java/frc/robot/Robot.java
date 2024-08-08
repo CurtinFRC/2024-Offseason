@@ -86,6 +86,7 @@ public class Robot extends CommandRobot {
                             -m_driver.getRightX() * Constants.DrivebaseMaxAngularRate))));
     m_intake.setDefaultCommand(m_superstructure.intake());
     m_shooter.setDefaultCommand(m_shooter.stop());
+    m_index.setDefaultCommand(m_index.stop());
 
     m_driver.a().whileTrue(m_drivetrain.applyRequest(() -> m_brake));
     m_driver.y().onTrue(m_drivetrain.runOnce(() -> m_drivetrain.seedFieldRelative()));
@@ -110,6 +111,6 @@ public class Robot extends CommandRobot {
               }
             });
     m_codriver.y().onTrue(m_superstructure.stop());
-    m_codriver.b().whileTrue(m_intake.outake(-8));
+    m_codriver.b().whileTrue(m_superstructure.outake());
   }
 }

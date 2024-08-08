@@ -36,4 +36,8 @@ public class Superstructure {
   public Command stop() {
     return Commands.parallel(m_shooter.stop(), m_intake.stop(), m_index.stop());
   }
+
+  public Command outake() {
+    return Commands.parallel(m_intake.outake(-8), m_index.outake(8));
+  }
 }

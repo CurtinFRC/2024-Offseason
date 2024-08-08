@@ -38,6 +38,10 @@ public class Index extends SubsystemBase {
     return run(() -> m_motor.setVoltage(voltage)).until(m_hasNote);
   }
 
+public Command outake(double voltage) {
+  return run(() -> m_motor.setVoltage(voltage));
+}
+
   public Command stop() {
     return runOnce(() -> m_motor.stopMotor());
   }
