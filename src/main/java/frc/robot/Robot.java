@@ -93,7 +93,7 @@ public class Robot extends CommandRobot {
     m_codriver.a().onTrue(m_climber.climb());
     m_codriver
         .rightTrigger()
-        .onTrue(m_arm.goToSetpoint(Arm.Setpoint.kAmp).andThen(m_intake.outake()))
+        .onTrue(m_arm.goToSetpoint(Arm.Setpoint.kAmp).andThen(m_intake.outake(8)))
         .onFalse(m_arm.goToSetpoint(Arm.Setpoint.kStowed));
     m_codriver
         .leftTrigger()
@@ -110,5 +110,6 @@ public class Robot extends CommandRobot {
               }
             });
     m_codriver.y().onTrue(m_superstructure.stop());
+    m_codriver.b().whileTrue(m_intake.outake(-8));
   }
 }

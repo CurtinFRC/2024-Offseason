@@ -6,6 +6,7 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.Index;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
@@ -22,10 +23,10 @@ public class Superstructure {
   }
 
   public Command intake() {
-    return Commands.parallel(
-            m_intake.intake().until(m_index.m_hasNote.negate()).andThen(m_intake.stop()),
-            m_index.intake())
-        .andThen(m_index.stop());
+    var lol = m_index.m_intaking
+        .onTrue(Commands.parallel(m_intake.intake(3).until(m_index.m_hasNote).andThen(m_intake.stop()),
+            m_index.intake(-3).until(m_index.m_hasNote).andThen(m_index.stop())));
+    return m_intake.intake(8).until(lol);
   }
 
   public Command shooter() {

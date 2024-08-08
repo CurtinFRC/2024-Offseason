@@ -37,11 +37,11 @@ public class Intake extends SubsystemBase {
     return run(() -> m_motor.stopMotor());
   }
 
-  public Command outake() {
-    return spinup(-300);
+  public Command outake(double voltage) {
+    return run(() -> m_motor.setVoltage(voltage));
   }
 
-  public Command intake() {
-    return spinup(100);
+  public Command intake(double voltage) {
+    return run(() -> m_motor.setVoltage(voltage));
   }
 }
