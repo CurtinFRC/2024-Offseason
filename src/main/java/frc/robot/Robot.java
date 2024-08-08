@@ -21,6 +21,8 @@ import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Index;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
+import frc.robot.subsystems.Arm.Setpoint;
+
 import java.util.HashMap;
 
 public class Robot extends CommandRobot {
@@ -85,7 +87,7 @@ public class Robot extends CommandRobot {
                     .withRotationalRate(
                         Utils.deadzone(
                             -m_driver.getRightX() * Constants.DrivebaseMaxAngularRate))));
-    m_intake.setDefaultCommand(m_superstructure.intake());
+    // m_intake.setDefaultCommand(m_superstructure.intake());
     m_shooter.setDefaultCommand(m_shooter.stop());
 
     m_driver.a().whileTrue(m_drivetrain.applyRequest(() -> m_brake));
@@ -101,6 +103,9 @@ public class Robot extends CommandRobot {
         .onFalse(m_arm.goToSetpoint(Arm.Setpoint.kStowed));
 
     m_codriver.x().whileTrue(m_intake.spinup(20));
+    m_codriver.y().onTrue(m_arm.goToSetpoint(Setpoint.kSpeaker)).onFalse(m_arm.stop());
+    m_codriver.b().onTrue(m_arm.goToSetpoint(Setpoint.kAmp)).onFalse(m_arm.stop());
+    m_arm.setDefaultCommand(m_arm.manualControl(m_codriver::getRightY));
     m_codriverX.whileTrue(m_intake.spinup(20));
     m_scheduler
         .getDefaultButtonLoop()
