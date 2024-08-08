@@ -6,7 +6,6 @@ package frc.robot.subsystems;
 
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
-
 import edu.wpi.first.networktables.BooleanPublisher;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -38,9 +37,9 @@ public class Index extends SubsystemBase {
     return run(() -> m_motor.setVoltage(voltage)).until(m_hasNote);
   }
 
-public Command outake(double voltage) {
-  return run(() -> m_motor.setVoltage(voltage));
-}
+  public Command outake(double voltage) {
+    return run(() -> m_motor.setVoltage(voltage));
+  }
 
   public Command stop() {
     return runOnce(() -> m_motor.stopMotor());
