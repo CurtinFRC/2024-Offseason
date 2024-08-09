@@ -41,4 +41,7 @@ public final class Constants {
 
   public static final double DrivebaseMaxSpeed = TunerConstants.kSpeedAt12VoltsMps;
   public static final double DrivebaseMaxAngularRate = 1.5 * Math.PI;
+
+  public static final double fieldX = 16.56588;
+  public static final double fieldY = 8.160512;
 }
