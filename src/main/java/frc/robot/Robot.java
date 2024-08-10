@@ -50,14 +50,16 @@ public class Robot extends CommandRobot {
   private final Trigger m_codriverX = m_codriver.x();
 
   public Robot() {
-    HashMap<Integer, String> aliases = new HashMap<>();
-    aliases.put(31, "Shooter");
-    aliases.put(32, "Climber");
-    aliases.put(35, "Intake");
-    aliases.put(21, "Arm Lead");
-    aliases.put(26, "Arm Follower");
-    URCL.start(aliases, false);
+    HashMap<Integer, String> urclAliases = new HashMap<>();
+    urclAliases.put(Constants.shooterPort, "Shooter");
+    urclAliases.put(Constants.climberPort, "Climber");
+    urclAliases.put(Constants.intakePort, "Intake");
+    urclAliases.put(Constants.indexerPort, "Index");
+    urclAliases.put(Constants.armLeadPort, "Arm Lead");
+    urclAliases.put(Constants.armFollowerPort, "Arm Follower");
+
     DataLogManager.start();
+    URCL.start(urclAliases, false);
     DriverStation.startDataLog(DataLogManager.getLog());
     SignalLogger.setPath(DataLogManager.getLogDir());
     SignalLogger.start();
