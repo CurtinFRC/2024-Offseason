@@ -9,6 +9,7 @@ import frc.robot.generated.TunerConstants;
 public final class Constants {
   public static final int driverport = 0;
   public static final int codriverport = 1;
+  public static final int testport = 2;
 
   public static final int shooterPort = 31;
   public static final int indexerPort = 21;

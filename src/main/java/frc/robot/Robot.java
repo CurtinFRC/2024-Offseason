@@ -29,6 +29,7 @@ public class Robot extends CommandRobot {
   private final CommandXboxController m_driver = new CommandXboxController(Constants.driverport);
   private final CommandXboxController m_codriver =
       new CommandXboxController(Constants.codriverport);
+  private final CommandXboxController m_test = new CommandXboxController(Constants.testport);
 
   private final Arm m_arm = new Arm();
   private final Shooter m_shooter = new Shooter();
@@ -63,19 +64,19 @@ public class Robot extends CommandRobot {
     DriverStation.startDataLog(DataLogManager.getLog());
     SignalLogger.setPath(DataLogManager.getLogDir());
     SignalLogger.start();
-    m_sysid.add(m_shooter::sysIdDynamic);
-    m_sysid.add(m_shooter::sysIdQuasistatic);
+    // m_sysid.add(m_shooter::sysIdDynamic);
+    // m_sysid.add(m_shooter::sysIdQuasistatic);
 
-    m_sysid.add(m_arm::sysIdDynamic);
-    m_sysid.add(m_arm::sysIdQuasistatic);
+    // m_sysid.add(m_arm::sysIdDynamic);
+    // m_sysid.add(m_arm::sysIdQuasistatic);
 
-    m_sysid.add(m_climber::sysIdDynamic);
-    m_sysid.add(m_climber::sysIdQuasistatic);
+    // m_sysid.add(m_climber::sysIdDynamic);
+    // m_sysid.add(m_climber::sysIdQuasistatic);
 
     m_sysid.add(m_intake::sysIdDynamic);
     m_sysid.add(m_intake::sysIdQuasistatic);
 
-    m_sysid.addAll(m_drivetrain.getSysIdCommands());
+    // m_sysid.addAll(m_drivetrain.getSysIdCommands());
 
     m_drivetrain.registerTelemetry(m_logger::telemeterize);
 
@@ -131,5 +132,7 @@ public class Robot extends CommandRobot {
             });
     m_codriver.y().onTrue(m_superstructure.stop());
     m_codriver.b().whileTrue(m_superstructure.outake());
+
+    m_driver.b().onTrue(m_sysid.getAllCommands());
   }
 }
