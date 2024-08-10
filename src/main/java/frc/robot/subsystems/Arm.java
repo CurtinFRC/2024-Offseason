@@ -54,10 +54,10 @@ public class Arm extends SubsystemBase {
 
   private final NetworkTable driveStats = NetworkTableInstance.getDefault().getTable("Arm");
   private final DoublePublisher output = driveStats.getDoubleTopic("Output").publish();
-  private final DoublePublisher ff_output = driveStats.getDoubleTopic("FF Output").publish();
-  private final DoublePublisher pid_output = driveStats.getDoubleTopic("PID Output").publish();
-  private final DoublePublisher pid_error = driveStats.getDoubleTopic("PID Error").publish();
-  private final DoublePublisher pid_setpoint = driveStats.getDoubleTopic("PID Setpoint").publish();
+  private final DoublePublisher ff_output = driveStats.getDoubleTopic("FF/Output").publish();
+  private final DoublePublisher pid_output = driveStats.getDoubleTopic("PID/Output").publish();
+  private final DoublePublisher pid_error = driveStats.getDoubleTopic("PID/Error").publish();
+  private final DoublePublisher pid_setpoint = driveStats.getDoubleTopic("PID/Setpoint").publish();
   private final DoublePublisher angle = driveStats.getDoubleTopic("Angle").publish();
   public final Trigger m_atSetpoint = new Trigger(m_pid::atSetpoint);
 
@@ -79,12 +79,12 @@ public class Arm extends SubsystemBase {
           log_ff_output.append(ff_output);
           log_ff_position_setpoint.append(position);
           log_ff_velocity_setpoint.append((5676 / 250));
-          output.set(ff_output + pid_output);
           this.ff_output.set(ff_output);
           this.pid_output.set(0.5 + pid_output);
           this.pid_error.set(m_pid.getPositionError());
           this.pid_setpoint.set(m_pid.getSetpoint());
           m_primaryMotor.setVoltage(0.5 + pid_output * -1);
+          // m_primaryMotor.setVoltage(0.5 + pid_output);
         });
   }
 
@@ -137,10 +137,10 @@ public class Arm extends SubsystemBase {
     log_setpoint.append(setpoint.name());
 
     switch (setpoint) {
-      case kAmp -> position = Math.PI / 2 + 0.1;
-      case kIntake -> position = 0;
-      case kSpeaker -> position = 0.2;
-      case kStowed -> position = 0;
+      case kAmp -> position = Math.PI / 2 + 4.8;
+      case kIntake -> position = 4.85;
+      case kSpeaker -> position = 4.85;
+      case kStowed -> position = 4.85;
     }
 
     return moveToPosition(position);

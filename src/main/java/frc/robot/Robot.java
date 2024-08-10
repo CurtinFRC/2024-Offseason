@@ -66,6 +66,7 @@ public class Robot extends CommandRobot {
     m_scheduler.registerSubsystem(m_shooter);
     m_scheduler.registerSubsystem(m_climber);
     m_scheduler.registerSubsystem(m_intake);
+    m_scheduler.registerSubsystem(m_index);
 
     m_autoChooser.addOption(
         "WompWompKieran Blue", new WompWompKieran(m_drivetrain, false).followTrajectory());
@@ -89,21 +90,17 @@ public class Robot extends CommandRobot {
     m_intake.setDefaultCommand(m_superstructure.intake());
     m_shooter.setDefaultCommand(m_shooter.stop());
     m_index.setDefaultCommand(m_index.stop());
+    // m_arm.setDefaultCommand(m_arm.goToSetpoint(Arm.Setpoint.kStowed));
+    m_arm.setDefaultCommand(m_arm.manualControl(m_codriver::getLeftY));
 
     m_driver.a().whileTrue(m_drivetrain.applyRequest(() -> m_brake));
     m_driver.y().onTrue(m_drivetrain.runOnce(() -> m_drivetrain.seedFieldRelative()));
 
     m_codriver.a().onTrue(m_climber.climb());
-    m_codriver
-        .rightTrigger()
-        .onTrue(m_arm.goToSetpoint(Arm.Setpoint.kAmp).andThen(m_intake.outake(8)))
-        .onFalse(m_arm.goToSetpoint(Arm.Setpoint.kStowed));
-    m_codriver
-        .leftTrigger()
-        .onTrue(m_arm.goToSetpoint(Arm.Setpoint.kSpeaker).andThen(m_shooter.shoot()))
-        .onFalse(m_arm.goToSetpoint(Arm.Setpoint.kStowed));
+    m_codriver.rightBumper().whileTrue(m_intake.outake(8));
+    m_codriver.leftBumper().whileTrue(m_superstructure.shoot());
 
-    m_codriverX.whileTrue(m_intake.spinup(20)).onFalse(m_intake.stop());
+    m_codriverX.whileTrue(m_superstructure.intake()).onFalse(m_intake.stop());
     m_scheduler
         .getDefaultButtonLoop()
         .bind(
