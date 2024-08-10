@@ -19,6 +19,9 @@ import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.MutableMeasure;
 import edu.wpi.first.units.Velocity;
 import edu.wpi.first.units.Voltage;
+import edu.wpi.first.networktables.DoublePublisher;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.util.datalog.DataLog;
 import edu.wpi.first.util.datalog.DoubleLogEntry;
 import edu.wpi.first.wpilibj.DataLogManager;
@@ -39,6 +42,11 @@ public class Shooter extends SubsystemBase {
 
   private final DataLog m_log = DataLogManager.getLog();
   private final DoubleLogEntry log_pid_output = new DoubleLogEntry(m_log, "/shooter/pid/output");
+  private final NetworkTable shooterStats = NetworkTableInstance.getDefault().getTable("Shooter");
+  private final DoublePublisher m_ntPidError = shooterStats.getDoubleTopic("PID/Error").publish();
+  private final DoublePublisher m_ntPidOutput = shooterStats.getDoubleTopic("PID/Output").publish();
+  private final DoublePublisher m_ntRotationalVelocity =
+      shooterStats.getDoubleTopic("RotationalVelocity").publish();
 
   public final Trigger m_atSetpoint = new Trigger(m_pid::atSetpoint);
 
@@ -65,11 +73,12 @@ public class Shooter extends SubsystemBase {
               this));
 
   /** Creates a new {@link Shooter} {@link edu.wpi.first.wpilibj2.command.Subsystem}. */
-  public Shooter() {}
+  public Shooter() {
+    m_pid.setTolerance(0.05, 0.05);
+  }
 
   /** Acheives and maintains speed. */
   private Command achieveSpeeds(double speed) {
-    m_pid.reset();
     m_pid.setSetpoint(speed);
     return run(
         () -> {
@@ -77,6 +86,8 @@ public class Shooter extends SubsystemBase {
               m_pid.calculate(
                   -1 * Units.rotationsPerMinuteToRadiansPerSecond(m_encoder.getVelocity()));
           log_pid_output.append(output);
+          m_ntPidError.set(m_pid.getVelocityError());
+          m_ntPidOutput.set(m_pid.getVelocityError());
           m_motor.setVoltage(output);
         });
   }
@@ -114,5 +125,10 @@ public class Shooter extends SubsystemBase {
 
   public Command sysIdDynamic(SysIdRoutine.Direction direction) {
     return m_sysIdRoutine.dynamic(direction);
+  }
+
+  @Override
+  public void periodic() {
+    m_ntRotationalVelocity.set(m_encoder.getVelocity());
   }
 }
