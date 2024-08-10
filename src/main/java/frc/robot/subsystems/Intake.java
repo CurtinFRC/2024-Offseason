@@ -47,7 +47,7 @@ public class Intake extends SubsystemBase {
                 log.motor("intake")
                     .voltage(
                         m_appliedVoltage.mut_replace(
-                            m_motor.get() * RobotController.getBatteryVoltage(), Volts))
+                            m_motor.getBusVoltage(), Volts))
                     .angularPosition(m_angle.mut_replace(m_encoder.getPosition(), Rotations))
                     .angularVelocity(
                         m_velocity.mut_replace(m_encoder.getVelocity(), RotationsPerSecond));

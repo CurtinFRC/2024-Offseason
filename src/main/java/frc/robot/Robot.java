@@ -13,6 +13,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandRobot;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.autos.WompWompKieran;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Arm;
@@ -105,7 +106,7 @@ public class Robot extends CommandRobot {
                     .withRotationalRate(
                         Utils.deadzone(
                             -m_driver.getRightX() * Constants.DrivebaseMaxAngularRate))));
-    m_intake.setDefaultCommand(m_superstructure.intake());
+    // m_intake.setDefaultCommand(m_superstructure.intake());
     m_shooter.setDefaultCommand(m_shooter.stop());
     m_index.setDefaultCommand(m_index.stop());
     // m_arm.setDefaultCommand(m_arm.goToSetpoint(Arm.Setpoint.kStowed));
