@@ -21,16 +21,17 @@ public class Index extends SubsystemBase {
   private final DigitalInput backBeamBreak = new DigitalInput(Constants.intakeBackBeambreak);
 
   public final Trigger m_hasNote = new Trigger(backBeamBreak::get);
-  public final Trigger m_intaking = new Trigger(frontBeambreak::get);
+  public final Trigger m_intaking = new Trigger(frontBeambreak::get).negate();
 
-  private final NetworkTable driveStats = NetworkTableInstance.getDefault().getTable("Index");
-  private final BooleanPublisher m_ntHasNote = driveStats.getBooleanTopic("Has Note").publish();
-  private final BooleanPublisher m_ntIntaking = driveStats.getBooleanTopic("Intaking").publish();
+  private final NetworkTable indexStats = NetworkTableInstance.getDefault().getTable("Index");
+  private final BooleanPublisher m_ntHasNote = indexStats.getBooleanTopic("Has Note").publish();
+  private final BooleanPublisher m_ntIntaking = indexStats.getBooleanTopic("Intaking").publish();
 
   public Index() {}
 
   public Command shoot() {
-    return run(() -> m_motor.setVoltage(-8)).until(m_hasNote.negate());
+    // return run(() -> m_motor.setVoltage(-8)).until(m_hasNote.negate());
+    return run(() -> m_motor.setVoltage(-8));
   }
 
   public Command intake(double voltage) {
