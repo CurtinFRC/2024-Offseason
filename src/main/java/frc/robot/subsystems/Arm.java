@@ -87,7 +87,7 @@ public class Arm extends SubsystemBase {
           this.pid_setpoint.set(m_pid.getSetpoint());
           // m_primaryMotor.setVoltage(pid_output * -1);
           m_primaryMotor.setVoltage(pid_output);
-    });
+        });
   }
 
   public Command stop() {
@@ -149,7 +149,7 @@ public class Arm extends SubsystemBase {
     log_setpoint.append(setpoint.name());
 
     switch (setpoint) {
-      case kAmp -> position = 1.6;
+      case kAmp -> position = 1.68;
       case kIntake -> position = 0.2;
       case kSpeaker -> position = 0.2;
       case kStowed -> position = 0.2;

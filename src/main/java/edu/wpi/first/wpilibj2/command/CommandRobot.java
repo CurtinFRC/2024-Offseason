@@ -6,6 +6,7 @@ package edu.wpi.first.wpilibj2.command;
 
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+
 /**
  * CommandRobot is a wrapper over TimedRobot designed to work well with Command based programming.
  *

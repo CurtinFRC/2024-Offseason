@@ -30,9 +30,7 @@ public class Superstructure {
   }
 
   public Command shoot() {
-    return m_shooter
-        .spinup(500)
-        .andThen(Commands.parallel(m_shooter.maintain(), m_index.shoot()));
+    return m_shooter.spinup(500).andThen(Commands.parallel(m_shooter.maintain(), m_index.shoot()));
   }
 
   public Command outake_shooter() {
