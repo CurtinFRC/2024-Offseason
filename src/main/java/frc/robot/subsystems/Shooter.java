@@ -9,41 +9,51 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.DoublePublisher;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.util.datalog.DataLog;
 import edu.wpi.first.util.datalog.DoubleLogEntry;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
 
 /** Our Crescendo shooter Subsystem */
 public class Shooter extends SubsystemBase {
-  private final PIDController m_pid =
-      new PIDController(Constants.shooterP, Constants.shooterI, Constants.shooterD);
   private final CANSparkMax m_motor = new CANSparkMax(Constants.shooterPort, MotorType.kBrushless);
   private final RelativeEncoder m_encoder = m_motor.getEncoder();
 
+  private final PIDController m_pid =
+      new PIDController(Constants.shooterP, Constants.shooterI, Constants.shooterD);
+
   private final DataLog m_log = DataLogManager.getLog();
   private final DoubleLogEntry log_pid_output = new DoubleLogEntry(m_log, "/shooter/pid/output");
+  private final NetworkTable shooterStats = NetworkTableInstance.getDefault().getTable("Shooter");
+  private final DoublePublisher m_ntPidError = shooterStats.getDoubleTopic("PID/Error").publish();
+  private final DoublePublisher m_ntPidOutput = shooterStats.getDoubleTopic("PID/Output").publish();
+  private final DoublePublisher m_ntRotationalVelocity =
+      shooterStats.getDoubleTopic("RotationalVelocity").publish();
 
   public final Trigger m_atSetpoint = new Trigger(m_pid::atSetpoint);
-  ;
 
   /** Creates a new {@link Shooter} {@link edu.wpi.first.wpilibj2.command.Subsystem}. */
-  public Shooter() {}
+  public Shooter() {
+    m_pid.setTolerance(0.05, 0.05);
+  }
 
   /** Acheives and maintains speed. */
   private Command achieveSpeeds(double speed) {
-    m_pid.reset();
     m_pid.setSetpoint(speed);
-    return Commands.run(
+    return run(
         () -> {
           var output =
               m_pid.calculate(
                   -1 * Units.rotationsPerMinuteToRadiansPerSecond(m_encoder.getVelocity()));
           log_pid_output.append(output);
+          m_ntPidError.set(m_pid.getVelocityError());
+          m_ntPidOutput.set(m_pid.getVelocityError());
           m_motor.setVoltage(output);
         });
   }
@@ -69,6 +79,15 @@ public class Shooter extends SubsystemBase {
    */
   public Command maintain() {
     return achieveSpeeds(m_pid.getSetpoint());
+  }
+
+  public Command shoot() {
+    return spinup(500).andThen(maintain());
+  }
+
+  @Override
+  public void periodic() {
+    m_ntRotationalVelocity.set(m_encoder.getVelocity());
   }
 
   public Command shootFromFar() {

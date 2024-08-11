@@ -8,19 +8,20 @@ import com.choreo.lib.Auto;
 import com.choreo.lib.Choreo;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
-import frc.robot.subsystems.Intake;
+// import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
 
 public class TwoNote implements Auto {
   Shooter m_shooter;
-  Intake m_intake;
+  // Intake m_intake;
 
   Command m_pathfollower;
 
   public TwoNote(
-      CommandSwerveDrivetrain drivetrain, Shooter shooter, Intake intake, boolean isRed) {
+      // CommandSwerveDrivetrain drivetrain, Shooter shooter, Intake intake, boolean isRed) {
+      CommandSwerveDrivetrain drivetrain, Shooter shooter, boolean isRed) {
     m_shooter = shooter;
-    m_intake = intake;
+    // m_intake = intake;
 
     m_pathfollower = drivetrain.followTrajectory("example-two-note", isRed);
   }
@@ -42,7 +43,7 @@ public class TwoNote implements Auto {
   @Override
   public void configureBindings() {
     Choreo.event("first-shot").onTrue(shoot());
-    Choreo.event("intake").onTrue(m_intake.intake());
+    // Choreo.event("intake").onTrue(m_intake.spinUntilBeamBreak(200));
     Choreo.event("second-shot").onTrue(shoot());
   }
 }
