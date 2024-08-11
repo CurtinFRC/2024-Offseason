@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandRobot;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.autos.WompWompKieran;
@@ -77,7 +78,6 @@ public class Robot extends CommandRobot {
     m_autoChooser.setDefaultOption(
         "WompWompKieran Blue", new WompWompKieran(m_drivetrain, false).followTrajectory());
     SmartDashboard.putData(m_autoChooser);
-    SmartDashboard.putData(m_arm);
 
     m_drivetrain.setDefaultCommand(
         m_drivetrain.applyRequest(
@@ -93,17 +93,16 @@ public class Robot extends CommandRobot {
     m_intake.setDefaultCommand(m_superstructure.intake());
     m_shooter.setDefaultCommand(m_shooter.stop());
     m_index.setDefaultCommand(m_index.stop());
-    // m_arm.setDefaultCommand(m_arm.hold(m_arm.getAngle()));
     m_arm.setDefaultCommand(m_arm.manualControl(m_codriver::getLeftY));
-    m_driver.b().whileTrue(m_arm.manualControl(m_codriver::getLeftY));
-    m_driver.x().whileTrue(m_arm.goToSetpoint(Setpoint.kAmp).andThen(m_arm.maintain()));
 
     m_driver.a().whileTrue(m_drivetrain.applyRequest(() -> m_brake));
     m_driver.y().onTrue(m_drivetrain.runOnce(() -> m_drivetrain.seedFieldRelative()));
 
     m_codriver.a().onTrue(m_climber.climb());
-    m_codriver.rightBumper().whileTrue(m_superstructure.outake_shooter());
-    m_codriver.leftBumper().whileTrue(m_superstructure.shoot());
+    m_codriver.rightBumper().whileTrue(m_index.shoot());
+    m_codriver.leftBumper().whileTrue(m_index.shoot());
+    m_codriver.leftTrigger().whileTrue(Commands.parallel(m_arm.goToSetpoint(Setpoint.kSpeaker), m_shooter.spinup(500).andThen(m_shooter.maintain())));
+    m_codriver.rightTrigger().whileTrue(Commands.parallel(m_arm.goToSetpoint(Setpoint.kAmp), m_shooter.spinup(-50).andThen(m_shooter.maintain())));
 
     m_codriverX.whileTrue(m_superstructure.intake()).onFalse(m_intake.stop());
     m_scheduler

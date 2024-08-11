@@ -32,7 +32,6 @@ public class Superstructure {
   public Command shoot() {
     return m_shooter
         .spinup(500)
-        .withTimeout(3)
         .andThen(Commands.parallel(m_shooter.maintain(), m_index.shoot()));
   }
 
