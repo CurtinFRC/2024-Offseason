@@ -36,6 +36,11 @@ public class Superstructure {
         .andThen(Commands.parallel(m_shooter.maintain(), m_index.shoot()));
   }
 
+  public Command outake_shooter() {
+    // return Commands.parallel(m_shooter.applyVolts(6), m_index.shoot());
+    return m_shooter.applyVolts(6);
+  }
+
   public Command stop() {
     return Commands.parallel(m_shooter.stop(), m_intake.stop(), m_index.stop());
   }

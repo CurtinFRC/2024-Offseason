@@ -85,6 +85,10 @@ public class Shooter extends SubsystemBase {
     return spinup(500).andThen(maintain());
   }
 
+  public Command applyVolts(double volts) {
+    return run(() -> m_motor.setVoltage(volts));
+  }
+
   @Override
   public void periodic() {
     m_ntRotationalVelocity.set(m_encoder.getVelocity());

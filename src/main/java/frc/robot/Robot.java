@@ -21,6 +21,8 @@ import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Index;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
+import frc.robot.subsystems.Arm.Setpoint;
+
 import java.util.HashMap;
 
 public class Robot extends CommandRobot {
@@ -75,6 +77,7 @@ public class Robot extends CommandRobot {
     m_autoChooser.setDefaultOption(
         "WompWompKieran Blue", new WompWompKieran(m_drivetrain, false).followTrajectory());
     SmartDashboard.putData(m_autoChooser);
+    SmartDashboard.putData(m_arm);
 
     m_drivetrain.setDefaultCommand(
         m_drivetrain.applyRequest(
@@ -90,14 +93,16 @@ public class Robot extends CommandRobot {
     m_intake.setDefaultCommand(m_superstructure.intake());
     m_shooter.setDefaultCommand(m_shooter.stop());
     m_index.setDefaultCommand(m_index.stop());
-    // m_arm.setDefaultCommand(m_arm.goToSetpoint(Arm.Setpoint.kStowed));
+    // m_arm.setDefaultCommand(m_arm.hold(m_arm.getAngle()));
     m_arm.setDefaultCommand(m_arm.manualControl(m_codriver::getLeftY));
+    m_driver.b().whileTrue(m_arm.manualControl(m_codriver::getLeftY));
+    m_driver.x().whileTrue(m_arm.goToSetpoint(Setpoint.kAmp).andThen(m_arm.maintain()));
 
     m_driver.a().whileTrue(m_drivetrain.applyRequest(() -> m_brake));
     m_driver.y().onTrue(m_drivetrain.runOnce(() -> m_drivetrain.seedFieldRelative()));
 
     m_codriver.a().onTrue(m_climber.climb());
-    m_codriver.rightBumper().whileTrue(m_intake.outake(8));
+    m_codriver.rightBumper().whileTrue(m_superstructure.outake_shooter());
     m_codriver.leftBumper().whileTrue(m_superstructure.shoot());
 
     m_codriverX.whileTrue(m_superstructure.intake()).onFalse(m_intake.stop());
