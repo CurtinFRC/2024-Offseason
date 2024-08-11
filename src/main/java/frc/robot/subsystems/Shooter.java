@@ -37,12 +37,11 @@ public class Shooter extends SubsystemBase {
   /** Acheives and maintains speed. */
   private Command achieveSpeeds(double speed) {
     m_pid.reset();
-    m_pid.setSetpoint(speed);
     return Commands.run(
         () -> {
           var output =
               m_pid.calculate(
-                  -1 * Units.rotationsPerMinuteToRadiansPerSecond(m_encoder.getVelocity()));
+                  -1 * Units.rotationsPerMinuteToRadiansPerSecond(m_encoder.getVelocity()), speed);
           log_pid_output.append(output);
           m_motor.setVoltage(output);
         });
