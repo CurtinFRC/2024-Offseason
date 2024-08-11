@@ -8,6 +8,7 @@ import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.networktables.DoublePublisher;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -28,7 +29,8 @@ public class Arm extends SubsystemBase {
     kAmp,
     kIntake,
     kSpeaker,
-    kStowed
+    kStowed,
+    kFarShoot
   }
 
   private final CANSparkMax m_primaryMotor =
@@ -125,11 +127,10 @@ public class Arm extends SubsystemBase {
         });
   }
 
-  /*
+  /**
    * Makes the arm go to a setpoint from the {@link Setpoint} enum
    *
    * @param setpoint The setpoint to go to, a {@link Setpoint}
-   *
    * @return A {@link Command} to go to the setpoint
    */
   public Command goToSetpoint(Setpoint setpoint) {
@@ -141,6 +142,7 @@ public class Arm extends SubsystemBase {
       case kIntake -> position = 4.85;
       case kSpeaker -> position = 4.85;
       case kStowed -> position = 4.85;
+      case kFarShoot -> DataLogManager.log("WARNING: Invalid state kFarShoot with no pose.");
     }
 
     return moveToPosition(position);
@@ -149,5 +151,31 @@ public class Arm extends SubsystemBase {
   @Override
   public void periodic() {
     angle.set(m_encoder.getAbsolutePosition() * 2 * Math.PI);
+  }
+
+  public double calculateArmAngle(Pose2d currentPose) {
+    double H =
+        2.46
+            - (Math.sin(m_encoder.getAbsolutePosition() * 360 + Constants.armPositionOffset)
+                * Constants
+                    .armLength); // converts it from 0-1 to 0-365 and adds an offset depending where
+    // 0 degrees is.
+    double arm_vertical_offset_from_floor =
+        (Constants.armLength * Math.sin(m_encoder.getAbsolutePosition())) + Constants.robotHeight;
+    double horizontal_robot_offset_from_speaker_wall =
+        currentPose.getX(); // to be changed to wherever the robot is on field (get its value from
+    // drivetrain/drivebase)// offset of the robot to the speaker wall when the
+    // robot is flush against the speaker
+    double K3 = Constants.armLength * Math.sin(129);
+    double K2 = horizontal_robot_offset_from_speaker_wall;
+    double K1 = H - arm_vertical_offset_from_floor;
+    double R = Math.sqrt(K2 * K2 - K1 * K1);
+    double a = Math.atan(K3 / K1);
+    return 51 - a + Math.acos(K3 / R);
+  }
+
+  public Command goToSetpoint(Pose2d currentPose) {
+    double position = calculateArmAngle(currentPose);
+    return moveToPosition(position);
   }
 }

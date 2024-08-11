@@ -111,5 +111,8 @@ public class Robot extends CommandRobot {
             });
     m_codriver.y().onTrue(m_superstructure.stop());
     m_codriver.b().whileTrue(m_superstructure.outake());
+    m_driver
+        .leftTrigger()
+        .onTrue(m_arm.goToSetpoint(m_drivetrain.getState().Pose).andThen(m_shooter.shootFromFar()));
   }
 }

@@ -16,6 +16,7 @@ import edu.wpi.first.util.datalog.DataLog;
 import edu.wpi.first.util.datalog.DoubleLogEntry;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
@@ -88,5 +89,9 @@ public class Shooter extends SubsystemBase {
   @Override
   public void periodic() {
     m_ntRotationalVelocity.set(m_encoder.getVelocity());
+  }
+
+  public Command shootFromFar() {
+    return Commands.run(() -> spinup(Constants.shootFromFarSpeed));
   }
 }
