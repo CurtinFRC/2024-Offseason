@@ -5,7 +5,8 @@ import frc.robot.Constants;
  
 
 public final class LED {
-  private static final PWM ledpwm = new PWM(Constants.LEDport);
+  private static final PWM 
+  ledpwm = new PWM(Constants.LEDport);
 
   private LED () {
   }
@@ -15,11 +16,11 @@ public final class LED {
   }
 
   public static void Outake() {
-    ledpwm.setSpeed(0.63); // red orange, 0.65 for normal orange //
+    ledpwm.setSpeed(0.69); // yellow //
   }
 
   public static void Spinup(){
-    ledpwm.setSpeed(0.69); // yellow //
+    ledpwm.setSpeed(0.63); // red orange, 0.65 for normal orange //
   }
 
   public static void Stop(){

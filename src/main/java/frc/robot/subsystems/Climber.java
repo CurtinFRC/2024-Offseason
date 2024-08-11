@@ -12,7 +12,6 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.util.datalog.DoubleLogEntry;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 
@@ -36,7 +35,7 @@ public class Climber extends SubsystemBase {
    * @return A {@link Command} to climb the robot.
    */
   public Command climb() {
-    return Commands.run(
+    return run(
         () -> {
           var output =
               m_pid.calculate(Units.rotationsToRadians(m_encoder.getPosition() * -1), -Math.PI);
