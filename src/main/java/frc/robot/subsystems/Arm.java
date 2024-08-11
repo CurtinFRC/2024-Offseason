@@ -60,19 +60,21 @@ public class Arm extends SubsystemBase {
   private final DoublePublisher pid_setpoint = driveStats.getDoubleTopic("PID/Setpoint").publish();
   private final DoublePublisher angle = driveStats.getDoubleTopic("Angle").publish();
   public final Trigger m_atSetpoint = new Trigger(m_pid::atSetpoint);
+  private double m_lastPosition = 0.2;
 
   /** Creates a new {@link Arm} {@link edu.wpi.first.wpilibj2.command.Subsystem}. */
   public Arm() {
     m_followerMotor.follow(m_primaryMotor);
-    m_encoder.reset();
-    m_encoder.setPositionOffset(0.1);
+    m_pid.setTolerance(0.1);
   }
 
   /** Achieves and maintains speed for the primary motor. */
   private Command achievePosition(double position) {
     return run(
         () -> {
-          var pid_output = m_pid.calculate(m_encoder.getAbsolutePosition() * 2 * Math.PI, position);
+          m_lastPosition = position;
+          m_pid.setSetpoint(position);
+          var pid_output = m_pid.calculate(getAngle());
           log_pid_output.append(pid_output);
           log_pid_setpoint.append(m_pid.getSetpoint());
           var ff_output = m_feedforward.calculate(position, (5676 / 250));
@@ -80,11 +82,11 @@ public class Arm extends SubsystemBase {
           log_ff_position_setpoint.append(position);
           log_ff_velocity_setpoint.append((5676 / 250));
           this.ff_output.set(ff_output);
-          this.pid_output.set(0.5 + pid_output);
+          this.pid_output.set(pid_output);
           this.pid_error.set(m_pid.getPositionError());
           this.pid_setpoint.set(m_pid.getSetpoint());
-          m_primaryMotor.setVoltage(0.5 + pid_output * -1);
-          // m_primaryMotor.setVoltage(0.5 + pid_output);
+          // m_primaryMotor.setVoltage(pid_output * -1);
+          m_primaryMotor.setVoltage(pid_output);
         });
   }
 
@@ -98,8 +100,18 @@ public class Arm extends SubsystemBase {
    * @param position The desired position.
    * @return a {@link Command} to get to the desired position.
    */
-  private Command moveToPosition(double position) {
+  public Command moveToPosition(double position) {
     return achievePosition(position).until(m_pid::atSetpoint);
+  }
+
+  /**
+   * Moves the arm to the specified position then stops.
+   *
+   * @param position The desired position.
+   * @return a {@link Command} to get to the desired position.
+   */
+  public Command hold(double angle) {
+    return achievePosition(angle);
   }
 
   /**
@@ -108,7 +120,7 @@ public class Arm extends SubsystemBase {
    * @return A {@link Command} to hold the position at the setpoint.
    */
   public Command maintain() {
-    return achievePosition(m_pid.getSetpoint());
+    return defer(() -> achievePosition(m_lastPosition));
   }
 
   /**
@@ -137,10 +149,10 @@ public class Arm extends SubsystemBase {
     log_setpoint.append(setpoint.name());
 
     switch (setpoint) {
-      case kAmp -> position = Math.PI / 2 + 4.8;
-      case kIntake -> position = 4.85;
-      case kSpeaker -> position = 4.85;
-      case kStowed -> position = 4.85;
+      case kAmp -> position = 1.68;
+      case kIntake -> position = 0.2;
+      case kSpeaker -> position = 0.2;
+      case kStowed -> position = 0.2;
     }
 
     return moveToPosition(position);
@@ -148,6 +160,10 @@ public class Arm extends SubsystemBase {
 
   @Override
   public void periodic() {
-    angle.set(m_encoder.getAbsolutePosition() * 2 * Math.PI);
+    angle.set(getAngle());
+  }
+
+  public double getAngle() {
+    return m_encoder.getAbsolutePosition() * 2 * Math.PI;
   }
 }

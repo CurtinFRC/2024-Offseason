@@ -30,10 +30,12 @@ public class Superstructure {
   }
 
   public Command shoot() {
-    return m_shooter
-        .spinup(500)
-        .withTimeout(3)
-        .andThen(Commands.parallel(m_shooter.maintain(), m_index.shoot()));
+    return m_shooter.spinup(500).andThen(Commands.parallel(m_shooter.maintain(), m_index.shoot()));
+  }
+
+  public Command outake_shooter() {
+    // return Commands.parallel(m_shooter.applyVolts(6), m_index.shoot());
+    return m_shooter.applyVolts(6);
   }
 
   public Command stop() {

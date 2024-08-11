@@ -50,7 +50,7 @@ public class URCL {
   private static Notifier notifier;
   private static final DataLog datalog = DataLogManager.getLog();
   private static RawLogEntry persistentLogEntry =
-      new RawLogEntry(datalog, "URCL/Raw/Persistent", "", "URCLr2_persistent");
+      new RawLogEntry(datalog, "/URCL/Raw/Persistent", "", "URCLr2_persistent");
   private static RawLogEntry periodicLogEntry =
       new RawLogEntry(datalog, "/URCL/Raw/Periodic", "", "URCLr2_periodic");
   private static RawLogEntry aliasLogEntry =

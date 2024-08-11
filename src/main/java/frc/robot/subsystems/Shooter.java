@@ -39,9 +39,7 @@ public class Shooter extends SubsystemBase {
   public final Trigger m_atSetpoint = new Trigger(m_pid::atSetpoint);
 
   /** Creates a new {@link Shooter} {@link edu.wpi.first.wpilibj2.command.Subsystem}. */
-  public Shooter() {
-    m_pid.setTolerance(0.05, 0.05);
-  }
+  public Shooter() {}
 
   /** Acheives and maintains speed. */
   private Command achieveSpeeds(double speed) {
@@ -78,15 +76,19 @@ public class Shooter extends SubsystemBase {
    * @return A {@link Command} to hold the speed at the setpoint.
    */
   public Command maintain() {
-    return achieveSpeeds(m_pid.getSetpoint());
+    return defer(() -> achieveSpeeds(m_pid.getSetpoint()));
   }
 
   public Command shoot() {
     return spinup(500).andThen(maintain());
   }
 
+  public Command applyVolts(double volts) {
+    return run(() -> m_motor.setVoltage(volts));
+  }
+
   @Override
   public void periodic() {
-    m_ntRotationalVelocity.set(m_encoder.getVelocity());
+    m_ntRotationalVelocity.set(Units.rotationsPerMinuteToRadiansPerSecond(m_encoder.getVelocity()));
   }
 }
