@@ -93,7 +93,6 @@ public class Robot extends CommandRobot {
     // m_arm.setDefaultCommand(m_arm.goToSetpoint(Arm.Setpoint.kStowed));
     m_arm.setDefaultCommand(m_arm.manualControl(m_codriver::getLeftY));
 
-
     m_driver.a().whileTrue(m_drivetrain.applyRequest(() -> m_brake));
     m_driver.y().onTrue(m_drivetrain.runOnce(() -> m_drivetrain.seedFieldRelative()));
 
@@ -113,5 +112,4 @@ public class Robot extends CommandRobot {
     m_codriver.y().onTrue(m_superstructure.stop());
     m_codriver.b().whileTrue(m_superstructure.outake());
   }
-
 }

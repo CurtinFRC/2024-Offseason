@@ -151,4 +151,3 @@ public class Arm extends SubsystemBase {
     angle.set(m_encoder.getAbsolutePosition() * 2 * Math.PI);
   }
 }
- 

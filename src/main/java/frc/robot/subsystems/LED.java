@@ -1,15 +1,16 @@
+// Copyright (c) 2024 CurtinFRC
+// Open Source Software, you can modify it according to the terms
+// of the MIT License at the root of this project
+
 package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj.PWM;
 import frc.robot.Constants;
- 
 
 public final class LED {
-  private static final PWM 
-  ledpwm = new PWM(Constants.LEDport);
+  private static final PWM ledpwm = new PWM(Constants.LEDport);
 
-  private LED () {
-  }
+  private LED() {}
 
   public static void Intake() {
     ledpwm.setSpeed(0.59); // dark red //
@@ -19,16 +20,15 @@ public final class LED {
     ledpwm.setSpeed(0.69); // yellow //
   }
 
-  public static void Spinup(){
+  public static void Spinup() {
     ledpwm.setSpeed(0.63); // red orange, 0.65 for normal orange //
   }
 
-  public static void Stop(){
+  public static void Stop() {
     ledpwm.setSpeed(0.73); // lime //
   }
 
-  public static void Maintain(){
+  public static void Maintain() {
     ledpwm.setSpeed(0.57); // hot pink //
   }
-
 }
