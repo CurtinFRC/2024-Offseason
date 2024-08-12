@@ -48,7 +48,7 @@ public class Shooter extends SubsystemBase {
         () -> {
           var output =
               m_pid.calculate(
-                  -1 * Units.rotationsPerMinuteToRadiansPerSecond(m_encoder.getVelocity()));
+                  -1 * Units.rotationsPerMinuteToRadiansPerSecond(m_encoder.getVelocity()), speed);
           log_pid_output.append(output);
           m_ntPidError.set(m_pid.getVelocityError());
           m_ntPidOutput.set(m_pid.getVelocityError());
@@ -63,11 +63,12 @@ public class Shooter extends SubsystemBase {
    * @return a {@link Command} to get to the desired speed.
    */
   public Command spinup(double speed) {
-    return achieveSpeeds(speed).until(m_pid::atSetpoint);
+    LED.Spinup();
+    return runOnce(() -> LED.Spinup()).andThen(achieveSpeeds(speed).until(m_pid::atSetpoint));
   }
 
   public Command stop() {
-    return runOnce(() -> m_motor.set(0));
+    return runOnce(() -> LED.Stop()).andThen(runOnce(() -> m_motor.set(0)));
   }
 
   /**
@@ -76,7 +77,7 @@ public class Shooter extends SubsystemBase {
    * @return A {@link Command} to hold the speed at the setpoint.
    */
   public Command maintain() {
-    return defer(() -> achieveSpeeds(m_pid.getSetpoint()));
+    return defer(() -> runOnce(() -> LED.Maintain()).andThen(achieveSpeeds(m_pid.getSetpoint())));
   }
 
   public Command shoot() {
