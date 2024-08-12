@@ -30,7 +30,7 @@ public final class Constants {
   public static final double intakeI = 0;
   public static final double intakeD = 0;
 
-  public static final double armP = 10.5;
+  public static final double armP = 10;
   public static final double armI = 0;
   public static final double armD = 0;
   public static final double armS = 0;
