@@ -70,8 +70,8 @@ public class Robot extends CommandRobot {
     // m_sysid.add(m_shooter::sysIdDynamic);
     // m_sysid.add(m_shooter::sysIdQuasistatic);
 
-    // m_sysid.add(m_arm::sysIdDynamic);
-    // m_sysid.add(m_arm::sysIdQuasistatic);
+    m_sysid.add(m_arm::sysIdDynamic);
+    m_sysid.add(m_arm::sysIdQuasistatic);
 
     // m_sysid.add(m_climber::sysIdDynamic);
     // m_sysid.add(m_climber::sysIdQuasistatic);
@@ -111,13 +111,13 @@ public class Robot extends CommandRobot {
     m_intake.setDefaultCommand(m_superstructure.intake());
     m_shooter.setDefaultCommand(m_shooter.stop());
     m_index.setDefaultCommand(m_index.stop());
-    m_arm.setDefaultCommand(m_arm.goToSetpoint(Setpoint.kIntake));
+    m_arm.setDefaultCommand(m_arm.goToSetpoint(Setpoint.kAmp));
 
     new Trigger(() -> m_codriver.getLeftY() > 0.05)
         .whileTrue(m_arm.manualControl(m_codriver::getLeftY));
 
-    m_driver.a().whileTrue(m_drivetrain.applyRequest(() -> m_brake));
-    m_driver.y().onTrue(m_drivetrain.runOnce(() -> m_drivetrain.seedFieldRelative()));
+    // m_driver.a().whileTrue(m_drivetrain.applyRequest(() -> m_brake));
+    // m_driver.y().onTrue(m_drivetrain.runOnce(() -> m_drivetrain.seedFieldRelative()));
 
     m_codriver.a().onTrue(m_climber.climb());
     m_codriver.leftBumper().whileTrue(m_index.shoot());
@@ -147,6 +147,9 @@ public class Robot extends CommandRobot {
     m_codriver.y().onTrue(m_superstructure.stop());
     m_codriver.b().whileTrue(m_superstructure.outake());
 
-    m_driver.b().onTrue(m_sysid.getAllCommands());
+    m_driver.y().onTrue(m_arm.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
+    m_driver.b().onTrue(m_arm.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
+    m_driver.a().onTrue(m_arm.sysIdDynamic(SysIdRoutine.Direction.kForward));
+    m_driver.x().onTrue(m_arm.sysIdDynamic(SysIdRoutine.Direction.kReverse));
   }
 }

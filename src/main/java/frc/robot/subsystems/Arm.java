@@ -84,7 +84,7 @@ public class Arm extends SubsystemBase {
           new SysIdRoutine.Config(
             Volts.of(0.5).per(Second.of(1)),
             Volts.of(1),
-            Second.of(5)
+            Second.of(4)
           ),
           new SysIdRoutine.Mechanism(
               (Measure<Voltage> volts) -> {
@@ -142,7 +142,7 @@ public class Arm extends SubsystemBase {
    * @return a {@link Command} to get to the desired position.
    */
   public Command moveToPosition(double position) {
-    return achievePosition(position).until(m_pid::atSetpoint);
+    return defer(() -> achievePosition(position).until(m_pid::atSetpoint));
   }
 
   /**
