@@ -13,6 +13,7 @@ import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.Angle;
 import edu.wpi.first.units.Measure;
@@ -28,6 +29,8 @@ import frc.robot.Constants;
 public class Intake extends SubsystemBase {
   private final CANSparkMax m_motor = new CANSparkMax(Constants.intakePort, MotorType.kBrushless);
   private final RelativeEncoder m_encoder = m_motor.getEncoder();
+
+  private final SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(Constants.intakeS, Constants.intakeV, Constants.intakeA);
 
   private final PIDController m_pid =
       new PIDController(Constants.intakeP, Constants.intakeI, Constants.intakeD);

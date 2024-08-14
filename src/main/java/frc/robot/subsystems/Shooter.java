@@ -13,6 +13,7 @@ import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.Angle;
 import edu.wpi.first.units.Measure;
@@ -45,6 +46,7 @@ public class Shooter extends SubsystemBase {
   private final NetworkTable shooterStats = NetworkTableInstance.getDefault().getTable("Shooter");
   private final DoublePublisher m_ntPidError = shooterStats.getDoubleTopic("PID/Error").publish();
   private final DoublePublisher m_ntPidOutput = shooterStats.getDoubleTopic("PID/Output").publish();
+  private final DoublePublisher m_ntPidSetpoint = shooterStats.getDoubleTopic("PID/Setpoint").publish();
   private final DoublePublisher m_ntRotationalVelocity =
       shooterStats.getDoubleTopic("RotationalVelocity").publish();
 
@@ -54,6 +56,8 @@ public class Shooter extends SubsystemBase {
   private final MutableMeasure<Angle> m_angle = mutable(Rotations.of(0));
   private final MutableMeasure<Velocity<Angle>> m_velocity = mutable(RotationsPerSecond.of(0));
 
+  private final SimpleMotorFeedforward m_feedforward = new SimpleMotorFeedforward(Constants.shooterS, Constants.shooterV, Constants.shooterA);
+
   private final SysIdRoutine m_sysIdRoutine =
       new SysIdRoutine(
           new SysIdRoutine.Config(),
@@ -61,32 +65,26 @@ public class Shooter extends SubsystemBase {
               (Measure<Voltage> volts) -> {
                 m_motor.setVoltage(volts.in(Volts));
               },
-              log -> {
-                log.motor("shooter")
-                    .voltage(
-                        m_appliedVoltage.mut_replace(
-                            m_motor.get() * RobotController.getBatteryVoltage(), Volts))
-                    .angularPosition(m_angle.mut_replace(m_encoder.getPosition(), Rotations))
-                    .angularVelocity(
-                        m_velocity.mut_replace(m_encoder.getVelocity(), RotationsPerSecond));
-              },
+              null,
               this));
 
   /** Creates a new {@link Shooter} {@link edu.wpi.first.wpilibj2.command.Subsystem}. */
   public Shooter() {}
 
   /** Acheives and maintains speed. */
-  private Command achieveSpeeds(double speed) {
+  private Command achieveSpeeds(double _speed) {
+    var speed = Units.radiansPerSecondToRotationsPerMinute(_speed);
     m_pid.setSetpoint(speed);
     return run(
         () -> {
           var output =
               m_pid.calculate(
-                  -1 * Units.rotationsPerMinuteToRadiansPerSecond(m_encoder.getVelocity()), speed);
+                  -1 * m_encoder.getVelocity(), speed);
           log_pid_output.append(output);
           m_ntPidError.set(m_pid.getVelocityError());
           m_ntPidOutput.set(m_pid.getVelocityError());
-          m_motor.setVoltage(output);
+          m_ntPidSetpoint.set(m_pid.getSetpoint());
+          m_motor.setVoltage(output + m_feedforward.calculate(speed));
         });
   }
 
@@ -98,7 +96,7 @@ public class Shooter extends SubsystemBase {
    */
   public Command spinup(double speed) {
     LED.Spinup();
-    return runOnce(() -> LED.Spinup()).andThen(achieveSpeeds(speed).until(m_pid::atSetpoint));
+    return defer(() -> runOnce(() -> LED.Spinup()).andThen(achieveSpeeds(speed).until(m_pid::atSetpoint)));
   }
 
   public Command stop() {

@@ -76,8 +76,8 @@ public class Robot extends CommandRobot {
     // m_sysid.add(m_climber::sysIdDynamic);
     // m_sysid.add(m_climber::sysIdQuasistatic);
 
-    m_sysid.add(m_intake::sysIdDynamic);
-    m_sysid.add(m_intake::sysIdQuasistatic);
+    // m_sysid.add(m_intake::sysIdDynamic);
+    // m_sysid.add(m_intake::sysIdQuasistatic);
 
     // m_sysid.addAll(m_drivetrain.getSysIdCommands());
 
