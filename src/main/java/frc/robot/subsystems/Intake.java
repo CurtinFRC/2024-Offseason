@@ -43,16 +43,18 @@ public class Intake extends SubsystemBase {
               (Measure<Voltage> volts) -> {
                 m_motor.setVoltage(volts.in(Volts));
               },
-              log -> {
-                log.motor("intake")
-                    .voltage(
-                        m_appliedVoltage.mut_replace(
-                            m_motor.getBusVoltage(), Volts))
-                    .angularPosition(m_angle.mut_replace(m_encoder.getPosition(), Rotations))
-                    .angularVelocity(
-                        m_velocity.mut_replace(m_encoder.getVelocity(), RotationsPerSecond));
-              },
-              this));
+              // log -> {
+              //   log.motor("intake")
+              //       .voltage(
+              //           m_appliedVoltage.mut_replace(
+              //               m_motor.getBusVoltage(), Volts))
+              //       .angularPosition(m_angle.mut_replace(m_encoder.getPosition(), Rotations))
+              //       .angularVelocity(
+              //           m_velocity.mut_replace(m_encoder.getVelocity(), RotationsPerSecond));
+              // },
+              null,
+              this,
+              "intake"));
 
   public Intake() {}
 

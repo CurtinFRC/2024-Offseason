@@ -73,9 +73,7 @@ public class Shooter extends SubsystemBase {
               this));
 
   /** Creates a new {@link Shooter} {@link edu.wpi.first.wpilibj2.command.Subsystem}. */
-  public Shooter() {
-    m_pid.setTolerance(0.05, 0.05);
-  }
+  public Shooter() {}
 
   /** Acheives and maintains speed. */
   private Command achieveSpeeds(double speed) {
@@ -84,7 +82,7 @@ public class Shooter extends SubsystemBase {
         () -> {
           var output =
               m_pid.calculate(
-                  -1 * Units.rotationsPerMinuteToRadiansPerSecond(m_encoder.getVelocity()));
+                  -1 * Units.rotationsPerMinuteToRadiansPerSecond(m_encoder.getVelocity()), speed);
           log_pid_output.append(output);
           m_ntPidError.set(m_pid.getVelocityError());
           m_ntPidOutput.set(m_pid.getVelocityError());
@@ -99,11 +97,12 @@ public class Shooter extends SubsystemBase {
    * @return a {@link Command} to get to the desired speed.
    */
   public Command spinup(double speed) {
-    return achieveSpeeds(speed).until(m_pid::atSetpoint);
+    LED.Spinup();
+    return runOnce(() -> LED.Spinup()).andThen(achieveSpeeds(speed).until(m_pid::atSetpoint));
   }
 
   public Command stop() {
-    return runOnce(() -> m_motor.set(0));
+    return runOnce(() -> LED.Stop()).andThen(runOnce(() -> m_motor.set(0)));
   }
 
   /**
@@ -112,13 +111,14 @@ public class Shooter extends SubsystemBase {
    * @return A {@link Command} to hold the speed at the setpoint.
    */
   public Command maintain() {
-    return achieveSpeeds(m_pid.getSetpoint());
+    return defer(() -> runOnce(() -> LED.Maintain()).andThen(achieveSpeeds(m_pid.getSetpoint())));
   }
 
   public Command shoot() {
     return spinup(500).andThen(maintain());
   }
 
+// <<<<<<< HEAD
   public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
     return m_sysIdRoutine.quasistatic(direction);
   }
@@ -127,8 +127,12 @@ public class Shooter extends SubsystemBase {
     return m_sysIdRoutine.dynamic(direction);
   }
 
+  public Command applyVolts(double volts) {
+    return run(() -> m_motor.setVoltage(volts));
+  }
+
   @Override
   public void periodic() {
-    m_ntRotationalVelocity.set(m_encoder.getVelocity());
+    m_ntRotationalVelocity.set(Units.rotationsPerMinuteToRadiansPerSecond(m_encoder.getVelocity()));
   }
 }

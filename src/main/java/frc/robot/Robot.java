@@ -11,12 +11,14 @@ import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandRobot;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.autos.WompWompKieran;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Arm;
+import frc.robot.subsystems.Arm.Setpoint;
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Index;
@@ -100,24 +102,38 @@ public class Robot extends CommandRobot {
             () ->
                 m_drive
                     .withVelocityX(
-                        Utils.deadzone(-m_driver.getLeftY() * Constants.DrivebaseMaxSpeed))
+                        Utils.deadzone(-m_driver.getLeftY() * Constants.DrivebaseMaxSpeed * 0.5))
                     .withVelocityY(
-                        Utils.deadzone(-m_driver.getLeftX() * Constants.DrivebaseMaxSpeed))
+                        Utils.deadzone(-m_driver.getLeftX() * Constants.DrivebaseMaxSpeed * 0.5))
                     .withRotationalRate(
                         Utils.deadzone(
                             -m_driver.getRightX() * Constants.DrivebaseMaxAngularRate))));
-    // m_intake.setDefaultCommand(m_superstructure.intake());
+    m_intake.setDefaultCommand(m_superstructure.intake());
     m_shooter.setDefaultCommand(m_shooter.stop());
     m_index.setDefaultCommand(m_index.stop());
-    // m_arm.setDefaultCommand(m_arm.goToSetpoint(Arm.Setpoint.kStowed));
-    m_arm.setDefaultCommand(m_arm.manualControl(m_codriver::getLeftY));
+    m_arm.setDefaultCommand(m_arm.goToSetpoint(Setpoint.kIntake));
+
+    new Trigger(() -> m_codriver.getLeftY() > 0.05)
+        .whileTrue(m_arm.manualControl(m_codriver::getLeftY));
 
     m_driver.a().whileTrue(m_drivetrain.applyRequest(() -> m_brake));
     m_driver.y().onTrue(m_drivetrain.runOnce(() -> m_drivetrain.seedFieldRelative()));
 
     m_codriver.a().onTrue(m_climber.climb());
-    m_codriver.rightBumper().whileTrue(m_intake.outake(8));
-    m_codriver.leftBumper().whileTrue(m_superstructure.shoot());
+    m_codriver.leftBumper().whileTrue(m_index.shoot());
+    m_codriver.rightBumper().whileTrue(m_shooter.spinup(500).andThen(m_shooter.maintain()));
+    m_codriver
+        .leftTrigger()
+        .whileTrue(
+            Commands.parallel(
+                m_arm.goToSetpoint(Setpoint.kSpeaker).andThen(m_arm.maintain()),
+                m_shooter.spinup(500).andThen(m_shooter.maintain())));
+    m_codriver
+        .rightTrigger()
+        .whileTrue(
+            Commands.parallel(
+                m_arm.goToSetpoint(Setpoint.kAmp).andThen(m_arm.maintain()),
+                m_shooter.applyVolts(8)));
 
     m_codriverX.whileTrue(m_superstructure.intake()).onFalse(m_intake.stop());
     m_scheduler
