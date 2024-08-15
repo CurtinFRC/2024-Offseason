@@ -21,6 +21,9 @@ import com.ctre.phoenix6.mechanisms.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.networktables.DoublePublisher;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.units.Angle;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.MutableMeasure;
@@ -46,6 +49,10 @@ import java.util.function.Supplier;
  */
 @SuppressWarnings("PMD.SingularField")
 public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsystem {
+  private final NetworkTable driveStats = NetworkTableInstance.getDefault().getTable("Drive");
+  private final DoublePublisher error = driveStats.getDoubleTopic("Error").publish();
+  private final DoublePublisher output = driveStats.getDoubleTopic("Output").publish();
+
   private static final double kSimLoopPeriod = 0.005; // 5 ms
   private Notifier m_simNotifier;
   private double m_lastSimTime;

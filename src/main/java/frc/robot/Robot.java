@@ -14,7 +14,6 @@ import edu.wpi.first.wpilibj2.command.CommandRobot;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.autos.WompWompKieran;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Arm;
@@ -110,13 +109,13 @@ public class Robot extends CommandRobot {
     m_intake.setDefaultCommand(m_superstructure.intake());
     m_shooter.setDefaultCommand(m_shooter.stop());
     m_index.setDefaultCommand(m_index.stop());
-    m_arm.setDefaultCommand(m_arm.goToSetpoint(Setpoint.kAmp));
+    m_arm.setDefaultCommand(m_arm.goToSetpoint(Setpoint.kIntake));
 
     new Trigger(() -> m_codriver.getLeftY() > 0.05)
         .whileTrue(m_arm.manualControl(m_codriver::getLeftY));
 
-    // m_driver.a().whileTrue(m_drivetrain.applyRequest(() -> m_brake));
-    // m_driver.y().onTrue(m_drivetrain.runOnce(() -> m_drivetrain.seedFieldRelative()));
+    m_driver.a().whileTrue(m_drivetrain.applyRequest(() -> m_brake));
+    m_driver.y().onTrue(m_drivetrain.runOnce(() -> m_drivetrain.seedFieldRelative()));
 
     m_codriver.a().onTrue(m_climber.climb());
     m_codriver.leftBumper().whileTrue(m_index.shoot());
@@ -145,10 +144,5 @@ public class Robot extends CommandRobot {
             });
     m_codriver.y().onTrue(m_superstructure.stop());
     m_codriver.b().whileTrue(m_superstructure.outake());
-
-    m_driver.y().onTrue(m_arm.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
-    m_driver.b().onTrue(m_arm.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
-    m_driver.a().onTrue(m_arm.sysIdDynamic(SysIdRoutine.Direction.kForward));
-    m_driver.x().onTrue(m_arm.sysIdDynamic(SysIdRoutine.Direction.kReverse));
   }
 }

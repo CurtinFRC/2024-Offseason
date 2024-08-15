@@ -102,15 +102,15 @@ public class Arm extends SubsystemBase {
   /** Creates a new {@link Arm} {@link edu.wpi.first.wpilibj2.command.Subsystem}. */
   public Arm() {
     m_followerMotor.follow(m_primaryMotor);
-    m_pid.setTolerance(0.1);
+    m_pid.setTolerance(0.05);
   }
 
   /** Achieves and maintains speed for the primary motor. */
   private Command achievePosition(double position) {
+    m_pid.setSetpoint(position);
     return run(
         () -> {
           m_lastPosition = position;
-          m_pid.setSetpoint(position);
           var pid_output = m_pid.calculate(getAngle());
           log_pid_output.append(pid_output);
           log_pid_setpoint.append(m_pid.getSetpoint());
@@ -138,7 +138,7 @@ public class Arm extends SubsystemBase {
    * @return a {@link Command} to get to the desired position.
    */
   public Command moveToPosition(double position) {
-    return defer(() -> achievePosition(position).until(m_pid::atSetpoint));
+    return defer(() -> achievePosition(position).until(m_pid::atSetpoint)).andThen(stop());
   }
 
   /**
