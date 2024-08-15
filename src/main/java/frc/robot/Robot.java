@@ -30,7 +30,6 @@ public class Robot extends CommandRobot {
   private final CommandXboxController m_driver = new CommandXboxController(Constants.driverport);
   private final CommandXboxController m_codriver =
       new CommandXboxController(Constants.codriverport);
-  private final CommandXboxController m_test = new CommandXboxController(Constants.testport);
 
   private final Arm m_arm = new Arm();
   private final Shooter m_shooter = new Shooter();
