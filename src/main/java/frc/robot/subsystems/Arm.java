@@ -4,6 +4,12 @@
 
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.MutableMeasure.mutable;
+import static edu.wpi.first.units.Units.Rotations;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static edu.wpi.first.units.Units.Second;
+import static edu.wpi.first.units.Units.Volts;
+
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 import edu.wpi.first.math.controller.ArmFeedforward;
@@ -11,14 +17,21 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.networktables.DoublePublisher;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.units.Angle;
+import edu.wpi.first.units.Measure;
+import edu.wpi.first.units.MutableMeasure;
+import edu.wpi.first.units.Velocity;
+import edu.wpi.first.units.Voltage;
 import edu.wpi.first.util.datalog.DataLog;
 import edu.wpi.first.util.datalog.DoubleLogEntry;
 import edu.wpi.first.util.datalog.StringLogEntry;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
 import java.util.function.DoubleSupplier;
 
@@ -62,18 +75,42 @@ public class Arm extends SubsystemBase {
   public final Trigger m_atSetpoint = new Trigger(m_pid::atSetpoint);
   private double m_lastPosition = 0.2;
 
+  private final MutableMeasure<Voltage> m_appliedVoltage = mutable(Volts.of(0));
+  private final MutableMeasure<Angle> m_angle = mutable(Rotations.of(0));
+  private final MutableMeasure<Velocity<Angle>> m_velocity = mutable(RotationsPerSecond.of(0));
+
+  private final SysIdRoutine m_sysIdRoutine =
+      new SysIdRoutine(
+          new SysIdRoutine.Config(Volts.of(0.5).per(Second.of(1)), Volts.of(1), Second.of(4)),
+          new SysIdRoutine.Mechanism(
+              (Measure<Voltage> volts) -> {
+                m_primaryMotor.setVoltage(volts.in(Volts));
+              },
+              log -> {
+                log.motor("arm")
+                    .voltage(
+                        m_appliedVoltage.mut_replace(
+                            m_primaryMotor.get() * RobotController.getBatteryVoltage(), Volts))
+                    .angularPosition(
+                        m_angle.mut_replace(m_encoder.getAbsolutePosition(), Rotations))
+                    .angularVelocity(
+                        m_velocity.mut_replace(
+                            (m_encoder.get() * 2 * Math.PI / 60), RotationsPerSecond));
+              },
+              this));
+
   /** Creates a new {@link Arm} {@link edu.wpi.first.wpilibj2.command.Subsystem}. */
   public Arm() {
     m_followerMotor.follow(m_primaryMotor);
-    m_pid.setTolerance(0.1);
+    m_pid.setTolerance(0.05);
   }
 
   /** Achieves and maintains speed for the primary motor. */
   private Command achievePosition(double position) {
+    m_pid.setSetpoint(position);
     return run(
         () -> {
           m_lastPosition = position;
-          m_pid.setSetpoint(position);
           var pid_output = m_pid.calculate(getAngle());
           log_pid_output.append(pid_output);
           log_pid_setpoint.append(m_pid.getSetpoint());
@@ -101,7 +138,7 @@ public class Arm extends SubsystemBase {
    * @return a {@link Command} to get to the desired position.
    */
   public Command moveToPosition(double position) {
-    return achievePosition(position).until(m_pid::atSetpoint);
+    return defer(() -> achievePosition(position).until(m_pid::atSetpoint)).andThen(stop());
   }
 
   /**
@@ -165,5 +202,13 @@ public class Arm extends SubsystemBase {
 
   public double getAngle() {
     return m_encoder.getAbsolutePosition() * 2 * Math.PI;
+  }
+
+  public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
+    return m_sysIdRoutine.quasistatic(direction);
+  }
+
+  public Command sysIdDynamic(SysIdRoutine.Direction direction) {
+    return m_sysIdRoutine.dynamic(direction);
   }
 }
