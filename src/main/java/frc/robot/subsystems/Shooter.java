@@ -116,7 +116,6 @@ public class Shooter extends SubsystemBase {
     return spinup(500).andThen(maintain());
   }
 
-  // <<<<<<< HEAD
   public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
     return m_sysIdRoutine.quasistatic(direction);
   }
