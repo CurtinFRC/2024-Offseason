@@ -6,7 +6,6 @@ package frc.robot.autos;
 
 import com.choreo.lib.Auto;
 import com.choreo.lib.Choreo;
-
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
@@ -46,10 +45,9 @@ public class TwoNote implements Auto {
     Choreo.event("first-shot").onTrue(shoot());
     Choreo.event("intake").onTrue(m_intake.intake());
     if (m_intake.noteInIntake() == false) {
-        DataLogManager.log("Intake Failed");
+      DataLogManager.log("Intake Failed");
     } else {
-        Choreo.event("second-shot").onTrue(shoot());
+      Choreo.event("second-shot").onTrue(shoot());
     }
-    
   }
 }
