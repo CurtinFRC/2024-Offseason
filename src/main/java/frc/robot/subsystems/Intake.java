@@ -20,7 +20,6 @@ import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.MutableMeasure;
 import edu.wpi.first.units.Velocity;
 import edu.wpi.first.units.Voltage;
-import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -30,7 +29,8 @@ public class Intake extends SubsystemBase {
   private final CANSparkMax m_motor = new CANSparkMax(Constants.intakePort, MotorType.kBrushless);
   private final RelativeEncoder m_encoder = m_motor.getEncoder();
 
-  private final SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(Constants.intakeS, Constants.intakeV, Constants.intakeA);
+  private final SimpleMotorFeedforward feedforward =
+      new SimpleMotorFeedforward(Constants.intakeS, Constants.intakeV, Constants.intakeA);
 
   private final PIDController m_pid =
       new PIDController(Constants.intakeP, Constants.intakeI, Constants.intakeD);

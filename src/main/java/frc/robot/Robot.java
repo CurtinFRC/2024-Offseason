@@ -25,7 +25,6 @@ import frc.robot.subsystems.Index;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.Sysid;
-
 import java.util.HashMap;
 
 public class Robot extends CommandRobot {

@@ -81,11 +81,7 @@ public class Arm extends SubsystemBase {
 
   private final SysIdRoutine m_sysIdRoutine =
       new SysIdRoutine(
-          new SysIdRoutine.Config(
-            Volts.of(0.5).per(Second.of(1)),
-            Volts.of(1),
-            Second.of(4)
-          ),
+          new SysIdRoutine.Config(Volts.of(0.5).per(Second.of(1)), Volts.of(1), Second.of(4)),
           new SysIdRoutine.Mechanism(
               (Measure<Voltage> volts) -> {
                 m_primaryMotor.setVoltage(volts.in(Volts));

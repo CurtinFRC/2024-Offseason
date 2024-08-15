@@ -15,18 +15,17 @@ import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.DoublePublisher;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.units.Angle;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.MutableMeasure;
 import edu.wpi.first.units.Velocity;
 import edu.wpi.first.units.Voltage;
-import edu.wpi.first.networktables.DoublePublisher;
-import edu.wpi.first.networktables.NetworkTable;
-import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.util.datalog.DataLog;
 import edu.wpi.first.util.datalog.DoubleLogEntry;
 import edu.wpi.first.wpilibj.DataLogManager;
-import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -46,7 +45,8 @@ public class Shooter extends SubsystemBase {
   private final NetworkTable shooterStats = NetworkTableInstance.getDefault().getTable("Shooter");
   private final DoublePublisher m_ntPidError = shooterStats.getDoubleTopic("PID/Error").publish();
   private final DoublePublisher m_ntPidOutput = shooterStats.getDoubleTopic("PID/Output").publish();
-  private final DoublePublisher m_ntPidSetpoint = shooterStats.getDoubleTopic("PID/Setpoint").publish();
+  private final DoublePublisher m_ntPidSetpoint =
+      shooterStats.getDoubleTopic("PID/Setpoint").publish();
   private final DoublePublisher m_ntRotationalVelocity =
       shooterStats.getDoubleTopic("RotationalVelocity").publish();
 
@@ -56,7 +56,8 @@ public class Shooter extends SubsystemBase {
   private final MutableMeasure<Angle> m_angle = mutable(Rotations.of(0));
   private final MutableMeasure<Velocity<Angle>> m_velocity = mutable(RotationsPerSecond.of(0));
 
-  private final SimpleMotorFeedforward m_feedforward = new SimpleMotorFeedforward(Constants.shooterS, Constants.shooterV, Constants.shooterA);
+  private final SimpleMotorFeedforward m_feedforward =
+      new SimpleMotorFeedforward(Constants.shooterS, Constants.shooterV, Constants.shooterA);
 
   private final SysIdRoutine m_sysIdRoutine =
       new SysIdRoutine(
@@ -77,9 +78,7 @@ public class Shooter extends SubsystemBase {
     m_pid.setSetpoint(speed);
     return run(
         () -> {
-          var output =
-              m_pid.calculate(
-                  -1 * m_encoder.getVelocity(), speed);
+          var output = m_pid.calculate(-1 * m_encoder.getVelocity(), speed);
           log_pid_output.append(output);
           m_ntPidError.set(m_pid.getVelocityError());
           m_ntPidOutput.set(m_pid.getVelocityError());
@@ -96,7 +95,8 @@ public class Shooter extends SubsystemBase {
    */
   public Command spinup(double speed) {
     LED.Spinup();
-    return defer(() -> runOnce(() -> LED.Spinup()).andThen(achieveSpeeds(speed).until(m_pid::atSetpoint)));
+    return defer(
+        () -> runOnce(() -> LED.Spinup()).andThen(achieveSpeeds(speed).until(m_pid::atSetpoint)));
   }
 
   public Command stop() {
@@ -116,7 +116,7 @@ public class Shooter extends SubsystemBase {
     return spinup(500).andThen(maintain());
   }
 
-// <<<<<<< HEAD
+  // <<<<<<< HEAD
   public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
     return m_sysIdRoutine.quasistatic(direction);
   }

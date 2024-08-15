@@ -34,7 +34,6 @@ import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -304,5 +303,4 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
 
     return sysidCommands;
   }
-
 }
