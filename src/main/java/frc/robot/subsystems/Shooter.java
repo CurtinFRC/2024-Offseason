@@ -84,13 +84,12 @@ public class Shooter extends SubsystemBase {
    * @return a {@link Command} to get to the desired speed.
    */
   public Command spinup(double speed) {
-    LED.Spinup();
     return defer(
-        () -> runOnce(() -> LED.Spinup()).andThen(achieveSpeeds(speed).until(m_pid::atSetpoint)));
+        () -> achieveSpeeds(speed).until(m_pid::atSetpoint));
   }
 
   public Command stop() {
-    return runOnce(() -> LED.Stop()).andThen(runOnce(() -> m_motor.set(0)));
+    return runOnce(() -> m_motor.set(0));
   }
 
   /**
@@ -99,7 +98,7 @@ public class Shooter extends SubsystemBase {
    * @return A {@link Command} to hold the speed at the setpoint.
    */
   public Command maintain() {
-    return defer(() -> runOnce(() -> LED.Maintain()).andThen(achieveSpeeds(m_pid.getSetpoint())));
+    return defer(() -> achieveSpeeds(m_pid.getSetpoint()));
   }
 
   public Command shoot() {

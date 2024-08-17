@@ -22,6 +22,7 @@ import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Index;
 import frc.robot.subsystems.Intake;
+import frc.robot.subsystems.LED;
 import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.Sysid;
 import java.util.HashMap;
@@ -36,6 +37,7 @@ public class Robot extends CommandRobot {
   private final Climber m_climber = new Climber();
   private final Intake m_intake = new Intake();
   private final Index m_index = new Index();
+  private final LED m_led = new LED();
   private final Sysid m_sysid = new Sysid();
   private final Superstructure m_superstructure = new Superstructure(m_shooter, m_intake, m_index);
   private static final CommandSwerveDrivetrain m_drivetrain = TunerConstants.DriveTrain;
@@ -85,6 +87,7 @@ public class Robot extends CommandRobot {
     m_scheduler.registerSubsystem(m_climber);
     m_scheduler.registerSubsystem(m_intake);
     m_scheduler.registerSubsystem(m_index);
+    m_scheduler.registerSubsystem(m_led);
 
     m_autoChooser.addOption(
         "WompWompKieran Blue", new WompWompKieran(m_drivetrain, false).followTrajectory());
@@ -109,16 +112,20 @@ public class Robot extends CommandRobot {
     m_shooter.setDefaultCommand(m_shooter.stop());
     m_index.setDefaultCommand(m_index.stop());
     m_arm.setDefaultCommand(m_arm.goToSetpoint(Setpoint.kIntake));
+    m_led.setDefaultCommand(m_led.hotpink());
 
     new Trigger(() -> m_codriver.getLeftY() > 0.05)
         .whileTrue(m_arm.manualControl(m_codriver::getLeftY));
+
+    m_shooter.m_atSetpoint.whileTrue(m_led.canShoot());
+    m_index.m_hasNote.whileTrue(m_led.hasNote());
 
     m_driver.a().whileTrue(m_drivetrain.applyRequest(() -> m_brake));
     m_driver.y().onTrue(m_drivetrain.runOnce(() -> m_drivetrain.seedFieldRelative()));
 
     m_codriver.a().onTrue(m_climber.climb());
     m_codriver.leftBumper().whileTrue(m_index.shoot());
-    m_codriver.rightBumper().whileTrue(m_shooter.spinup(500).andThen(m_shooter.maintain()));
+    m_codriver.rightBumper().whileTrue(m_superstructure.outake());
     m_codriver
         .leftTrigger()
         .whileTrue(
@@ -142,6 +149,5 @@ public class Robot extends CommandRobot {
               }
             });
     m_codriver.y().onTrue(m_superstructure.stop());
-    m_codriver.b().whileTrue(m_superstructure.outake());
   }
 }
