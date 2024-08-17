@@ -99,9 +99,9 @@ public class Robot extends CommandRobot {
             () ->
                 m_drive
                     .withVelocityX(
-                        Utils.deadzone(-m_driver.getLeftY() * Constants.DrivebaseMaxSpeed * 0.5))
+                        Utils.deadzone(-m_driver.getLeftY() * Constants.DrivebaseMaxSpeed))
                     .withVelocityY(
-                        Utils.deadzone(-m_driver.getLeftX() * Constants.DrivebaseMaxSpeed * 0.5))
+                        Utils.deadzone(-m_driver.getLeftX() * Constants.DrivebaseMaxSpeed))
                     .withRotationalRate(
                         Utils.deadzone(
                             -m_driver.getRightX() * Constants.DrivebaseMaxAngularRate))));
