@@ -8,6 +8,10 @@ import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.*;
+
+import edu.wpi.first.util.sendable.Sendable;
+import edu.wpi.first.util.sendable.SendableBuilder;
+import edu.wpi.first.util.sendable.SendableRegistry;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -26,11 +30,11 @@ import frc.robot.subsystems.LED;
 import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.Sysid;
 import java.util.HashMap;
+import java.util.Set;
 
 public class Robot extends CommandRobot {
   private final CommandXboxController m_driver = new CommandXboxController(Constants.driverport);
-  private final CommandXboxController m_codriver =
-      new CommandXboxController(Constants.codriverport);
+  private final CommandXboxController m_codriver = new CommandXboxController(Constants.codriverport);
 
   private final Arm m_arm = new Arm();
   private final Shooter m_shooter = new Shooter();
@@ -42,15 +46,16 @@ public class Robot extends CommandRobot {
   private final Superstructure m_superstructure = new Superstructure(m_shooter, m_intake, m_index);
   private static final CommandSwerveDrivetrain m_drivetrain = TunerConstants.DriveTrain;
 
-  private final SwerveRequest.FieldCentric m_drive =
-      new SwerveRequest.FieldCentric()
-          .withDeadband(Constants.DrivebaseMaxSpeed * 0.1)
-          .withRotationalDeadband(Constants.DrivebaseMaxAngularRate * 0.1)
-          .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
+  private final SwerveRequest.FieldCentric m_drive = new SwerveRequest.FieldCentric()
+      .withDeadband(Constants.DrivebaseMaxSpeed * 0.1)
+      .withRotationalDeadband(Constants.DrivebaseMaxAngularRate * 0.1)
+      .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
   private final SwerveRequest.SwerveDriveBrake m_brake = new SwerveRequest.SwerveDriveBrake();
   private final Telemetry m_logger = new Telemetry();
 
   private final Trigger m_codriverX = m_codriver.x();
+
+  double armangle = 0.2;
 
   public Robot() {
     HashMap<Integer, String> urclAliases = new HashMap<>();
@@ -92,29 +97,28 @@ public class Robot extends CommandRobot {
     NamedCommands.registerCommand(
         "Shoot",
         Commands.deferredProxy(
-            () ->
-                m_superstructure
-                    .shoot()
-                    .withTimeout(2)
-                    .andThen(Commands.parallel(m_shooter.stop(), m_index.stop()))));
+            () -> m_superstructure
+                .shoot()
+                .withTimeout(2)
+                .andThen(Commands.parallel(m_shooter.stop(), m_index.stop()))));
     NamedCommands.registerCommand("Arm", m_arm.goToSetpoint(Setpoint.kSpeaker));
     NamedCommands.registerCommand(
         "Intake", Commands.deferredProxy(() -> m_superstructure.intake()));
 
-    m_autoChooser.setDefaultOption("Test Auto", m_drivetrain.getAutoPath("TestAuto"));
+    m_autoChooser.setDefaultOption("Amp14523", m_drivetrain.getAutoPath("Amp14523"));
     SmartDashboard.putData(m_autoChooser);
+    SmartDashboard.putNumber("Arm", armangle);
 
     m_drivetrain.setDefaultCommand(
         m_drivetrain.applyRequest(
-            () ->
-                m_drive
-                    .withVelocityX(
-                        Utils.deadzone(-m_driver.getLeftY() * Constants.DrivebaseMaxSpeed))
-                    .withVelocityY(
-                        Utils.deadzone(-m_driver.getLeftX() * Constants.DrivebaseMaxSpeed))
-                    .withRotationalRate(
-                        Utils.deadzone(
-                            -m_driver.getRightX() * Constants.DrivebaseMaxAngularRate))));
+            () -> m_drive
+                .withVelocityX(
+                    Utils.deadzone(-m_driver.getLeftY() * Constants.DrivebaseMaxSpeed))
+                .withVelocityY(
+                    Utils.deadzone(-m_driver.getLeftX() * Constants.DrivebaseMaxSpeed))
+                .withRotationalRate(
+                    Utils.deadzone(
+                        -m_driver.getRightX() * Constants.DrivebaseMaxAngularRate))));
     m_intake.setDefaultCommand(m_superstructure.intake());
     m_shooter.setDefaultCommand(m_shooter.stop());
     m_index.setDefaultCommand(m_index.stop());
@@ -124,8 +128,12 @@ public class Robot extends CommandRobot {
     new Trigger(() -> m_codriver.getLeftY() > 0.05)
         .whileTrue(m_arm.manualControl(m_codriver::getLeftY));
 
+    m_codriver.povUp()
+        .whileTrue(Commands.defer(
+            () -> m_arm.moveToPosition(SmartDashboard.getNumber("Arm", 0.2)).andThen(m_arm.maintain()), Set.of(m_arm)));
+
     m_shooter.m_atSetpoint.whileTrue(m_led.canShoot());
-    // m_index.m_hasNote.whileTrue(m_led.hasNote());
+    m_index.m_hasNote.whileTrue(m_led.hasNote());
     m_index.m_intaking.onTrue(
         Commands.parallel(
             m_intake.intake(5).until(m_index.m_hasNote).andThen(m_intake.stop()),
@@ -136,7 +144,8 @@ public class Robot extends CommandRobot {
 
     m_codriver.a().onTrue(m_climber.climb());
     m_codriver.leftBumper().whileTrue(m_index.shoot());
-    m_codriver.rightBumper().whileTrue(m_superstructure.outake());
+    // m_codriver.rightBumper().whileTrue(m_superstructure.outake());
+    m_codriver.rightBumper().whileTrue(m_superstructure.shoot());
     m_codriver
         .leftTrigger()
         .whileTrue(

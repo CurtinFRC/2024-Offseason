@@ -149,7 +149,7 @@ public class Arm extends SubsystemBase {
    * @return a {@link Command} to get to the desired position.
    */
   public Command hold(double angle) {
-    return achievePosition(angle);
+    return achievePosition(angle).andThen(maintain());
   }
 
   /**
