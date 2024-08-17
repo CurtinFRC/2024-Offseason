@@ -41,7 +41,8 @@ public class Arm extends SubsystemBase {
     kAmp,
     kIntake,
     kSpeaker,
-    kStowed
+    kStowed,
+    kShuttling
   }
 
   private final CANSparkMax m_primaryMotor =
@@ -190,6 +191,7 @@ public class Arm extends SubsystemBase {
       case kIntake -> position = 0.2;
       case kSpeaker -> position = 0.2;
       case kStowed -> position = 0.2;
+      case kShuttling -> position = 0.2;
     }
 
     return moveToPosition(position);
