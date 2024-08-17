@@ -19,8 +19,16 @@ import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrain;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrainConstants;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
+import com.pathplanner.lib.auto.*;
+import com.pathplanner.lib.commands.*;
+import com.pathplanner.lib.util.*;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.networktables.BooleanPublisher;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StringPublisher;
 import edu.wpi.first.units.Angle;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.MutableMeasure;
@@ -34,6 +42,7 @@ import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.generated.TunerConstants;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -46,6 +55,13 @@ import java.util.function.Supplier;
  */
 @SuppressWarnings("PMD.SingularField")
 public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsystem {
+  private final NetworkTable driveStats = NetworkTableInstance.getDefault().getTable("Drive");
+  private final StringPublisher m_activeCommand =
+      driveStats.getStringTopic("Active Command").publish();
+  private final BooleanPublisher m_activeCommandFinished =
+      driveStats.getBooleanTopic("Active Command Finished").publish();
+  private final SwerveRequest.ApplyChassisSpeeds AutoRequest =
+      new SwerveRequest.ApplyChassisSpeeds();
   private static final double kSimLoopPeriod = 0.005; // 5 ms
   private Notifier m_simNotifier;
   private double m_lastSimTime;
@@ -85,6 +101,8 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
 
     m_swerveController =
         Choreo.choreoSwerveController(m_xController, m_yController, m_rotationController);
+
+    configurePathPlanner();
   }
 
   public CommandSwerveDrivetrain(
@@ -106,6 +124,39 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
       m_driveSysIdRoutines[i] = createSysIdRoutine(module.getDriveMotor());
       m_steerSysIdRoutines[i] = createSysIdRoutine(module.getSteerMotor());
     }
+
+    configurePathPlanner();
+  }
+
+  private void configurePathPlanner() {
+    double driveBaseRadius = 0;
+    for (var moduleLocation : m_moduleLocations) {
+      driveBaseRadius = Math.max(driveBaseRadius, moduleLocation.getNorm());
+    }
+
+    AutoBuilder.configureHolonomic(
+        () -> this.getState().Pose, // Supplier of current robot pose
+        this::seedFieldRelative, // Consumer for seeding pose against auto
+        this::getCurrentRobotChassisSpeeds,
+        (speeds) ->
+            this.setControl(
+                AutoRequest.withSpeeds(speeds)), // Consumer of ChassisSpeeds to drive the robot
+        new HolonomicPathFollowerConfig(
+            new PIDConstants(10, 0, 0),
+            new PIDConstants(10, 0, 0),
+            TunerConstants.kSpeedAt12VoltsMps,
+            driveBaseRadius,
+            new ReplanningConfig()),
+        () ->
+            DriverStation.getAlliance().orElse(Alliance.Blue)
+                == Alliance
+                    .Red, // Assume the path needs to be flipped for Red vs Blue, this is normally
+        // the case
+        this); // Subsystem for requirements
+  }
+
+  public ChassisSpeeds getCurrentRobotChassisSpeeds() {
+    return m_kinematics.toChassisSpeeds(getState().ModuleStates);
   }
 
   private SysIdRoutine createSysIdRoutine(TalonFX motor) {
@@ -225,6 +276,12 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
                 hasAppliedOperatorPerspective = true;
               });
     }
+
+    var currentcommand = getCurrentCommand();
+    if (currentcommand != null) {
+      m_activeCommand.set(currentcommand.toString());
+      m_activeCommandFinished.set(currentcommand.isFinished());
+    }
   }
 
   /**
@@ -302,5 +359,12 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     }
 
     return sysidCommands;
+  }
+
+  public Command getAutoPath(String pathName) {
+    var initPose = PathPlannerAuto.getStaringPoseFromAutoFile(pathName);
+    m_odometry.resetPosition(initPose.getRotation(), m_modulePositions, initPose);
+    // return new PathPlannerAuto(pathName);
+    return AutoBuilder.buildAuto(pathName);
   }
 }

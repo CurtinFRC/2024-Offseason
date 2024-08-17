@@ -12,9 +12,11 @@ import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.BooleanPublisher;
 import edu.wpi.first.networktables.DoublePublisher;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StringPublisher;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Voltage;
 import edu.wpi.first.util.datalog.DataLog;
@@ -30,6 +32,12 @@ import frc.robot.Constants;
 public class Shooter extends SubsystemBase {
   private final CANSparkMax m_motor = new CANSparkMax(Constants.shooterPort, MotorType.kBrushless);
   private final RelativeEncoder m_encoder = m_motor.getEncoder();
+
+  private final NetworkTable driveStats = NetworkTableInstance.getDefault().getTable("Shooter");
+  private final StringPublisher m_activeCommand =
+      driveStats.getStringTopic("Active Command").publish();
+  private final BooleanPublisher m_activeCommandFinished =
+      driveStats.getBooleanTopic("Active Command Finished").publish();
 
   private final PIDController m_pid =
       new PIDController(Constants.shooterP, Constants.shooterI, Constants.shooterD);
@@ -84,8 +92,7 @@ public class Shooter extends SubsystemBase {
    * @return a {@link Command} to get to the desired speed.
    */
   public Command spinup(double speed) {
-    return defer(
-        () -> achieveSpeeds(speed).until(m_pid::atSetpoint));
+    return defer(() -> achieveSpeeds(speed).until(m_pid::atSetpoint));
   }
 
   public Command stop() {
@@ -120,5 +127,11 @@ public class Shooter extends SubsystemBase {
   @Override
   public void periodic() {
     m_ntRotationalVelocity.set(Units.rotationsPerMinuteToRadiansPerSecond(m_encoder.getVelocity()));
+
+    var currentcommand = getCurrentCommand();
+    if (currentcommand != null) {
+      m_activeCommand.set(currentcommand.toString());
+      m_activeCommandFinished.set(currentcommand.isFinished());
+    }
   }
 }

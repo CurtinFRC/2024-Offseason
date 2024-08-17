@@ -22,19 +22,23 @@ public class Superstructure {
   }
 
   public Command intake() {
-    m_index.m_intaking.onTrue(
-        Commands.parallel(
-            m_intake.intake(5).until(m_index.m_hasNote).andThen(m_intake.stop()),
-            m_index.intake(-5).until(m_index.m_hasNote).andThen(m_index.stop())));
+    // m_index.m_intaking.onTrue(
+    //     Commands.parallel(
+    //         m_intake.intake(5).until(m_index.m_hasNote).andThen(m_intake.stop()),
+    //         m_index.intake(-5).until(m_index.m_hasNote).andThen(m_index.stop())));
+    // return m_intake.intake(8);
     return m_intake.intake(8).until(m_index.m_intaking);
   }
 
   public Command shoot() {
-    return m_shooter.spinup(500).andThen(Commands.parallel(m_shooter.maintain(), m_index.shoot()));
+    // return m_shooter.applyVolts(12);
+    return m_shooter
+        .spinup(500)
+        .withTimeout(1.5)
+        .andThen(Commands.parallel(m_shooter.maintain(), m_index.shoot()));
   }
 
   public Command outake_shooter() {
-    // return Commands.parallel(m_shooter.applyVolts(6), m_index.shoot());
     return m_shooter.applyVolts(-6);
   }
 

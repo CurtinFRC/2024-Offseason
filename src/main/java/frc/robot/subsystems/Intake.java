@@ -11,6 +11,10 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.BooleanPublisher;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StringPublisher;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -21,6 +25,12 @@ import frc.robot.Constants;
 public class Intake extends SubsystemBase {
   private final CANSparkMax m_motor = new CANSparkMax(Constants.intakePort, MotorType.kBrushless);
   private final RelativeEncoder m_encoder = m_motor.getEncoder();
+
+  private final NetworkTable driveStats = NetworkTableInstance.getDefault().getTable("Intake");
+  private final StringPublisher m_activeCommand =
+      driveStats.getStringTopic("Active Command").publish();
+  private final BooleanPublisher m_activeCommandFinished =
+      driveStats.getBooleanTopic("Active Command Finished").publish();
 
   private final PIDController m_pid =
       new PIDController(Constants.intakeP, Constants.intakeI, Constants.intakeD);
@@ -76,5 +86,14 @@ public class Intake extends SubsystemBase {
 
   public Command sysIdDynamic(SysIdRoutine.Direction direction) {
     return m_sysIdRoutine.dynamic(direction);
+  }
+
+  @Override
+  public void periodic() {
+    var currentcommand = getCurrentCommand();
+    if (currentcommand != null) {
+      m_activeCommand.set(currentcommand.toString());
+      m_activeCommandFinished.set(currentcommand.isFinished());
+    }
   }
 }

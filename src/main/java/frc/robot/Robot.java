@@ -7,6 +7,7 @@ package frc.robot;
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
+import com.pathplanner.lib.auto.*;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -14,7 +15,6 @@ import edu.wpi.first.wpilibj2.command.CommandRobot;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.autos.WompWompKieran;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Arm.Setpoint;
@@ -29,7 +29,8 @@ import java.util.HashMap;
 
 public class Robot extends CommandRobot {
   private final CommandXboxController m_driver = new CommandXboxController(Constants.driverport);
-  private final CommandXboxController m_codriver = new CommandXboxController(Constants.codriverport);
+  private final CommandXboxController m_codriver =
+      new CommandXboxController(Constants.codriverport);
 
   private final Arm m_arm = new Arm();
   private final Shooter m_shooter = new Shooter();
@@ -41,10 +42,11 @@ public class Robot extends CommandRobot {
   private final Superstructure m_superstructure = new Superstructure(m_shooter, m_intake, m_index);
   private static final CommandSwerveDrivetrain m_drivetrain = TunerConstants.DriveTrain;
 
-  private final SwerveRequest.FieldCentric m_drive = new SwerveRequest.FieldCentric()
-      .withDeadband(Constants.DrivebaseMaxSpeed * 0.1)
-      .withRotationalDeadband(Constants.DrivebaseMaxAngularRate * 0.1)
-      .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
+  private final SwerveRequest.FieldCentric m_drive =
+      new SwerveRequest.FieldCentric()
+          .withDeadband(Constants.DrivebaseMaxSpeed * 0.1)
+          .withRotationalDeadband(Constants.DrivebaseMaxAngularRate * 0.1)
+          .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
   private final SwerveRequest.SwerveDriveBrake m_brake = new SwerveRequest.SwerveDriveBrake();
   private final Telemetry m_logger = new Telemetry();
 
@@ -87,24 +89,32 @@ public class Robot extends CommandRobot {
     m_scheduler.registerSubsystem(m_index);
     m_scheduler.registerSubsystem(m_led);
 
-    m_autoChooser.addOption(
-        "WompWompKieran Blue", new WompWompKieran(m_drivetrain, false).followTrajectory());
-    m_autoChooser.addOption(
-        "WompWompKieran Red", new WompWompKieran(m_drivetrain, true).followTrajectory());
-    m_autoChooser.setDefaultOption(
-        "WompWompKieran Blue", new WompWompKieran(m_drivetrain, false).followTrajectory());
+    NamedCommands.registerCommand(
+        "Shoot",
+        Commands.deferredProxy(
+            () ->
+                m_superstructure
+                    .shoot()
+                    .withTimeout(2)
+                    .andThen(Commands.parallel(m_shooter.stop(), m_index.stop()))));
+    NamedCommands.registerCommand("Arm", m_arm.goToSetpoint(Setpoint.kSpeaker));
+    NamedCommands.registerCommand(
+        "Intake", Commands.deferredProxy(() -> m_superstructure.intake()));
+
+    m_autoChooser.setDefaultOption("Test Auto", m_drivetrain.getAutoPath("TestAuto"));
     SmartDashboard.putData(m_autoChooser);
 
     m_drivetrain.setDefaultCommand(
         m_drivetrain.applyRequest(
-            () -> m_drive
-                .withVelocityX(
-                    Utils.deadzone(-m_driver.getLeftY() * Constants.DrivebaseMaxSpeed))
-                .withVelocityY(
-                    Utils.deadzone(-m_driver.getLeftX() * Constants.DrivebaseMaxSpeed))
-                .withRotationalRate(
-                    Utils.deadzone(
-                        -m_driver.getRightX() * Constants.DrivebaseMaxAngularRate))));
+            () ->
+                m_drive
+                    .withVelocityX(
+                        Utils.deadzone(-m_driver.getLeftY() * Constants.DrivebaseMaxSpeed))
+                    .withVelocityY(
+                        Utils.deadzone(-m_driver.getLeftX() * Constants.DrivebaseMaxSpeed))
+                    .withRotationalRate(
+                        Utils.deadzone(
+                            -m_driver.getRightX() * Constants.DrivebaseMaxAngularRate))));
     m_intake.setDefaultCommand(m_superstructure.intake());
     m_shooter.setDefaultCommand(m_shooter.stop());
     m_index.setDefaultCommand(m_index.stop());
@@ -115,7 +125,11 @@ public class Robot extends CommandRobot {
         .whileTrue(m_arm.manualControl(m_codriver::getLeftY));
 
     m_shooter.m_atSetpoint.whileTrue(m_led.canShoot());
-    m_index.m_hasNote.whileTrue(m_led.hasNote());
+    // m_index.m_hasNote.whileTrue(m_led.hasNote());
+    m_index.m_intaking.onTrue(
+        Commands.parallel(
+            m_intake.intake(5).until(m_index.m_hasNote).andThen(m_intake.stop()),
+            m_index.intake(-5).until(m_index.m_hasNote).andThen(m_index.stop())));
 
     m_driver.a().whileTrue(m_drivetrain.applyRequest(() -> m_brake));
     m_driver.y().onTrue(m_drivetrain.runOnce(() -> m_drivetrain.seedFieldRelative()));
@@ -146,8 +160,13 @@ public class Robot extends CommandRobot {
               }
             });
     m_codriver.y().onTrue(m_superstructure.stop());
-    m_codriver.b().whileTrue(
-        m_arm.goToSetpoint(Setpoint.kShuttling)
-            .andThen(Commands.parallel(m_arm.maintain(), m_shooter.spinup(500).andThen(m_shooter.maintain()))));
+    m_codriver
+        .b()
+        .whileTrue(
+            m_arm
+                .goToSetpoint(Setpoint.kShuttling)
+                .andThen(
+                    Commands.parallel(
+                        m_arm.maintain(), m_shooter.spinup(500).andThen(m_shooter.maintain()))));
   }
 }
