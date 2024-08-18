@@ -28,8 +28,8 @@ public final class Constants {
   public static final double climberD = 0;
 
   public static final int intakePort = 32;
-  public static final int intakeFrontBeambreak = 6;
-  public static final int intakeBackBeambreak = 5;
+  public static final int intakeFrontBeambreak = 5;
+  public static final int intakeBackBeambreak = 6;
   public static final double intakeP = 3.896e-05;
   public static final double intakeI = 0;
   public static final double intakeD = 0;
@@ -37,7 +37,7 @@ public final class Constants {
   public static final double intakeV = 0.0020349;
   public static final double intakeA = 0.00018939;
 
-  public static final double armP = 37.5;
+  public static final double armP = 10;
   public static final double armI = 0;
   public static final double armD = 0;
   public static final double armS = 0;

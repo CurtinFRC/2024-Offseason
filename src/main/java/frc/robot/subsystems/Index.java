@@ -37,6 +37,7 @@ public class Index extends SubsystemBase {
   public Index() {}
 
   public Command shoot() {
+    // return run(() -> m_motor.setVoltage(-8)).until(m_hasNote);
     return run(() -> m_motor.setVoltage(-8)).until(m_hasNote.negate());
     // return run(() -> m_motor.setVoltage(-8));
   }

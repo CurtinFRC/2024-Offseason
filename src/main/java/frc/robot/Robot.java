@@ -8,15 +8,12 @@ import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.*;
-
-import edu.wpi.first.util.sendable.Sendable;
-import edu.wpi.first.util.sendable.SendableBuilder;
-import edu.wpi.first.util.sendable.SendableRegistry;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandRobot;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.generated.TunerConstants;
@@ -101,11 +98,21 @@ public class Robot extends CommandRobot {
                 .shoot()
                 .withTimeout(2)
                 .andThen(Commands.parallel(m_shooter.stop(), m_index.stop()))));
+    NamedCommands.registerCommand(
+        "Shoot2",
+        Commands.deferredProxy(
+            () -> Commands.parallel(m_superstructure
+                .shoot()
+                .withTimeout(2)
+                .andThen(Commands.parallel(m_shooter.stop(), m_index.stop())),
+            m_arm.moveToPosition(0.7528).andThen(m_arm.maintain()))));
     NamedCommands.registerCommand("Arm", m_arm.goToSetpoint(Setpoint.kSpeaker));
     NamedCommands.registerCommand(
         "Intake", Commands.deferredProxy(() -> m_superstructure.intake()));
+    NamedCommands.registerCommand(
+        "OTFArm", m_arm.moveToPosition(0.7528).andThen(m_arm.maintain()));
 
-    m_autoChooser.setDefaultOption("Amp14523", m_drivetrain.getAutoPath("Amp14523"));
+    m_autoChooser.setDefaultOption("Amp14523", m_drivetrain.getAutoPath("OTFtest"));
     SmartDashboard.putData(m_autoChooser);
     SmartDashboard.putNumber("Arm", armangle);
 
@@ -128,30 +135,35 @@ public class Robot extends CommandRobot {
     new Trigger(() -> m_codriver.getLeftY() > 0.05)
         .whileTrue(m_arm.manualControl(m_codriver::getLeftY));
 
-    m_codriver.povUp()
-        .whileTrue(Commands.defer(
-            () -> m_arm.moveToPosition(SmartDashboard.getNumber("Arm", 0.2)).andThen(m_arm.maintain()), Set.of(m_arm)));
+    m_codriver
+        .povUp()
+        .whileTrue(
+            Commands.defer(
+                () -> m_arm
+                    .moveToPosition(SmartDashboard.getNumber("Arm", 0.2))
+                    .andThen(m_arm.maintain()),
+                Set.of(m_arm)));
 
     m_shooter.m_atSetpoint.whileTrue(m_led.canShoot());
     m_index.m_hasNote.whileTrue(m_led.hasNote());
     m_index.m_intaking.onTrue(
         Commands.parallel(
             m_intake.intake(5).until(m_index.m_hasNote).andThen(m_intake.stop()),
-            m_index.intake(-5).until(m_index.m_hasNote).andThen(m_index.stop())));
+            m_index.intake(-5).until(m_index.m_hasNote).andThen(new WaitCommand(0.5)).andThen(m_index.intake(1))
+                .until(m_index.m_hasNote).andThen(m_index.stop())));
 
     m_driver.a().whileTrue(m_drivetrain.applyRequest(() -> m_brake));
     m_driver.y().onTrue(m_drivetrain.runOnce(() -> m_drivetrain.seedFieldRelative()));
 
     m_codriver.a().onTrue(m_climber.climb());
     m_codriver.leftBumper().whileTrue(m_index.shoot());
-    // m_codriver.rightBumper().whileTrue(m_superstructure.outake());
-    m_codriver.rightBumper().whileTrue(m_superstructure.shoot());
+    m_codriver.rightBumper().whileTrue(m_superstructure.outake());
     m_codriver
         .leftTrigger()
         .whileTrue(
             Commands.parallel(
                 m_arm.goToSetpoint(Setpoint.kSpeaker).andThen(m_arm.maintain()),
-                m_shooter.spinup(500).andThen(m_shooter.maintain())));
+                m_shooter.spinup(1500).andThen(m_shooter.maintain())));
     m_codriver
         .rightTrigger()
         .whileTrue(
@@ -169,13 +181,14 @@ public class Robot extends CommandRobot {
               }
             });
     m_codriver.y().onTrue(m_superstructure.stop());
-    m_codriver
-        .b()
-        .whileTrue(
-            m_arm
-                .goToSetpoint(Setpoint.kShuttling)
-                .andThen(
-                    Commands.parallel(
-                        m_arm.maintain(), m_shooter.spinup(500).andThen(m_shooter.maintain()))));
+    // m_codriver
+    // .b()
+    // .whileTrue(
+    // m_arm
+    // .goToSetpoint(Setpoint.kShuttling)
+    // .andThen(
+    // Commands.parallel(
+    // m_arm.maintain(), m_shooter.spinup(1000).andThen(m_shooter.maintain()))));
+    m_codriver.b().whileTrue(m_shooter.spinup(1500).andThen(m_shooter.maintain()));
   }
 }

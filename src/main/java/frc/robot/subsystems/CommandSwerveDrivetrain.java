@@ -10,6 +10,7 @@ import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 
 import com.choreo.lib.Choreo;
+import frc.robot.LimelightHelpers;
 import com.choreo.lib.ChoreoControlFunction;
 import com.ctre.phoenix6.Orchestra;
 import com.ctre.phoenix6.Utils;
@@ -22,13 +23,17 @@ import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.*;
 import com.pathplanner.lib.commands.*;
 import com.pathplanner.lib.util.*;
+
+import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.networktables.BooleanPublisher;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StringPublisher;
+import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.units.Angle;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.MutableMeasure;
@@ -50,18 +55,18 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
- * Class that extends the Phoenix SwerveDrivetrain class and implements subsystem so it can be used
+ * Class that extends the Phoenix SwerveDrivetrain class and implements
+ * subsystem so it can be used
  * in command-based projects easily.
  */
 @SuppressWarnings("PMD.SingularField")
 public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsystem {
   private final NetworkTable driveStats = NetworkTableInstance.getDefault().getTable("Drive");
-  private final StringPublisher m_activeCommand =
-      driveStats.getStringTopic("Active Command").publish();
-  private final BooleanPublisher m_activeCommandFinished =
-      driveStats.getBooleanTopic("Active Command Finished").publish();
-  private final SwerveRequest.ApplyChassisSpeeds AutoRequest =
-      new SwerveRequest.ApplyChassisSpeeds();
+  private final StringPublisher m_activeCommand = driveStats.getStringTopic("Active Command").publish();
+  private final StructPublisher m_limelightPose = driveStats.getStructTopic("Limelight Pose", Pose2d.struct).publish();
+  private final BooleanPublisher m_activeCommandFinished = driveStats.getBooleanTopic("Active Command Finished")
+      .publish();
+  private final SwerveRequest.ApplyChassisSpeeds AutoRequest = new SwerveRequest.ApplyChassisSpeeds();
   private static final double kSimLoopPeriod = 0.005; // 5 ms
   private Notifier m_simNotifier;
   private double m_lastSimTime;
@@ -73,8 +78,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
   /* Orchestra classes */
   private final Orchestra m_orchestra = new Orchestra();
   private final ArrayList<String> m_songs = new ArrayList<String>();
-  private static final AudioConfigs m_audioConfig =
-      new AudioConfigs().withAllowMusicDurDisable(true);
+  private static final AudioConfigs m_audioConfig = new AudioConfigs().withAllowMusicDurDisable(true);
 
   /* Blue alliance sees forward as 0 degrees (toward red alliance wall) */
   private final Rotation2d BlueAlliancePerspectiveRotation = Rotation2d.fromDegrees(0);
@@ -94,13 +98,14 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     if (Utils.isSimulation()) {
       startSimThread();
     }
+    int[] validIDs = { 3, 4 };
+    LimelightHelpers.SetFiducialIDFiltersOverride("limelight", validIDs);
 
     m_xController.setTolerance(0.005);
     m_yController.setTolerance(0.005);
     m_rotationController.setTolerance(0.005);
 
-    m_swerveController =
-        Choreo.choreoSwerveController(m_xController, m_yController, m_rotationController);
+    m_swerveController = Choreo.choreoSwerveController(m_xController, m_yController, m_rotationController);
 
     configurePathPlanner();
   }
@@ -111,13 +116,14 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     if (Utils.isSimulation()) {
       startSimThread();
     }
+    int[] validIDs = { 3, 4 };
+    LimelightHelpers.SetFiducialIDFiltersOverride("limelight", validIDs);
 
     m_xController.setTolerance(0.05);
     m_yController.setTolerance(0.05);
     m_rotationController.setTolerance(0.05);
 
-    m_swerveController =
-        Choreo.choreoSwerveController(m_xController, m_yController, m_rotationController);
+    m_swerveController = Choreo.choreoSwerveController(m_xController, m_yController, m_rotationController);
 
     for (int i = 0; i < 4; i++) {
       var module = getModule(i);
@@ -138,19 +144,16 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         () -> this.getState().Pose, // Supplier of current robot pose
         this::seedFieldRelative, // Consumer for seeding pose against auto
         this::getCurrentRobotChassisSpeeds,
-        (speeds) ->
-            this.setControl(
-                AutoRequest.withSpeeds(speeds)), // Consumer of ChassisSpeeds to drive the robot
+        (speeds) -> this.setControl(
+            AutoRequest.withSpeeds(speeds)), // Consumer of ChassisSpeeds to drive the robot
         new HolonomicPathFollowerConfig(
             new PIDConstants(10, 0, 0),
             new PIDConstants(10, 0, 0),
             TunerConstants.kSpeedAt12VoltsMps,
             driveBaseRadius,
             new ReplanningConfig()),
-        () ->
-            DriverStation.getAlliance().orElse(Alliance.Blue)
-                == Alliance
-                    .Red, // Assume the path needs to be flipped for Red vs Blue, this is normally
+        () -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red, // Assume the path needs to be flipped
+                                                                                 // for Red vs Blue, this is normally
         // the case
         this); // Subsystem for requirements
   }
@@ -168,15 +171,14 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         new SysIdRoutine.Config(),
         new SysIdRoutine.Mechanism(
             (Measure<Voltage> volts) -> motor.setVoltage(volts.in(Volts)),
-            log ->
-                log.motor("swerveMotor" + motor.hashCode())
-                    .voltage(
-                        appliedVoltage.mut_replace(
-                            motor.get() * RobotController.getBatteryVoltage(), Volts))
-                    .angularPosition(angle.mut_replace(motor.getPosition().getValue(), Rotations))
-                    .angularVelocity(
-                        velocity.mut_replace(
-                            (motor.getVelocity().getValue() / 2048.0 * 10), RotationsPerSecond)),
+            log -> log.motor("swerveMotor" + motor.hashCode())
+                .voltage(
+                    appliedVoltage.mut_replace(
+                        motor.get() * RobotController.getBatteryVoltage(), Volts))
+                .angularPosition(angle.mut_replace(motor.getPosition().getValue(), Rotations))
+                .angularVelocity(
+                    velocity.mut_replace(
+                        (motor.getVelocity().getValue() / 2048.0 * 10), RotationsPerSecond)),
             this));
   }
 
@@ -188,16 +190,15 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     m_lastSimTime = Utils.getCurrentTimeSeconds();
 
     /* Run simulation at a faster rate so PID gains behave more reasonably */
-    m_simNotifier =
-        new Notifier(
-            () -> {
-              final double currentTime = Utils.getCurrentTimeSeconds();
-              double deltaTime = currentTime - m_lastSimTime;
-              m_lastSimTime = currentTime;
+    m_simNotifier = new Notifier(
+        () -> {
+          final double currentTime = Utils.getCurrentTimeSeconds();
+          double deltaTime = currentTime - m_lastSimTime;
+          m_lastSimTime = currentTime;
 
-              /* use the measured time delta, get battery voltage from WPILib */
-              updateSimState(deltaTime, RobotController.getBatteryVoltage());
-            });
+          /* use the measured time delta, get battery voltage from WPILib */
+          updateSimState(deltaTime, RobotController.getBatteryVoltage());
+        });
 
     m_simNotifier.startPeriodic(kSimLoopPeriod);
   }
@@ -205,7 +206,8 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
   /**
    * Add the given songs from a chirp file.
    *
-   * @param songs The name of the chirp files for the songs to add. Doesn't include file extension.
+   * @param songs The name of the chirp files for the songs to add. Doesn't
+   *              include file extension.
    */
   public void addMusic(String... songs) {
     m_songs.addAll(Arrays.asList(songs));
@@ -282,12 +284,41 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
       m_activeCommand.set(currentcommand.toString());
       m_activeCommandFinished.set(currentcommand.isFinished());
     }
+
+    if (DriverStation.getAlliance().isPresent()) {
+      var doRejectUpdate = false;
+      LimelightHelpers.SetRobotOrientation("limelight", m_odometry.getEstimatedPosition().getRotation().getDegrees(), 0,
+          0, 0, 0, 0);
+      LimelightHelpers.PoseEstimate mt2;
+      if (DriverStation.getAlliance().get() == Alliance.Red) {
+        mt2 = LimelightHelpers.getBotPoseEstimate_wpiRed_MegaTag2("limelight");
+      } else {
+        mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight");
+      }
+      if (Math.abs(m_pigeon2.getRate()) > 720) // if our angular velocity is greater than 720 degrees per second, ignore
+                                               // vision updates
+      {
+        doRejectUpdate = true;
+      }
+      if (mt2 != null) {
+        m_limelightPose.set(mt2.pose);
+        if (mt2.tagCount == 0) {
+          doRejectUpdate = true;
+        }
+        if (!doRejectUpdate) {
+          m_odometry.setVisionMeasurementStdDevs(VecBuilder.fill(.7, .7, 9999999));
+          m_odometry.addVisionMeasurement(
+              mt2.pose,
+              mt2.timestampSeconds);
+        }
+      }
+    }
   }
 
   /**
    * Follow the given trajectory.
    *
-   * @param name The name of the trajectory.
+   * @param name  The name of the trajectory.
    * @param isRed The perspective of the trajectory.
    * @return A Command to follow the given trajectory.
    */
@@ -313,7 +344,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
    * Creates a command for a dynamic drive SysId routine for the specified module.
    *
    * @param moduleIndex The index of the module.
-   * @param direction The direction of the SysId routine.
+   * @param direction   The direction of the SysId routine.
    * @return A command for the dynamic drive SysId routine.
    */
   public Command sysIdDynamicDrive(int moduleIndex, SysIdRoutine.Direction direction) {
@@ -321,10 +352,11 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
   }
 
   /**
-   * Creates a command for a quasistatic steer SysId routine for the specified module.
+   * Creates a command for a quasistatic steer SysId routine for the specified
+   * module.
    *
    * @param moduleIndex The index of the module.
-   * @param direction The direction of the SysId routine.
+   * @param direction   The direction of the SysId routine.
    * @return A command for the quasistatic steer SysId routine.
    */
   public Command sysIdQuasistaticSteer(int moduleIndex, SysIdRoutine.Direction direction) {
@@ -335,7 +367,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
    * Creates a command for a dynamic steer SysId routine for the specified module.
    *
    * @param moduleIndex The index of the module.
-   * @param direction The direction of the SysId routine.
+   * @param direction   The direction of the SysId routine.
    * @return A command for the dynamic steer SysId routine.
    */
   public Command sysIdDynamicSteer(int moduleIndex, SysIdRoutine.Direction direction) {
