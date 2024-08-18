@@ -9,6 +9,7 @@ import com.revrobotics.CANSparkMax;
 import edu.wpi.first.networktables.BooleanPublisher;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StringPublisher;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -21,19 +22,27 @@ public class Index extends SubsystemBase {
   private final DigitalInput backBeamBreak = new DigitalInput(Constants.intakeBackBeambreak);
 
   public final Trigger m_hasNote = new Trigger(backBeamBreak::get);
-  public final Trigger m_intaking = new Trigger(frontBeambreak::get);
+  public final Trigger m_intaking = new Trigger(frontBeambreak::get).negate();
 
   private final NetworkTable driveStats = NetworkTableInstance.getDefault().getTable("Index");
-  private final BooleanPublisher m_ntHasNote = driveStats.getBooleanTopic("Has Note").publish();
-  private final BooleanPublisher m_ntIntaking = driveStats.getBooleanTopic("Intaking").publish();
+  private final StringPublisher m_activeCommand =
+      driveStats.getStringTopic("Active Command").publish();
+  private final BooleanPublisher m_activeCommandFinished =
+      driveStats.getBooleanTopic("Active Command Finished").publish();
+
+  private final NetworkTable indexStats = NetworkTableInstance.getDefault().getTable("Index");
+  private final BooleanPublisher m_ntHasNote = indexStats.getBooleanTopic("Has Note").publish();
+  private final BooleanPublisher m_ntIntaking = indexStats.getBooleanTopic("Intaking").publish();
 
   public Index() {}
 
   public Command shoot() {
     return run(() -> m_motor.setVoltage(-8)).until(m_hasNote.negate());
+    // return run(() -> m_motor.setVoltage(-8));
   }
 
   public Command intake(double voltage) {
+    // return run(() -> m_motor.setVoltage(voltage));
     return run(() -> m_motor.setVoltage(voltage)).until(m_hasNote);
   }
 
@@ -49,5 +58,11 @@ public class Index extends SubsystemBase {
   public void periodic() {
     m_ntHasNote.set(m_hasNote.getAsBoolean());
     m_ntIntaking.set(m_intaking.getAsBoolean());
+
+    var currentcommand = getCurrentCommand();
+    if (currentcommand != null) {
+      m_activeCommand.set(currentcommand.toString());
+      m_activeCommandFinished.set(currentcommand.isFinished());
+    }
   }
 }

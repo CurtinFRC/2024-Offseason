@@ -58,7 +58,7 @@ public class CommandRobot extends TimedRobot {
   public void autonomousExit() {}
 
   @Override
-  public final void teleopInit() {
+  public void teleopInit() {
     if (m_autonomousCommand != null) {
       m_scheduler.cancel(m_autonomousCommand);
     }
