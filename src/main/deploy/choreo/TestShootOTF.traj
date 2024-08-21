@@ -612,7 +612,7 @@
   ],
   "eventMarkers": [
     {
-      "timestamp": 0.6952152926373767,
+      "timestamp": 1.1952152926373767,
       "command": {
         "type": "named",
         "data": {
@@ -623,9 +623,35 @@
     {
       "timestamp": 1.6224608835975058,
       "command": {
-        "type": "named",
+        "type": "sequential",
         "data": {
-          "name": "Shoot2"
+          "commands": [
+            {
+              "type": "named",
+              "data": {
+                "name": "OTFArm"
+              }
+            },
+            {
+              "type": "parallel",
+              "data": {
+                "commands": [
+                  {
+                    "type": "named",
+                    "data": {
+                      "name": "OTFArm"
+                    }
+                  },
+                  {
+                    "type": "named",
+                    "data": {
+                      "name": "Shoot"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
         }
       }
     }

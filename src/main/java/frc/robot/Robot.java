@@ -31,7 +31,8 @@ import java.util.Set;
 
 public class Robot extends CommandRobot {
   private final CommandXboxController m_driver = new CommandXboxController(Constants.driverport);
-  private final CommandXboxController m_codriver = new CommandXboxController(Constants.codriverport);
+  private final CommandXboxController m_codriver =
+      new CommandXboxController(Constants.codriverport);
 
   private final Arm m_arm = new Arm();
   private final Shooter m_shooter = new Shooter();
@@ -43,10 +44,11 @@ public class Robot extends CommandRobot {
   private final Superstructure m_superstructure = new Superstructure(m_shooter, m_intake, m_index);
   private static final CommandSwerveDrivetrain m_drivetrain = TunerConstants.DriveTrain;
 
-  private final SwerveRequest.FieldCentric m_drive = new SwerveRequest.FieldCentric()
-      .withDeadband(Constants.DrivebaseMaxSpeed * 0.1)
-      .withRotationalDeadband(Constants.DrivebaseMaxAngularRate * 0.1)
-      .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
+  private final SwerveRequest.FieldCentric m_drive =
+      new SwerveRequest.FieldCentric()
+          .withDeadband(Constants.DrivebaseMaxSpeed * 0.1)
+          .withRotationalDeadband(Constants.DrivebaseMaxAngularRate * 0.1)
+          .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
   private final SwerveRequest.SwerveDriveBrake m_brake = new SwerveRequest.SwerveDriveBrake();
   private final Telemetry m_logger = new Telemetry();
 
@@ -94,38 +96,44 @@ public class Robot extends CommandRobot {
     NamedCommands.registerCommand(
         "Shoot",
         Commands.deferredProxy(
-            () -> m_superstructure
-                .shoot()
-                .withTimeout(2)
-                .andThen(Commands.parallel(m_shooter.stop(), m_index.stop()))));
+            () ->
+                m_superstructure
+                    .shoot()
+                    .withTimeout(2)
+                    .andThen(Commands.parallel(m_shooter.stop(), m_index.stop()))));
     NamedCommands.registerCommand(
         "Shoot2",
-        Commands.deferredProxy(
-            () -> Commands.parallel(m_superstructure
-                .shoot()
-                .withTimeout(2)
-                .andThen(Commands.parallel(m_shooter.stop(), m_index.stop())),
-            m_arm.moveToPosition(0.7528).andThen(m_arm.maintain()))));
+        m_arm
+            .moveToPosition(0.7528)
+            .andThen(
+                Commands.deferredProxy(
+                    () ->
+                        Commands.parallel(
+                            m_superstructure
+                                .shoot()
+                                .withTimeout(2)
+                                .andThen(Commands.parallel(m_shooter.stop(), m_index.stop())),
+                            m_arm.maintain()))));
     NamedCommands.registerCommand("Arm", m_arm.goToSetpoint(Setpoint.kSpeaker));
     NamedCommands.registerCommand(
         "Intake", Commands.deferredProxy(() -> m_superstructure.intake()));
-    NamedCommands.registerCommand(
-        "OTFArm", m_arm.moveToPosition(0.7528).andThen(m_arm.maintain()));
+    NamedCommands.registerCommand("OTFArm", m_arm.moveToPosition(0.7528).andThen(m_arm.maintain()));
 
-    m_autoChooser.setDefaultOption("Amp14523", m_drivetrain.getAutoPath("OTFtest"));
+    m_autoChooser.setDefaultOption("Amp14523", m_drivetrain.getAutoPath("Centre213"));
     SmartDashboard.putData(m_autoChooser);
     SmartDashboard.putNumber("Arm", armangle);
 
     m_drivetrain.setDefaultCommand(
         m_drivetrain.applyRequest(
-            () -> m_drive
-                .withVelocityX(
-                    Utils.deadzone(-m_driver.getLeftY() * Constants.DrivebaseMaxSpeed))
-                .withVelocityY(
-                    Utils.deadzone(-m_driver.getLeftX() * Constants.DrivebaseMaxSpeed))
-                .withRotationalRate(
-                    Utils.deadzone(
-                        -m_driver.getRightX() * Constants.DrivebaseMaxAngularRate))));
+            () ->
+                m_drive
+                    .withVelocityX(
+                        Utils.deadzone(-m_driver.getLeftY() * Constants.DrivebaseMaxSpeed))
+                    .withVelocityY(
+                        Utils.deadzone(-m_driver.getLeftX() * Constants.DrivebaseMaxSpeed))
+                    .withRotationalRate(
+                        Utils.deadzone(
+                            -m_driver.getRightX() * Constants.DrivebaseMaxAngularRate))));
     m_intake.setDefaultCommand(m_superstructure.intake());
     m_shooter.setDefaultCommand(m_shooter.stop());
     m_index.setDefaultCommand(m_index.stop());
@@ -139,9 +147,10 @@ public class Robot extends CommandRobot {
         .povUp()
         .whileTrue(
             Commands.defer(
-                () -> m_arm
-                    .moveToPosition(SmartDashboard.getNumber("Arm", 0.2))
-                    .andThen(m_arm.maintain()),
+                () ->
+                    m_arm
+                        .moveToPosition(SmartDashboard.getNumber("Arm", 0.2))
+                        .andThen(m_arm.maintain()),
                 Set.of(m_arm)));
 
     m_shooter.m_atSetpoint.whileTrue(m_led.canShoot());
@@ -149,8 +158,13 @@ public class Robot extends CommandRobot {
     m_index.m_intaking.onTrue(
         Commands.parallel(
             m_intake.intake(5).until(m_index.m_hasNote).andThen(m_intake.stop()),
-            m_index.intake(-5).until(m_index.m_hasNote).andThen(new WaitCommand(0.5)).andThen(m_index.intake(1))
-                .until(m_index.m_hasNote).andThen(m_index.stop())));
+            m_index
+                .intake(-5)
+                .until(m_index.m_hasNote)
+                .andThen(new WaitCommand(0.5))
+                .andThen(m_index.intake(2))
+                .until(m_index.m_hasNote)
+                .andThen(m_index.stop())));
 
     m_driver.a().whileTrue(m_drivetrain.applyRequest(() -> m_brake));
     m_driver.y().onTrue(m_drivetrain.runOnce(() -> m_drivetrain.seedFieldRelative()));
