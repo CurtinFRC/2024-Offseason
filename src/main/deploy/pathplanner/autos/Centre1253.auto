@@ -1,0 +1,49 @@
+{
+  "version": 1.0,
+  "startingPose": {
+    "position": {
+      "x": 1.2383723258972168,
+      "y": 5.75889778137207
+    },
+    "rotation": -2.586146940140809e-26
+  },
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "named",
+          "data": {
+            "name": "Arm"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Centre12_5_3.1"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Centre12_5_3.2"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Centre12_5_3.3"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Centre12_5_3.4"
+          }
+        }
+      ]
+    }
+  },
+  "folder": null,
+  "choreoAuto": true
+}
