@@ -38,9 +38,11 @@ public class Index extends SubsystemBase {
 
   public Command shoot() {
     if (!m_hasNote.getAsBoolean()) {
-      return runOnce(() ->{}).withName("Empty Index");
+      return runOnce(() -> {}).withName("Empty Index");
     } else {
-      return run(() -> m_motor.setVoltage(-8)).until(m_hasNote.negate()).withName("Index PassThrough");
+      return run(() -> m_motor.setVoltage(-8))
+          .until(m_hasNote.negate())
+          .withName("Index PassThrough");
     }
   }
 
