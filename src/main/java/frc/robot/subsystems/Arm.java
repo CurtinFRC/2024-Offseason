@@ -182,6 +182,34 @@ public class Arm extends SubsystemBase {
    *
    * @return A {@link Command} to go to the setpoint
    */
+  public Command goToSetpoint(Setpoint setpoint, Trigger holdTrigger) {
+    double tempPosition = 0; // Temporary variable
+    log_setpoint.append(setpoint.name());
+
+    switch (setpoint) {
+        case kAmp -> tempPosition = 1.68;
+        case kIntake -> tempPosition = 0.2;
+        case kSpeaker -> tempPosition = 0.2;
+        case kStowed -> tempPosition = 0.2;
+        case kShuttling -> tempPosition = 0.2;
+    }
+
+    final double position = tempPosition; 
+
+    Command moveCommand = moveToPosition(position);
+
+    Command holdOrReturnCommand = run(
+        () -> {
+            if (holdTrigger.getAsBoolean()) {
+                hold(position).schedule();
+            } else {
+                goToSetpoint(Setpoint.kStowed).schedule();
+            }
+        }
+    ).until(() -> !holdTrigger.getAsBoolean()).andThen(goToSetpoint(Setpoint.kStowed)); 
+    return moveCommand.andThen(holdOrReturnCommand);
+}
+
   public Command goToSetpoint(Setpoint setpoint) {
     double position = 0;
     log_setpoint.append(setpoint.name());
