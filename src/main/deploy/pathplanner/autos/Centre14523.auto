@@ -5,16 +5,102 @@
       "x": 1.233476996421814,
       "y": 5.618833065032959
     },
-    "rotation": 1.035051827793095e-26
+    "rotation": 2.7733612772267898e-27
   },
   "command": {
     "type": "sequential",
     "data": {
       "commands": [
         {
-          "type": "path",
+          "type": "parallel",
           "data": {
-            "pathName": "Centre14523"
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "Spinup"
+                }
+              },
+              {
+                "type": "sequential",
+                "data": {
+                  "commands": [
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "Arm"
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "Passthrough"
+                      }
+                    },
+                    {
+                      "type": "path",
+                      "data": {
+                        "pathName": "Centre14523.1"
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "Passthrough"
+                      }
+                    },
+                    {
+                      "type": "path",
+                      "data": {
+                        "pathName": "Centre14523.2"
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "Passthrough"
+                      }
+                    },
+                    {
+                      "type": "path",
+                      "data": {
+                        "pathName": "Centre14523.3"
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "Passthrough"
+                      }
+                    },
+                    {
+                      "type": "path",
+                      "data": {
+                        "pathName": "Centre14523.4"
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "Passthrough"
+                      }
+                    },
+                    {
+                      "type": "path",
+                      "data": {
+                        "pathName": "Centre14523.5"
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "Passthrough"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
           }
         }
       ]
