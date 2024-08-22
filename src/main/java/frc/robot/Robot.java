@@ -159,6 +159,8 @@ public class Robot extends CommandRobot {
 
     m_shooter.m_atSetpoint.whileTrue(m_led.canShoot());
     m_index.m_hasNote.whileTrue(m_led.hasNote());
+    m_index.m_intaking.whileTrue(m_led.intaking());
+
     m_index.m_intaking.onTrue(
         Commands.parallel(
             m_intake.intake(5).until(m_index.m_hasNote).andThen(m_intake.stop()),

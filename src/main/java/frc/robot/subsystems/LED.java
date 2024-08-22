@@ -30,9 +30,18 @@ public final class LED extends SubsystemBase {
     return defer(
         () -> {
           m_activeState.set("Has Note");
-          return run(() -> m_blinkin.setSpeed(0.73)); // lime
+          return run(() -> m_blinkin.setSpeed(0.75)); // lime
         });
   }
+
+    public Command intaking() {
+    return defer(
+        () -> {
+          m_activeState.set("intaking");
+          return run(() -> m_blinkin.setSpeed(0.73));
+        });
+  }
+
 
   public Command hotpink() {
     return defer(
