@@ -119,7 +119,7 @@ public class Robot extends CommandRobot {
         "Intake", Commands.deferredProxy(() -> m_superstructure.intake()));
     NamedCommands.registerCommand("OTFArm", m_arm.moveToPosition(0.7528).andThen(m_arm.maintain()));
 
-    m_autoChooser.setDefaultOption("Centre1423", m_drivetrain.getAutoPath("Centre1423"));
+    m_autoChooser.setDefaultOption("Center1425", m_drivetrain.getAutoPath("Center1425"));
     SmartDashboard.putData(m_autoChooser);
     SmartDashboard.putNumber("Arm", armangle);
 
