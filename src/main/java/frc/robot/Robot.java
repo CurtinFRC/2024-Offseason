@@ -118,8 +118,10 @@ public class Robot extends CommandRobot {
     NamedCommands.registerCommand(
         "Intake", Commands.deferredProxy(() -> m_superstructure.intake()));
     NamedCommands.registerCommand("OTFArm", m_arm.moveToPosition(0.7528).andThen(m_arm.maintain()));
+    NamedCommands.registerCommand("Spinup", m_shooter.spinup(200).andThen(m_shooter.maintain()));
+    NamedCommands.registerCommand("Passthrough", Commands.deferredProxy(() -> m_index.shoot()));
 
-    m_autoChooser.setDefaultOption("Centre1253", m_drivetrain.getAutoPath("Centre1253"));
+    m_autoChooser.setDefaultOption("Centre1253", m_drivetrain.getAutoPath("Centre213"));
     SmartDashboard.putData(m_autoChooser);
     SmartDashboard.putNumber("Arm", armangle);
 
