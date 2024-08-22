@@ -121,7 +121,7 @@ public class Robot extends CommandRobot {
     NamedCommands.registerCommand("Spinup", m_shooter.spinup(200).andThen(m_shooter.maintain()));
     NamedCommands.registerCommand("Passthrough", Commands.deferredProxy(() -> m_index.shoot()));
 
-    m_autoChooser.setDefaultOption("Centre1253", m_drivetrain.getAutoPath("Centre213"));
+    m_autoChooser.setDefaultOption("Centre1253", m_drivetrain.getAutoPath("Centre1423"));
     SmartDashboard.putData(m_autoChooser);
     SmartDashboard.putNumber("Arm", armangle);
 
@@ -171,7 +171,6 @@ public class Robot extends CommandRobot {
     m_driver.a().whileTrue(m_drivetrain.applyRequest(() -> m_brake));
     m_driver.y().onTrue(m_drivetrain.runOnce(() -> m_drivetrain.seedFieldRelative()));
 
-    m_codriver.a().onTrue(m_climber.climb());
     m_codriver.leftBumper().whileTrue(m_index.shoot());
     m_codriver.rightBumper().whileTrue(m_superstructure.outake());
     m_codriver
