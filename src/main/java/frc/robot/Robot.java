@@ -119,11 +119,14 @@ public class Robot extends CommandRobot {
     NamedCommands.registerCommand(
         "Intake", Commands.deferredProxy(() -> m_superstructure.intake()));
     NamedCommands.registerCommand("OTFArm", m_arm.moveToPosition(0.7528).andThen(m_arm.maintain()));
-    NamedCommands.registerCommand("Spinup", m_shooter.spinup(200).andThen(m_shooter.maintain()));
+    NamedCommands.registerCommand("Spinup", m_shooter.spinup(500).andThen(m_shooter.maintain()));
     NamedCommands.registerCommand("Passthrough", Commands.deferredProxy(() -> m_index.shoot()));
 
-    m_autoChooser.setDefaultOption("Center1425", m_drivetrain.getAutoPath("Center1425"));
+    // m_autoChooser.setDefaultOption("Center1425", m_drivetrain.getAutoPath("Center1425"));
     // m_autoChooser.setDefaultOption("Centre1253", m_drivetrain.getAutoPath("Centre1423"));
+    m_autoChooser.addOption("Center213", m_drivetrain.getAutoPath("Center213"));
+    m_autoChooser.addOption("Center1423", m_drivetrain.getAutoPath("Center1423"));
+    m_autoChooser.setDefaultOption("Centre1423", m_drivetrain.getAutoPath("Centre1423"));
     SmartDashboard.putData(m_autoChooser);
     SmartDashboard.putNumber("Arm", armangle);
 
@@ -165,7 +168,7 @@ public class Robot extends CommandRobot {
         Commands.parallel(
             m_intake.intake(5).until(m_index.m_hasNote).andThen(m_intake.stop()),
             m_index
-                .intake(-5)
+                .intake(-4.5)
                 .until(m_index.m_hasNote)
                 .andThen(new WaitCommand(0.5))
                 .andThen(m_index.intake(2))
