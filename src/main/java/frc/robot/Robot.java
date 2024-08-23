@@ -124,8 +124,8 @@ public class Robot extends CommandRobot {
 
     // m_autoChooser.setDefaultOption("Center1425", m_drivetrain.getAutoPath("Center1425"));
     // m_autoChooser.setDefaultOption("Centre1253", m_drivetrain.getAutoPath("Centre1423"));
-    m_autoChooser.addOption("Center213", m_drivetrain.getAutoPath("Center213"));
-    m_autoChooser.addOption("Center1423", m_drivetrain.getAutoPath("Center1423"));
+    // m_autoChooser.addOption("Center213", m_drivetrain.getAutoPath("Center213"));
+    // m_autoChooser.addOption("Center1423", m_drivetrain.getAutoPath("Center1423"));
     m_autoChooser.setDefaultOption("Centre1423", m_drivetrain.getAutoPath("Centre1423"));
     SmartDashboard.putData(m_autoChooser);
     SmartDashboard.putNumber("Arm", armangle);
@@ -190,7 +190,7 @@ public class Robot extends CommandRobot {
                 m_shooter.spinup(1500).andThen(m_shooter.maintain())));
     m_codriver
         .rightTrigger()
-        .onTrue(
+        .whileTrue(
             Commands.parallel(
                 m_arm.goToSetpoint(Setpoint.kAmp, m_codriver.rightTrigger()).andThen(m_arm.maintain()),
                 m_shooter.applyVolts(8)));
