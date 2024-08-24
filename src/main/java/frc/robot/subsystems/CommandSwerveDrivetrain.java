@@ -438,7 +438,7 @@ public Command goToSetpoint(RotationSetpoint setpoint, SwerveRequest.FieldCentri
             targetPosition.set(-(Math.PI / 2)); // Example angle
             break;
         case kSpeaker:
-            targetPosition.set(0.0); // Facing forward
+            targetPosition.set(Math.PI); // Facing forward
             break;
         default:
             targetPosition.set(0.0);
