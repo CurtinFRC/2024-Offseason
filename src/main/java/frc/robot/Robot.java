@@ -168,7 +168,7 @@ public class Robot extends CommandRobot {
         Commands.parallel(
             m_intake.intake(5).until(m_index.m_hasNote).andThen(m_intake.stop()),
             m_index
-                .intake(-4.5)
+                .intake(-3.5)
                 .until(m_index.m_hasNote)
                 .andThen(new WaitCommand(0.5))
                 .andThen(m_index.intake(2))

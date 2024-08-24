@@ -37,7 +37,7 @@ public final class Constants {
   public static final double intakeV = 0.0020349;
   public static final double intakeA = 0.00018939;
 
-  public static final double armP = 10;
+  public static final double armP = 3.15;
   public static final double armI = 0;
   public static final double armD = 0;
   public static final double armS = 0;
