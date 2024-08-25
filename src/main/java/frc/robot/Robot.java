@@ -115,17 +115,18 @@ public class Robot extends CommandRobot {
                                 .withTimeout(2)
                                 .andThen(Commands.parallel(m_shooter.stop(), m_index.stop())),
                             m_arm.maintain()))));
-    NamedCommands.registerCommand("Arm", m_arm.goToSetpoint(Setpoint.kSpeaker));
+    NamedCommands.registerCommand("Arm", Commands.deferredProxy(() -> m_arm.goToSetpoint(Setpoint.kSpeaker)));
     NamedCommands.registerCommand(
         "Intake", Commands.deferredProxy(() -> m_superstructure.intake()));
     NamedCommands.registerCommand("OTFArm", m_arm.moveToPosition(0.7528).andThen(m_arm.maintain()));
-    NamedCommands.registerCommand("Spinup", m_shooter.spinup(500).andThen(m_shooter.maintain()));
-    NamedCommands.registerCommand("Passthrough", Commands.deferredProxy(() -> m_index.shoot()));
+    NamedCommands.registerCommand("Spinup", Commands.deferredProxy(() -> m_shooter.spinup(500).andThen(m_shooter.maintain())));
+    NamedCommands.registerCommand("Passthrough", Commands.deferredProxy(() -> m_index.shootAuto()));
 
     // m_autoChooser.setDefaultOption("Center1425", m_drivetrain.getAutoPath("Center1425"));
     // m_autoChooser.setDefaultOption("Centre1253", m_drivetrain.getAutoPath("Centre1423"));
     // m_autoChooser.addOption("Center213", m_drivetrain.getAutoPath("Center213"));
-    // m_autoChooser.addOption("Center1423", m_drivetrain.getAutoPath("Center1423"));
+    m_autoChooser.addOption("Centre1423", m_drivetrain.getAutoPath("Centre1423"));
+    m_autoChooser.addOption("Centre1423Blue", m_drivetrain.getAutoPath("Centre1423Blue"));
     m_autoChooser.setDefaultOption("Centre1423", m_drivetrain.getAutoPath("Centre1423"));
     SmartDashboard.putData(m_autoChooser);
     SmartDashboard.putNumber("Arm", armangle);
