@@ -9651,7 +9651,7 @@
             "usesDefaultFieldObstacles": true,
             "circleObstacles": [],
             "eventMarkers": [],
-            "isTrajectoryStale": false
+            "isTrajectoryStale": true
         },
         "Centre14523": {
             "waypoints": [

@@ -115,7 +115,7 @@ public class Robot extends CommandRobot {
                                 .withTimeout(2)
                                 .andThen(Commands.parallel(m_shooter.stop(), m_index.stop())),
                             m_arm.maintain()))));
-    NamedCommands.registerCommand("Arm", Commands.deferredProxy(() -> m_arm.goToSetpointAuto(Setpoint.kSpeaker).withTimeout(1)));
+    NamedCommands.registerCommand("Arm", Commands.deferredProxy(() -> m_arm.goToSetpointAuto(Setpoint.kSpeaker).withTimeout(1.2)));
     NamedCommands.registerCommand(
         "Intake", Commands.deferredProxy(() -> m_superstructure.intake()));
     NamedCommands.registerCommand("OTFArm", m_arm.moveToPosition(0.7528).andThen(m_arm.maintain()));
