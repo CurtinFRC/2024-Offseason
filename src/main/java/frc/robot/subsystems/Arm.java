@@ -51,6 +51,8 @@ public class Arm extends SubsystemBase {
       new CANSparkMax(Constants.armFollowerPort, MotorType.kBrushless);
   private final DutyCycleEncoder m_encoder = new DutyCycleEncoder(Constants.armEncoderPort);
 
+  private final PIDController m_autopid =
+      new PIDController(10, Constants.armI, Constants.armD);
   private final PIDController m_pid =
       new PIDController(Constants.armP, Constants.armI, Constants.armD);
   private final ArmFeedforward m_feedforward =
@@ -104,6 +106,7 @@ public class Arm extends SubsystemBase {
   public Arm() {
     m_followerMotor.follow(m_primaryMotor);
     m_pid.setTolerance(0.05);
+    m_autopid.setTolerance(0.05);
   }
 
   /** Achieves and maintains speed for the primary motor. */
@@ -128,6 +131,23 @@ public class Arm extends SubsystemBase {
         });
   }
 
+  /** Achieves and maintains speed for the primary motor. */
+  private Command achievePositionAuto(double position) {
+    m_pid.setSetpoint(position);
+    return run(
+        () -> {
+          m_lastPosition = position;
+          var pid_output = m_autopid.calculate(getAngle());
+          var ff_output = m_feedforward.calculate(position, (5676 / 250));
+          this.ff_output.set(ff_output);
+          this.pid_output.set(pid_output);
+          this.pid_error.set(m_autopid.getPositionError());
+          this.pid_setpoint.set(m_autopid.getSetpoint());
+          // m_primaryMotor.setVoltage(pid_output * -1);
+          m_primaryMotor.setVoltage(pid_output);
+        });
+  }
+
   public Command stop() {
     return runOnce(() -> m_primaryMotor.set(0));
   }
@@ -140,6 +160,16 @@ public class Arm extends SubsystemBase {
    */
   public Command moveToPosition(double position) {
     return defer(() -> achievePosition(position).until(m_pid::atSetpoint)).andThen(stop());
+  }
+
+  /**
+   * Moves the arm to the specified position then stops.
+   *
+   * @param position The desired position.
+   * @return a {@link Command} to get to the desired position.
+   */
+  public Command moveToPositionAuto(double position) {
+    return defer(() -> achievePositionAuto(position).until(m_pid::atSetpoint)).andThen(stop());
   }
 
   /**
@@ -224,6 +254,21 @@ public class Arm extends SubsystemBase {
     }
 
     return moveToPosition(position);
+  }
+
+  public Command goToSetpointAuto(Setpoint setpoint) {
+    double position = 0;
+    log_setpoint.append(setpoint.name());
+
+    switch (setpoint) {
+      case kAmp -> position = 1.68;
+      case kIntake -> position = 0.2;
+      case kSpeaker -> position = 0.2;
+      case kStowed -> position = 0.2;
+      case kShuttling -> position = 0.2;
+    }
+
+    return moveToPositionAuto(position);
   }
 
   @Override

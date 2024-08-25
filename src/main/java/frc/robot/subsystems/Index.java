@@ -42,7 +42,7 @@ public class Index extends SubsystemBase {
     // } else {
       return run(() -> m_motor.setVoltage(-8))
           // .until(m_hasNote.negate())
-          .withName("Index PassThrough");
+          .withName("Index PassThrough Teleop");
     // }
   }
 
@@ -52,7 +52,7 @@ public class Index extends SubsystemBase {
     // } else {
       return run(() -> m_motor.setVoltage(-8))
           .until(m_hasNote.negate())
-          .withName("Index PassThrough");
+          .withName("Index PassThrough Auto");
     // }
   }
 
