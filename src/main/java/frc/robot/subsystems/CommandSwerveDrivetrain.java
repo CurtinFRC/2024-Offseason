@@ -22,8 +22,6 @@ import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.*;
 import com.pathplanner.lib.commands.*;
 import com.pathplanner.lib.util.*;
-
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -46,12 +44,9 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.Subsystem;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.LimelightHelpers;
 import frc.robot.generated.TunerConstants;
@@ -428,44 +423,56 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     return AutoBuilder.buildAuto(pathName);
   }
 
-public Command goToSetpoint(RotationSetpoint setpoint, SwerveRequest.FieldCentric drivetrain, CommandScheduler scheduler) {
+  public Command goToSetpoint(
+      RotationSetpoint setpoint,
+      SwerveRequest.FieldCentric drivetrain,
+      CommandScheduler scheduler) {
     // Use AtomicReference to hold the target position, so it can be accessed in lambdas
     AtomicReference<Double> targetPosition = new AtomicReference<>(0.0);
 
     // Determine the target position based on the setpoint
     switch (setpoint) {
-        case kAmp:
-            targetPosition.set(-(Math.PI / 2)); // Example angle
-            break;
-        case kSpeaker:
-            targetPosition.set(Math.PI); // Facing forward
-            break;
-        default:
-            targetPosition.set(0.0);
-            break;
+      case kAmp:
+        targetPosition.set(-(Math.PI / 2)); // Example angle
+        break;
+      case kSpeaker:
+        targetPosition.set(Math.PI); // Facing forward
+        break;
+      default:
+        targetPosition.set(0.0);
+        break;
     }
 
-    // Define the command as a lambda that runs continuously until the robot reaches the target position
-    return Commands.run(() -> {
-        // Continuously update the current position
-        double currentPosition = m_odometry.getEstimatedPosition().getRotation().getRadians() % (2 * Math.PI);
-        double rotationOutput = m_rotationController.calculate(currentPosition, targetPosition.get());
+    // Define the command as a lambda that runs continuously until the robot reaches the target
+    // position
+    return Commands.run(
+            () -> {
+              // Continuously update the current position
+              double currentPosition =
+                  m_odometry.getEstimatedPosition().getRotation().getRadians() % (2 * Math.PI);
+              double rotationOutput =
+                  m_rotationController.calculate(currentPosition, targetPosition.get());
 
-        // Apply the rotational output to the drivetrain
-        drivetrain.withRotationalRate(rotationOutput);
+              // Apply the rotational output to the drivetrain
+              drivetrain.withRotationalRate(rotationOutput);
 
-        // Debug print to verify execution
-        System.out.println("Moving towards setpoint...");
+              // Debug print to verify execution
+              System.out.println("Moving towards setpoint...");
 
-    // Specify when the command should stop (when the target position is reached)
-    })
-    .until(() -> Math.abs(m_odometry.getEstimatedPosition().getRotation().getRadians() - targetPosition.get()) < 0.01)
-    .withTimeout(2)
-    .andThen(() -> {
-        // Stop the drivetrain when the target position is reached
-        drivetrain.withRotationalRate(0);
-        System.out.println("Target position reached.");
-    });
-}
-
+              // Specify when the command should stop (when the target position is reached)
+            })
+        .until(
+            () ->
+                Math.abs(
+                        m_odometry.getEstimatedPosition().getRotation().getRadians()
+                            - targetPosition.get())
+                    < 0.01)
+        .withTimeout(2)
+        .andThen(
+            () -> {
+              // Stop the drivetrain when the target position is reached
+              drivetrain.withRotationalRate(0);
+              System.out.println("Target position reached.");
+            });
+  }
 }

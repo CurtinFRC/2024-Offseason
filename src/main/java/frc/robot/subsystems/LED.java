@@ -34,14 +34,13 @@ public final class LED extends SubsystemBase {
         });
   }
 
-    public Command intaking() {
+  public Command intaking() {
     return defer(
         () -> {
           m_activeState.set("intaking");
           return run(() -> m_blinkin.setSpeed(0.73));
         });
   }
-
 
   public Command hotpink() {
     return defer(

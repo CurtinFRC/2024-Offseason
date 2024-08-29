@@ -40,9 +40,9 @@ public class Index extends SubsystemBase {
     // if (!m_hasNote.getAsBoolean()) {
     //   return runOnce(() -> {}).withName("Empty Index");
     // } else {
-      return run(() -> m_motor.setVoltage(-8))
-          // .until(m_hasNote.negate())
-          .withName("Index PassThrough Teleop");
+    return run(() -> m_motor.setVoltage(-8))
+        // .until(m_hasNote.negate())
+        .withName("Index PassThrough Teleop");
     // }
   }
 
@@ -50,9 +50,9 @@ public class Index extends SubsystemBase {
     // if (!m_hasNote.getAsBoolean()) {
     //   return runOnce(() -> {}).withName("Empty Index");
     // } else {
-      return run(() -> m_motor.setVoltage(-8))
-          .until(m_hasNote.negate())
-          .withName("Index PassThrough Auto");
+    return run(() -> m_motor.setVoltage(-8))
+        .until(m_hasNote.negate())
+        .withName("Index PassThrough Auto");
     // }
   }
 

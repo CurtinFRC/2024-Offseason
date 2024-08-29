@@ -51,8 +51,7 @@ public class Arm extends SubsystemBase {
       new CANSparkMax(Constants.armFollowerPort, MotorType.kBrushless);
   private final DutyCycleEncoder m_encoder = new DutyCycleEncoder(Constants.armEncoderPort);
 
-  private final PIDController m_autopid =
-      new PIDController(10, Constants.armI, Constants.armD);
+  private final PIDController m_autopid = new PIDController(10, Constants.armI, Constants.armD);
   private final PIDController m_pid =
       new PIDController(Constants.armP, Constants.armI, Constants.armD);
   private final ArmFeedforward m_feedforward =
@@ -225,7 +224,7 @@ public class Arm extends SubsystemBase {
     //     case kShuttling -> tempPosition = 0.2;
     // }
     //
-    // final double position = tempPosition; 
+    // final double position = tempPosition;
     //
     // Command moveCommand = moveToPosition(position);
     //
@@ -237,9 +236,9 @@ public class Arm extends SubsystemBase {
     //             goToSetpoint(Setpoint.kStowed).schedule();
     //         }
     //     }
-    // ).until(() -> !holdTrigger.getAsBoolean()).andThen(goToSetpoint(Setpoint.kStowed)); 
+    // ).until(() -> !holdTrigger.getAsBoolean()).andThen(goToSetpoint(Setpoint.kStowed));
     // return moveCommand.andThen(holdOrReturnCommand);
-}
+  }
 
   public Command goToSetpoint(Setpoint setpoint) {
     double position = 0;
