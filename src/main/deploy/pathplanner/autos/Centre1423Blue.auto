@@ -1,0 +1,99 @@
+{
+  "version": 1.0,
+  "startingPose": {
+    "position": {
+      "x": 1.2346843481063845,
+      "y": 5.52810525894165
+    },
+    "rotation": 2.6324873302388957e-27
+  },
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "Spinup"
+                }
+              },
+              {
+                "type": "sequential",
+                "data": {
+                  "commands": [
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "Arm"
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "Passthrough"
+                      }
+                    },
+                    {
+                      "type": "path",
+                      "data": {
+                        "pathName": "Centre1423Blue.1"
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "Passthrough"
+                      }
+                    },
+                    {
+                      "type": "path",
+                      "data": {
+                        "pathName": "Centre1423Blue.2"
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "Passthrough"
+                      }
+                    },
+                    {
+                      "type": "path",
+                      "data": {
+                        "pathName": "Centre1423Blue.3"
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "Passthrough"
+                      }
+                    },
+                    {
+                      "type": "path",
+                      "data": {
+                        "pathName": "Centre1423Blue.4"
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "Passthrough"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "folder": null,
+  "choreoAuto": true
+}

@@ -21,6 +21,7 @@ import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Arm.Setpoint;
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.CommandSwerveDrivetrain.RotationSetpoint;
 import frc.robot.subsystems.Index;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.LED;
@@ -114,13 +115,22 @@ public class Robot extends CommandRobot {
                                 .withTimeout(2)
                                 .andThen(Commands.parallel(m_shooter.stop(), m_index.stop())),
                             m_arm.maintain()))));
-    NamedCommands.registerCommand("Arm", m_arm.goToSetpoint(Setpoint.kSpeaker));
+    NamedCommands.registerCommand(
+        "Arm",
+        Commands.deferredProxy(() -> m_arm.goToSetpointAuto(Setpoint.kSpeaker).withTimeout(1.2)));
     NamedCommands.registerCommand(
         "Intake", Commands.deferredProxy(() -> m_superstructure.intake()));
     NamedCommands.registerCommand("OTFArm", m_arm.moveToPosition(0.7528).andThen(m_arm.maintain()));
-    NamedCommands.registerCommand("Spinup", m_shooter.spinup(500).andThen(m_shooter.maintain()));
-    NamedCommands.registerCommand("Passthrough", Commands.deferredProxy(() -> m_index.shoot()));
+    NamedCommands.registerCommand(
+        "Spinup",
+        Commands.deferredProxy(() -> m_shooter.spinup(500).andThen(m_shooter.maintain())));
+    NamedCommands.registerCommand("Passthrough", Commands.deferredProxy(() -> m_index.shootAuto()));
 
+    // m_autoChooser.setDefaultOption("Center1425", m_drivetrain.getAutoPath("Center1425"));
+    // m_autoChooser.setDefaultOption("Centre1253", m_drivetrain.getAutoPath("Centre1423"));
+    // m_autoChooser.addOption("Center213", m_drivetrain.getAutoPath("Center213"));
+    m_autoChooser.addOption("Centre1423", m_drivetrain.getAutoPath("Centre1423"));
+    m_autoChooser.addOption("Centre1423Blue", m_drivetrain.getAutoPath("Centre1423Blue"));
     m_autoChooser.setDefaultOption("Centre1423", m_drivetrain.getAutoPath("Centre1423"));
     SmartDashboard.putData(m_autoChooser);
     SmartDashboard.putNumber("Arm", armangle);
@@ -157,11 +167,13 @@ public class Robot extends CommandRobot {
 
     m_shooter.m_atSetpoint.whileTrue(m_led.canShoot());
     m_index.m_hasNote.whileTrue(m_led.hasNote());
+    m_index.m_intaking.whileTrue(m_led.intaking());
+
     m_index.m_intaking.onTrue(
         Commands.parallel(
             m_intake.intake(5).until(m_index.m_hasNote).andThen(m_intake.stop()),
             m_index
-                .intake(-4.5)
+                .intake(-3.5)
                 .until(m_index.m_hasNote)
                 .andThen(new WaitCommand(0.5))
                 .andThen(m_index.intake(2))
@@ -170,6 +182,12 @@ public class Robot extends CommandRobot {
 
     m_driver.a().whileTrue(m_drivetrain.applyRequest(() -> m_brake));
     m_driver.y().onTrue(m_drivetrain.runOnce(() -> m_drivetrain.seedFieldRelative()));
+    m_driver
+        .leftBumper()
+        .onTrue(m_drivetrain.goToSetpoint(RotationSetpoint.kAmp, m_drive, m_scheduler));
+    m_driver
+        .rightBumper()
+        .onTrue(m_drivetrain.goToSetpoint(RotationSetpoint.kSpeaker, m_drive, m_scheduler));
 
     m_codriver.leftBumper().whileTrue(m_index.shoot());
     m_codriver.rightBumper().whileTrue(m_superstructure.outake());
@@ -177,13 +195,17 @@ public class Robot extends CommandRobot {
         .leftTrigger()
         .whileTrue(
             Commands.parallel(
-                m_arm.goToSetpoint(Setpoint.kSpeaker).andThen(m_arm.maintain()),
+                m_arm
+                    .goToSetpoint(Setpoint.kSpeaker, m_codriver.leftTrigger())
+                    .andThen(m_arm.maintain()),
                 m_shooter.spinup(1500).andThen(m_shooter.maintain())));
     m_codriver
         .rightTrigger()
         .whileTrue(
             Commands.parallel(
-                m_arm.goToSetpoint(Setpoint.kAmp).andThen(m_arm.maintain()),
+                m_arm
+                    .goToSetpoint(Setpoint.kAmp, m_codriver.rightTrigger())
+                    .andThen(m_arm.maintain()),
                 m_shooter.applyVolts(8)));
 
     m_codriverX.whileTrue(m_superstructure.intake()).onFalse(m_intake.stop());
@@ -196,14 +218,6 @@ public class Robot extends CommandRobot {
               }
             });
     m_codriver.y().onTrue(m_superstructure.stop());
-    // m_codriver
-    // .b()
-    // .whileTrue(
-    // m_arm
-    // .goToSetpoint(Setpoint.kShuttling)
-    // .andThen(
-    // Commands.parallel(
-    // m_arm.maintain(), m_shooter.spinup(1000).andThen(m_shooter.maintain()))));
     m_codriver.b().whileTrue(m_shooter.spinup(1500).andThen(m_shooter.maintain()));
   }
 }

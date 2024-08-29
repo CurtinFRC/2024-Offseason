@@ -37,13 +37,23 @@ public class Index extends SubsystemBase {
   public Index() {}
 
   public Command shoot() {
-    if (!m_hasNote.getAsBoolean()) {
-      return runOnce(() -> {}).withName("Empty Index");
-    } else {
-      return run(() -> m_motor.setVoltage(-8))
-          .until(m_hasNote.negate())
-          .withName("Index PassThrough");
-    }
+    // if (!m_hasNote.getAsBoolean()) {
+    //   return runOnce(() -> {}).withName("Empty Index");
+    // } else {
+    return run(() -> m_motor.setVoltage(-8))
+        // .until(m_hasNote.negate())
+        .withName("Index PassThrough Teleop");
+    // }
+  }
+
+  public Command shootAuto() {
+    // if (!m_hasNote.getAsBoolean()) {
+    //   return runOnce(() -> {}).withName("Empty Index");
+    // } else {
+    return run(() -> m_motor.setVoltage(-8))
+        .until(m_hasNote.negate())
+        .withName("Index PassThrough Auto");
+    // }
   }
 
   public Command intake(double voltage) {
