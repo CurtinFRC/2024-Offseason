@@ -55,8 +55,7 @@ def includeDesktopSupport = true
 // Also defines JUnit 5.
 dependencies {
     implementation 'com.google.code.gson:gson:2.8.6'
-    implementation 'com.github.spacey-sooty:revlib-sim:v2024.1.1'
-
+    implementation 'com.github.spacey-sooty:revlib-sim:v2024.1.2'
 
     implementation wpi.java.deps.wpilib()
     implementation wpi.java.vendor.java()

@@ -144,6 +144,5 @@ public class Shooter extends SubsystemBase {
   public void simulationPeriodic() {
     m_simMotor.update(0.02);
     m_encoder.setPosition(m_simMotor.getAngularPositionRotations());
-    m_encoder.setVelocity(m_simMotor.getAngularVelocityRPM());
   }
 }
