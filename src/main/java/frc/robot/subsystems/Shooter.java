@@ -7,10 +7,11 @@ package frc.robot.subsystems;
 import static edu.wpi.first.units.Units.Volts;
 
 import com.revrobotics.CANSparkLowLevel.MotorType;
-import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.BooleanPublisher;
 import edu.wpi.first.networktables.DoublePublisher;
@@ -22,16 +23,20 @@ import edu.wpi.first.units.Voltage;
 import edu.wpi.first.util.datalog.DataLog;
 import edu.wpi.first.util.datalog.DoubleLogEntry;
 import edu.wpi.first.wpilibj.DataLogManager;
+import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
+import revlibsim.SparkMax;
 
 /** Our Crescendo shooter Subsystem */
 public class Shooter extends SubsystemBase {
-  private final CANSparkMax m_motor = new CANSparkMax(Constants.shooterPort, MotorType.kBrushless);
+  private final SparkMax m_motor = new SparkMax(Constants.shooterPort, MotorType.kBrushless);
   private final RelativeEncoder m_encoder = m_motor.getEncoder();
+
+  private final DCMotorSim m_simMotor = new DCMotorSim(LinearSystemId.createDCMotorSystem(0.0021896, 0.00070176), DCMotor.getNEO(1), 1.25);
 
   private final NetworkTable driveStats = NetworkTableInstance.getDefault().getTable("Shooter");
   private final StringPublisher m_activeCommand =
@@ -70,7 +75,7 @@ public class Shooter extends SubsystemBase {
   /** Creates a new {@link Shooter} {@link edu.wpi.first.wpilibj2.command.Subsystem}. */
   public Shooter() {}
 
-  /** Acheives and maintains speed. */
+  /** Achieves and maintains speed. */
   private Command achieveSpeeds(double _speed) {
     var speed = Units.radiansPerSecondToRotationsPerMinute(_speed);
     m_pid.setSetpoint(speed);
@@ -133,5 +138,12 @@ public class Shooter extends SubsystemBase {
       m_activeCommand.set(currentcommand.toString());
       m_activeCommandFinished.set(currentcommand.isFinished());
     }
+  }
+
+  @Override
+  public void simulationPeriodic() {
+    m_simMotor.update(0.02);
+    m_encoder.setPosition(m_simMotor.getAngularPositionRotations());
+    m_encoder.setVelocity(m_simMotor.getAngularVelocityRPM());
   }
 }

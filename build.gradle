@@ -5,6 +5,10 @@ plugins {
     id 'com.diffplug.spotless' version '6.25.0' apply false
 }
 
+repositories {
+  maven { url 'https://jitpack.io' }
+}
+
 java {
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
@@ -23,9 +27,7 @@ deploy {
             // want to store a team number in this file.
             team = project.frc.getTeamNumber()
             debug = project.frc.getDebugOrDefault(false)
-
-            artifacts {
-                // First part is artifact name, 2nd is artifact type
+artifacts { // First part is artifact name, 2nd is artifact type
                 // getTargetTypeClass is a shortcut to get the class type using a string
 
                 frcJava(getArtifactTypeClass('FRCJavaArtifact')) {
@@ -53,6 +55,8 @@ def includeDesktopSupport = true
 // Also defines JUnit 5.
 dependencies {
     implementation 'com.google.code.gson:gson:2.8.6'
+    implementation 'com.github.spacey-sooty:revlib-sim:v2024.1.1'
+
 
     implementation wpi.java.deps.wpilib()
     implementation wpi.java.vendor.java()

@@ -8,6 +8,10 @@ import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.*;
+
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.Subscriber;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -32,8 +36,7 @@ import java.util.Set;
 
 public class Robot extends CommandRobot {
   private final CommandXboxController m_driver = new CommandXboxController(Constants.driverport);
-  private final CommandXboxController m_codriver =
-      new CommandXboxController(Constants.codriverport);
+  private final CommandXboxController m_codriver = new CommandXboxController(Constants.codriverport);
 
   private final Arm m_arm = new Arm();
   private final Shooter m_shooter = new Shooter();
@@ -45,17 +48,17 @@ public class Robot extends CommandRobot {
   private final Superstructure m_superstructure = new Superstructure(m_shooter, m_intake, m_index);
   private static final CommandSwerveDrivetrain m_drivetrain = TunerConstants.DriveTrain;
 
-  private final SwerveRequest.FieldCentric m_drive =
-      new SwerveRequest.FieldCentric()
-          .withDeadband(Constants.DrivebaseMaxSpeed * 0.1)
-          .withRotationalDeadband(Constants.DrivebaseMaxAngularRate * 0.1)
-          .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
+  private final SwerveRequest.FieldCentric m_drive = new SwerveRequest.FieldCentric()
+      .withDeadband(Constants.DrivebaseMaxSpeed * 0.1)
+      .withRotationalDeadband(Constants.DrivebaseMaxAngularRate * 0.1)
+      .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
   private final SwerveRequest.SwerveDriveBrake m_brake = new SwerveRequest.SwerveDriveBrake();
   private final Telemetry m_logger = new Telemetry();
 
   private final Trigger m_codriverX = m_codriver.x();
 
-  double armangle = 0.2;
+  Subscriber armangle = NetworkTableInstance.getDefault().getTable("Arm").getDoubleTopic("Desired Angle")
+      .subscribe(0.2);
 
   public Robot() {
     HashMap<Integer, String> urclAliases = new HashMap<>();
@@ -97,24 +100,22 @@ public class Robot extends CommandRobot {
     NamedCommands.registerCommand(
         "Shoot",
         Commands.deferredProxy(
-            () ->
-                m_superstructure
-                    .shoot()
-                    .withTimeout(2)
-                    .andThen(Commands.parallel(m_shooter.stop(), m_index.stop()))));
+            () -> m_superstructure
+                .shoot()
+                .withTimeout(2)
+                .andThen(Commands.parallel(m_shooter.stop(), m_index.stop()))));
     NamedCommands.registerCommand(
         "Shoot2",
         m_arm
             .moveToPosition(0.7528)
             .andThen(
                 Commands.deferredProxy(
-                    () ->
-                        Commands.parallel(
-                            m_superstructure
-                                .shoot()
-                                .withTimeout(2)
-                                .andThen(Commands.parallel(m_shooter.stop(), m_index.stop())),
-                            m_arm.maintain()))));
+                    () -> Commands.parallel(
+                        m_superstructure
+                            .shoot()
+                            .withTimeout(2)
+                            .andThen(Commands.parallel(m_shooter.stop(), m_index.stop())),
+                        m_arm.maintain()))));
     NamedCommands.registerCommand(
         "Arm",
         Commands.deferredProxy(() -> m_arm.goToSetpointAuto(Setpoint.kSpeaker).withTimeout(1.2)));
@@ -126,26 +127,26 @@ public class Robot extends CommandRobot {
         Commands.deferredProxy(() -> m_shooter.spinup(500).andThen(m_shooter.maintain())));
     NamedCommands.registerCommand("Passthrough", Commands.deferredProxy(() -> m_index.shootAuto()));
 
-    // m_autoChooser.setDefaultOption("Center1425", m_drivetrain.getAutoPath("Center1425"));
-    // m_autoChooser.setDefaultOption("Centre1253", m_drivetrain.getAutoPath("Centre1423"));
+    // m_autoChooser.setDefaultOption("Center1425",
+    // m_drivetrain.getAutoPath("Center1425"));
+    // m_autoChooser.setDefaultOption("Centre1253",
+    // m_drivetrain.getAutoPath("Centre1423"));
     // m_autoChooser.addOption("Center213", m_drivetrain.getAutoPath("Center213"));
     m_autoChooser.addOption("Centre1423", m_drivetrain.getAutoPath("Centre1423"));
     m_autoChooser.addOption("Centre1423Blue", m_drivetrain.getAutoPath("Centre1423Blue"));
     m_autoChooser.setDefaultOption("Centre1423", m_drivetrain.getAutoPath("Centre1423"));
     SmartDashboard.putData(m_autoChooser);
-    SmartDashboard.putNumber("Arm", armangle);
 
     m_drivetrain.setDefaultCommand(
         m_drivetrain.applyRequest(
-            () ->
-                m_drive
-                    .withVelocityX(
-                        Utils.deadzone(-m_driver.getLeftY() * Constants.DrivebaseMaxSpeed))
-                    .withVelocityY(
-                        Utils.deadzone(-m_driver.getLeftX() * Constants.DrivebaseMaxSpeed))
-                    .withRotationalRate(
-                        Utils.deadzone(
-                            -m_driver.getRightX() * Constants.DrivebaseMaxAngularRate))));
+            () -> m_drive
+                .withVelocityX(
+                    Utils.deadzone(-m_driver.getLeftY() * Constants.DrivebaseMaxSpeed))
+                .withVelocityY(
+                    Utils.deadzone(-m_driver.getLeftX() * Constants.DrivebaseMaxSpeed))
+                .withRotationalRate(
+                    Utils.deadzone(
+                        -m_driver.getRightX() * Constants.DrivebaseMaxAngularRate))));
     m_intake.setDefaultCommand(m_superstructure.intake());
     m_shooter.setDefaultCommand(m_shooter.stop());
     m_index.setDefaultCommand(m_index.stop());
@@ -159,10 +160,9 @@ public class Robot extends CommandRobot {
         .povUp()
         .whileTrue(
             Commands.defer(
-                () ->
-                    m_arm
-                        .moveToPosition(SmartDashboard.getNumber("Arm", 0.2))
-                        .andThen(m_arm.maintain()),
+                () -> m_arm
+                    .moveToPosition(SmartDashboard.getNumber("Arm", 0.2))
+                    .andThen(m_arm.maintain()),
                 Set.of(m_arm)));
 
     m_shooter.m_atSetpoint.whileTrue(m_led.canShoot());
