@@ -28,7 +28,6 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.networktables.BooleanPublisher;
-import edu.wpi.first.networktables.DoublePublisher;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StringPublisher;
@@ -69,13 +68,9 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
   }
 
   private final NetworkTable driveStats = NetworkTableInstance.getDefault().getTable("Drive");
-  private final DoublePublisher m_target = driveStats.getDoubleTopic("Module/Target").publish();
-  private final DoublePublisher m_position = driveStats.getDoubleTopic("Module/Position").publish();
-  private final DoublePublisher m_error = driveStats.getDoubleTopic("Module/Error").publish();
-  private final DoublePublisher m_output = driveStats.getDoubleTopic("Module/Output").publish();
   private final StringPublisher m_activeCommand =
       driveStats.getStringTopic("Active Command").publish();
-  private final StructPublisher m_limelightPose =
+  private final StructPublisher<Pose2d> m_limelightPose =
       driveStats.getStructTopic("Limelight Pose", Pose2d.struct).publish();
   private final BooleanPublisher m_activeCommandFinished =
       driveStats.getBooleanTopic("Active Command Finished").publish();

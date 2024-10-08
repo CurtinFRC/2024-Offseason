@@ -26,7 +26,6 @@ import frc.robot.subsystems.Index;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.LED;
 import frc.robot.subsystems.Shooter;
-import frc.robot.subsystems.Sysid;
 import java.util.Map;
 import java.util.Set;
 
@@ -41,7 +40,6 @@ public class Robot extends CommandRobot {
   private final Intake m_intake = new Intake();
   private final Index m_index = new Index();
   private final LED m_led = new LED();
-  private final Sysid m_sysid = new Sysid();
   private final Superstructure m_superstructure = new Superstructure(m_shooter, m_intake, m_index);
   private static final CommandSwerveDrivetrain m_drivetrain = TunerConstants.DriveTrain;
 
@@ -71,19 +69,6 @@ public class Robot extends CommandRobot {
     DriverStation.startDataLog(DataLogManager.getLog());
     SignalLogger.setPath(DataLogManager.getLogDir());
     SignalLogger.start();
-    // m_sysid.add(m_shooter::sysIdDynamic);
-    // m_sysid.add(m_shooter::sysIdQuasistatic);
-
-    m_sysid.add(m_arm::sysIdDynamic);
-    m_sysid.add(m_arm::sysIdQuasistatic);
-
-    // m_sysid.add(m_climber::sysIdDynamic);
-    // m_sysid.add(m_climber::sysIdQuasistatic);
-
-    // m_sysid.add(m_intake::sysIdDynamic);
-    // m_sysid.add(m_intake::sysIdQuasistatic);
-
-    // m_sysid.addAll(m_drivetrain.getSysIdCommands());
 
     m_drivetrain.registerTelemetry(m_logger::telemeterize);
 
@@ -126,11 +111,6 @@ public class Robot extends CommandRobot {
         Commands.deferredProxy(() -> m_shooter.spinup(500).andThen(m_shooter.maintain())));
     NamedCommands.registerCommand("Passthrough", Commands.deferredProxy(() -> m_index.shootAuto()));
 
-    // m_autoChooser.setDefaultOption("Center1425",
-    // m_drivetrain.getAutoPath("Center1425"));
-    // m_autoChooser.setDefaultOption("Centre1253",
-    // m_drivetrain.getAutoPath("Centre1423"));
-    // m_autoChooser.addOption("Center213", m_drivetrain.getAutoPath("Center213"));
     m_autoChooser.addOption("Centre1423", m_drivetrain.getAutoPath("Centre1423"));
     m_autoChooser.addOption("Centre1423Blue", m_drivetrain.getAutoPath("Centre1423Blue"));
     m_autoChooser.setDefaultOption("Centre1423", m_drivetrain.getAutoPath("Centre1423"));

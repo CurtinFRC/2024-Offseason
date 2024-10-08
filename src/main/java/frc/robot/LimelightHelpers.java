@@ -24,8 +24,6 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.TimestampedDoubleArray;
-import frc.robot.LimelightHelpers.LimelightResults;
-import frc.robot.LimelightHelpers.PoseEstimate;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -599,33 +597,6 @@ public class LimelightHelpers {
 
     return new PoseEstimate(
         pose, adjustedTimestamp, latency, tagCount, tagSpan, tagDist, tagArea, rawFiducials);
-  }
-
-  private static RawFiducial[] getRawFiducials(String limelightName) {
-    var entry = LimelightHelpers.getLimelightNTTableEntry(limelightName, "rawfiducials");
-    var rawFiducialArray = entry.getDoubleArray(new double[0]);
-    int valsPerEntry = 7;
-    if (rawFiducialArray.length % valsPerEntry != 0) {
-      return new RawFiducial[0];
-    }
-
-    int numFiducials = rawFiducialArray.length / valsPerEntry;
-    RawFiducial[] rawFiducials = new RawFiducial[numFiducials];
-
-    for (int i = 0; i < numFiducials; i++) {
-      int baseIndex = i * valsPerEntry;
-      int id = (int) extractArrayEntry(rawFiducialArray, baseIndex);
-      double txnc = extractArrayEntry(rawFiducialArray, baseIndex + 1);
-      double tync = extractArrayEntry(rawFiducialArray, baseIndex + 2);
-      double ta = extractArrayEntry(rawFiducialArray, baseIndex + 3);
-      double distToCamera = extractArrayEntry(rawFiducialArray, baseIndex + 4);
-      double distToRobot = extractArrayEntry(rawFiducialArray, baseIndex + 5);
-      double ambiguity = extractArrayEntry(rawFiducialArray, baseIndex + 6);
-
-      rawFiducials[i] = new RawFiducial(id, txnc, tync, ta, distToCamera, distToRobot, ambiguity);
-    }
-
-    return rawFiducials;
   }
 
   public static RawDetection[] getRawDetections(String limelightName) {
