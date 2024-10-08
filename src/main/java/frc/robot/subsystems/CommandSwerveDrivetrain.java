@@ -4,8 +4,6 @@
 
 package frc.robot.subsystems;
 
-import com.choreo.lib.Choreo;
-import com.choreo.lib.ChoreoControlFunction;
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrain;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrainConstants;
@@ -60,8 +58,6 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
 
   private final PIDController m_setpointRotationController = new PIDController(7, 0, 0.35);
 
-  private final ChoreoControlFunction m_swerveController;
-
   /* Blue alliance sees forward as 0 degrees (toward red alliance wall) */
   private final Rotation2d BlueAlliancePerspectiveRotation = Rotation2d.fromDegrees(0);
   /* Red alliance sees forward as 180 degrees (toward blue alliance wall) */
@@ -83,9 +79,6 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     m_rotationController.setTolerance(0.005);
     m_setpointRotationController.setTolerance(0.005);
 
-    m_swerveController =
-        Choreo.choreoSwerveController(m_xController, m_yController, m_rotationController);
-
     configurePathPlanner();
   }
 
@@ -99,9 +92,6 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     m_xController.setTolerance(0.05);
     m_yController.setTolerance(0.05);
     m_rotationController.setTolerance(0.05);
-
-    m_swerveController =
-        Choreo.choreoSwerveController(m_xController, m_yController, m_rotationController);
 
     configurePathPlanner();
   }
@@ -193,27 +183,6 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
       m_activeCommand.set(currentcommand.toString());
       m_activeCommandFinished.set(currentcommand.isFinished());
     }
-  }
-
-  /**
-   * Follow the given trajectory.
-   *
-   * @param name The name of the trajectory.
-   * @param isRed The perspective of the trajectory.
-   * @return A Command to follow the given trajectory.
-   */
-  public Command followTrajectory(String name, boolean isRed) {
-    var traj = Choreo.getTrajectory(name);
-    var initPose = traj.getInitialPose();
-    m_odometry.resetPosition(initPose.getRotation(), m_modulePositions, initPose);
-
-    return Choreo.choreoSwerveCommand(
-        traj,
-        () -> getState().Pose,
-        m_swerveController,
-        (speeds) -> setControl(new SwerveRequest.ApplyChassisSpeeds().withSpeeds(speeds)),
-        () -> isRed,
-        this);
   }
 
   public Command getAutoPath(String pathName) {
