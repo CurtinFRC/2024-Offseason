@@ -27,7 +27,7 @@ import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.LED;
 import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.Sysid;
-import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 public class Robot extends CommandRobot {
@@ -58,16 +58,16 @@ public class Robot extends CommandRobot {
   double armangle = 0.2;
 
   public Robot() {
-    HashMap<Integer, String> urclAliases = new HashMap<>();
-    urclAliases.put(Constants.shooterPort, "Shooter");
-    urclAliases.put(Constants.climberPort, "Climber");
-    urclAliases.put(Constants.intakePort, "Intake");
-    urclAliases.put(Constants.indexerPort, "Index");
-    urclAliases.put(Constants.armLeadPort, "Arm Lead");
-    urclAliases.put(Constants.armFollowerPort, "Arm Follower");
-
     DataLogManager.start();
-    URCL.start(urclAliases, false);
+    URCL.start(
+        Map.of(
+            Constants.shooterPort, "Shooter",
+            Constants.climberPort, "Climber",
+            Constants.intakePort, "Intake",
+            Constants.indexerPort, "Index",
+            Constants.armLeadPort, "Arm Lead",
+            Constants.armFollowerPort, "Arm Follower"),
+        false);
     DriverStation.startDataLog(DataLogManager.getLog());
     SignalLogger.setPath(DataLogManager.getLogDir());
     SignalLogger.start();
@@ -126,8 +126,10 @@ public class Robot extends CommandRobot {
         Commands.deferredProxy(() -> m_shooter.spinup(500).andThen(m_shooter.maintain())));
     NamedCommands.registerCommand("Passthrough", Commands.deferredProxy(() -> m_index.shootAuto()));
 
-    // m_autoChooser.setDefaultOption("Center1425", m_drivetrain.getAutoPath("Center1425"));
-    // m_autoChooser.setDefaultOption("Centre1253", m_drivetrain.getAutoPath("Centre1423"));
+    // m_autoChooser.setDefaultOption("Center1425",
+    // m_drivetrain.getAutoPath("Center1425"));
+    // m_autoChooser.setDefaultOption("Centre1253",
+    // m_drivetrain.getAutoPath("Centre1423"));
     // m_autoChooser.addOption("Center213", m_drivetrain.getAutoPath("Center213"));
     m_autoChooser.addOption("Centre1423", m_drivetrain.getAutoPath("Centre1423"));
     m_autoChooser.addOption("Centre1423Blue", m_drivetrain.getAutoPath("Centre1423Blue"));
