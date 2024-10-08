@@ -4,15 +4,9 @@
 
 package frc.robot.subsystems;
 
-import static edu.wpi.first.units.MutableMeasure.mutable;
-import static edu.wpi.first.units.Units.Rotations;
-import static edu.wpi.first.units.Units.RotationsPerSecond;
-import static edu.wpi.first.units.Units.Volts;
-
 import com.choreo.lib.Choreo;
 import com.choreo.lib.ChoreoControlFunction;
 import com.ctre.phoenix6.Utils;
-import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrain;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrainConstants;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModuleConstants;
@@ -30,11 +24,6 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StringPublisher;
 import edu.wpi.first.networktables.StructPublisher;
-import edu.wpi.first.units.Angle;
-import edu.wpi.first.units.Measure;
-import edu.wpi.first.units.MutableMeasure;
-import edu.wpi.first.units.Velocity;
-import edu.wpi.first.units.Voltage;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Notifier;
@@ -43,13 +32,9 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.Subsystem;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.LimelightHelpers;
 import frc.robot.generated.TunerConstants;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -90,9 +75,6 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
   /* Keep track if we've ever applied the operator perspective before or not */
   private boolean hasAppliedOperatorPerspective;
 
-  private final SysIdRoutine[] m_driveSysIdRoutines = new SysIdRoutine[4];
-  private final SysIdRoutine[] m_steerSysIdRoutines = new SysIdRoutine[4];
-
   public CommandSwerveDrivetrain(
       SwerveDrivetrainConstants driveTrainConstants,
       double OdometryUpdateFrequency,
@@ -131,12 +113,6 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     m_swerveController =
         Choreo.choreoSwerveController(m_xController, m_yController, m_rotationController);
 
-    for (int i = 0; i < 4; i++) {
-      var module = getModule(i);
-      m_driveSysIdRoutines[i] = createSysIdRoutine(module.getDriveMotor());
-      m_steerSysIdRoutines[i] = createSysIdRoutine(module.getSteerMotor());
-    }
-
     configurePathPlanner();
   }
 
@@ -169,27 +145,6 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
 
   public ChassisSpeeds getCurrentRobotChassisSpeeds() {
     return m_kinematics.toChassisSpeeds(getState().ModuleStates);
-  }
-
-  private SysIdRoutine createSysIdRoutine(TalonFX motor) {
-    MutableMeasure<Voltage> appliedVoltage = mutable(Volts.of(0));
-    MutableMeasure<Angle> angle = mutable(Rotations.of(0));
-    MutableMeasure<Velocity<Angle>> velocity = mutable(RotationsPerSecond.of(0));
-
-    return new SysIdRoutine(
-        new SysIdRoutine.Config(),
-        new SysIdRoutine.Mechanism(
-            (Measure<Voltage> volts) -> motor.setVoltage(volts.in(Volts)),
-            log ->
-                log.motor("swerveMotor" + motor.hashCode())
-                    .voltage(
-                        appliedVoltage.mut_replace(
-                            motor.get() * RobotController.getBatteryVoltage(), Volts))
-                    .angularPosition(angle.mut_replace(motor.getPosition().getValue(), Rotations))
-                    .angularVelocity(
-                        velocity.mut_replace(
-                            (motor.getVelocity().getValue() / 2048.0 * 10), RotationsPerSecond)),
-            this));
   }
 
   public Command applyRequest(Supplier<SwerveRequest> requestSupplier) {
@@ -297,62 +252,6 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         (speeds) -> setControl(new SwerveRequest.ApplyChassisSpeeds().withSpeeds(speeds)),
         () -> isRed,
         this);
-  }
-
-  public Command sysIdQuasistaticDrive(int moduleIndex, SysIdRoutine.Direction direction) {
-    return m_driveSysIdRoutines[moduleIndex].quasistatic(direction);
-  }
-
-  /**
-   * Creates a command for a dynamic drive SysId routine for the specified module.
-   *
-   * @param moduleIndex The index of the module.
-   * @param direction The direction of the SysId routine.
-   * @return A command for the dynamic drive SysId routine.
-   */
-  public Command sysIdDynamicDrive(int moduleIndex, SysIdRoutine.Direction direction) {
-    return m_driveSysIdRoutines[moduleIndex].dynamic(direction);
-  }
-
-  /**
-   * Creates a command for a quasistatic steer SysId routine for the specified module.
-   *
-   * @param moduleIndex The index of the module.
-   * @param direction The direction of the SysId routine.
-   * @return A command for the quasistatic steer SysId routine.
-   */
-  public Command sysIdQuasistaticSteer(int moduleIndex, SysIdRoutine.Direction direction) {
-    return m_steerSysIdRoutines[moduleIndex].quasistatic(direction);
-  }
-
-  /**
-   * Creates a command for a dynamic steer SysId routine for the specified module.
-   *
-   * @param moduleIndex The index of the module.
-   * @param direction The direction of the SysId routine.
-   * @return A command for the dynamic steer SysId routine.
-   */
-  public Command sysIdDynamicSteer(int moduleIndex, SysIdRoutine.Direction direction) {
-    return m_steerSysIdRoutines[moduleIndex].dynamic(direction);
-  }
-
-  /**
-   * Gets a list of SysId commands for all modules.
-   *
-   * @return A list of SysId commands.
-   */
-  public List<Function<SysIdRoutine.Direction, Command>> getSysIdCommands() {
-    List<Function<SysIdRoutine.Direction, Command>> sysidCommands = new ArrayList<>();
-
-    for (int i = 0; i < 4; i++) {
-      int moduleIndex = i;
-      sysidCommands.add(direction -> sysIdDynamicDrive(moduleIndex, direction));
-      sysidCommands.add(direction -> sysIdQuasistaticDrive(moduleIndex, direction));
-      sysidCommands.add(direction -> sysIdDynamicSteer(moduleIndex, direction));
-      sysidCommands.add(direction -> sysIdQuasistaticSteer(moduleIndex, direction));
-    }
-
-    return sysidCommands;
   }
 
   public Command getAutoPath(String pathName) {
