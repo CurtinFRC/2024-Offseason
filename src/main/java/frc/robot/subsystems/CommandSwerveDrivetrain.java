@@ -14,16 +14,13 @@ import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.*;
 import com.pathplanner.lib.commands.*;
 import com.pathplanner.lib.util.*;
-import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.networktables.BooleanPublisher;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StringPublisher;
-import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Notifier;
@@ -32,7 +29,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.Subsystem;
-import frc.robot.LimelightHelpers;
 import frc.robot.generated.TunerConstants;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
@@ -51,8 +47,6 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
   private final NetworkTable driveStats = NetworkTableInstance.getDefault().getTable("Drive");
   private final StringPublisher m_activeCommand =
       driveStats.getStringTopic("Active Command").publish();
-  private final StructPublisher<Pose2d> m_limelightPose =
-      driveStats.getStructTopic("Limelight Pose", Pose2d.struct).publish();
   private final BooleanPublisher m_activeCommandFinished =
       driveStats.getBooleanTopic("Active Command Finished").publish();
   private final SwerveRequest.ApplyChassisSpeeds AutoRequest =
@@ -83,8 +77,6 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     if (Utils.isSimulation()) {
       startSimThread();
     }
-    int[] validIDs = {3, 4};
-    LimelightHelpers.SetFiducialIDFiltersOverride("limelight", validIDs);
 
     m_xController.setTolerance(0.005);
     m_yController.setTolerance(0.005);
@@ -103,8 +95,6 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     if (Utils.isSimulation()) {
       startSimThread();
     }
-    int[] validIDs = {3, 4};
-    LimelightHelpers.SetFiducialIDFiltersOverride("limelight", validIDs);
 
     m_xController.setTolerance(0.05);
     m_yController.setTolerance(0.05);
@@ -202,34 +192,6 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     if (currentcommand != null) {
       m_activeCommand.set(currentcommand.toString());
       m_activeCommandFinished.set(currentcommand.isFinished());
-    }
-
-    if (DriverStation.getAlliance().isPresent()) {
-      var doRejectUpdate = false;
-      LimelightHelpers.SetRobotOrientation(
-          "limelight", m_odometry.getEstimatedPosition().getRotation().getDegrees(), 0, 0, 0, 0, 0);
-      LimelightHelpers.PoseEstimate mt2;
-      if (DriverStation.getAlliance().get() == Alliance.Red) {
-        mt2 = LimelightHelpers.getBotPoseEstimate_wpiRed_MegaTag2("limelight");
-      } else {
-        mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight");
-      }
-      if (Math.abs(m_pigeon2.getRate())
-          > 720) // if our angular velocity is greater than 720 degrees per second, ignore
-      // vision updates
-      {
-        doRejectUpdate = true;
-      }
-      if (mt2 != null) {
-        m_limelightPose.set(mt2.pose);
-        if (mt2.tagCount == 0) {
-          doRejectUpdate = true;
-        }
-        if (!doRejectUpdate) {
-          m_odometry.setVisionMeasurementStdDevs(VecBuilder.fill(.7, .7, 9999999));
-          m_odometry.addVisionMeasurement(mt2.pose, mt2.timestampSeconds);
-        }
-      }
     }
   }
 
